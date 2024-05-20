@@ -3,5 +3,6 @@
         <a class="btn" href="/colors">Colors</a>
         <a class="btn" href="/components">Components</a>
         <a class="btn" href="/icons">Icons</a>
+        <a class="btn" href="/experiments">Experiments</a>
     </div>
 </div>
