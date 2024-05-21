@@ -1,5 +1,5 @@
 {
-    "name": "icons",
+    "name": "@timephy/tui-icons-svelte",
     "type": "module",
     "version": "1.11.3",
     "description": "The Bootstrap SVG icons converted to be used with Svelte Awesome",

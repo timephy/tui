@@ -1,5 +1,5 @@
 {
-    "name": "colors",
+    "name": "@timephy/tui-colors-tw",
     "version": "1.0.0",
     "description": "The tui tailwind plugin/config.",
     "main": "index.js",
