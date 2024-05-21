@@ -5,8 +5,8 @@ export default {
         extend: {},
     },
     plugins: [
-        require("tui-colors")({}),
-        require("tui-components")({}),
+        require("@timephy/tui-colors-tw")({}),
+        require("@timephy/tui-components-tw")({}),
     ],
 }
 

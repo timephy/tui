@@ -1,6 +1,6 @@
 <script lang="ts">
+    import { globe } from "@timephy/tui-icons-svelte"
     import { Icon } from "svelte-awesome"
-    import { globe } from "tui-icons/icons"
 
     /* ========================================================================================== */
 </script>

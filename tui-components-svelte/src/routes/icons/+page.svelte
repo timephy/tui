@@ -1,6 +1,6 @@
 <script lang="ts">
+    import * as icons from "@timephy/tui-icons-svelte"
     import { Icon } from "svelte-awesome"
-    import * as icons from "tui-icons/icons/index"
 </script>
 
 <div class="flex flex-col items-center p-6">

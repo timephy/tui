@@ -85,6 +85,7 @@ function slug(name: string): string {
 
 const output = fs
     .readdirSync(TARGET_DIR)
+    .filter((file) => file.endsWith(".ts"))
     .map((file) => file.replace(".ts", ""))
     .map((name) => `export { default as ${slug(name)} } from "./${name}"`)
     .join("\n")

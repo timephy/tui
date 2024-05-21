@@ -3,12 +3,15 @@
     "type": "module",
     "version": "1.11.3",
     "description": "The Bootstrap SVG icons converted to be used with Svelte Awesome",
-    "main": "index.js",
     "scripts": {
         "build": "bun build.ts",
         "lint": "prettier ./build.ts --check"
     },
+    "exports": {
+        ".": "./icons/index.js"
+    },
     "files": [
+        "README.md",
         "icons"
     ],
     "author": "",
