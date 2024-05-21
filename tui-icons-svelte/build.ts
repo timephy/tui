@@ -2,7 +2,7 @@ import assert from "assert"
 import fs from "fs"
 import { parse } from "svg-parser"
 
-const SOURCE_DIR = "node_modules/bootstrap-icons/icons"
+const SOURCE_DIR = "../node_modules/bootstrap-icons/icons"
 const TARGET_DIR = "icons"
 
 // skip these files because they contain unsupported elements (`rect`)
@@ -11,6 +11,7 @@ const SKIP_FILES = ["align-top.svg", "align-bottom.svg"]
 // clear target dir
 for (const file of fs.readdirSync(TARGET_DIR)) {
     // print(file)
+    if (file.startsWith(".")) continue
     fs.rmSync(`${TARGET_DIR}/${file}`)
 }
 
