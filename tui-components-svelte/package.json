@@ -25,9 +25,9 @@
     "dependencies": {
         "prettier-plugin-tailwindcss": "^0.5.14",
         "svelte-awesome": "^3.3.1",
-        "tui-colors": "../colors",
-        "tui-components": "../components",
-        "tui-icons": "../icons"
+        "tui-colors": "../tui-colors-tw",
+        "tui-components": "../tui-components-tw",
+        "tui-icons": "../tui-icons-svelte"
     },
     "type": "module"
 }
