@@ -8,7 +8,7 @@
         "build": "vite build",
         "package": "svelte-package",
         "package:watch": "svelte-package --watch",
-        "prepublishOnly": "pnpm run build && pnpm run package && publint",
+        "prepublishOnly": "pnpm run package && publint",
         "preview": "vite preview",
         "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
         "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
