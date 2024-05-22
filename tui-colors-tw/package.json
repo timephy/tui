@@ -2,6 +2,7 @@
     "name": "@timephy/tui-colors-tw",
     "version": "1.0.0",
     "description": "The tui tailwind plugin/config.",
+    "homepage": "https://github.com/timephy/tui/tree/main/tui-colors-tw#readme",
     "scripts": {
         "lint": "prettier . --check"
     },

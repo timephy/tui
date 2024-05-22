@@ -1,5 +1,5 @@
 {
     "workspaces": [
-        "tui-*"
+        "atui-components-svelte-5"
     ]
 }

@@ -40,7 +40,7 @@
     const divClasses = Object.fromEntries(
         Object.entries(colors).map(([color, array]) => {
             return [color, array.map((name) => `bg-${color}-${name}`)]
-        })
+        }),
     )
 </script>
 

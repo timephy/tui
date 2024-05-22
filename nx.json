@@ -1,0 +1,8 @@
+{
+  "installation": {
+    "version": "19.0.4",
+    "plugins": {
+      "@nx/vite": "19.0.4"
+    }
+  }
+}

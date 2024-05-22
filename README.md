@@ -17,3 +17,11 @@ The [Bootstrap SVG icons](https://github.com/twbs/icons) converted to be used wi
 - [ ] Input Text with Buttons left/right
 - [x] Slider
 - [ ]
+
+## Notes
+
+## ⚠️ Somehow the SvelteKit project does not work in a "default npm workspace"
+
+It complains about a dependency importing from `svelte/internal`.
+This is resolved when running `bun install` instead of `npm install`.
+Somehow the splitting of dependencies goes wrong.
