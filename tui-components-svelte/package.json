@@ -5,9 +5,10 @@
     "homepage": "https://github.com/timephy/tui/tree/main/tui-components-svelte#readme",
     "scripts": {
         "dev": "vite dev",
-        "build": "vite build && pnpm run package",
+        "build": "vite build",
         "package": "svelte-package",
         "package:watch": "svelte-package --watch",
+        "prepublishOnly": "pnpm run build && pnpm run package && publint",
         "preview": "vite preview",
         "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
         "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
