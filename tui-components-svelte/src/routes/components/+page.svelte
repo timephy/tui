@@ -1,5 +1,7 @@
-<script>
+<script lang="ts">
     import Slider from "$lib/Slider.svelte"
+
+    let sliderValue: number = 1
 </script>
 
 <div class="flex gap-6 p-6">
@@ -44,7 +46,7 @@
             <a class="link underline" href="#_">Testing</a>
         </div>
         <hr />
-        <p class="pb-1 pl-1 font-mono text-sm">Slider</p>
-        <Slider value={1} min={0} max={2} step={0.05} />
+        <p class="pb-1 pl-1 font-mono text-sm">Slider ({sliderValue})</p>
+        <Slider bind:value={sliderValue} min={0} max={2} step={0.05} />
     </div>
 </div>

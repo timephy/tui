@@ -49,7 +49,7 @@
         <p class="dark:text-[#fff]">{color}</p>
         <div class="flex flex-wrap gap-2">
             {#each classes as cls}
-                <div class="size-24 {cls}" />
+                <div class="size-24 {cls}"></div>
             {/each}
         </div>
     </div>

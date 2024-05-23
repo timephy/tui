@@ -1,11 +1,12 @@
 <script lang="ts">
-    export let value: number
+    let {
+        value = $bindable(),
+        min,
+        max,
+        step,
+    }: { value: number; min: number; max: number; step: number } = $props()
 
-    export let min: number
-    export let max: number
-    export let step: number
-
-    $: percentage = value * (100 / max)
+    let percentage = $derived(value * (100 / max))
 </script>
 
 <div class="flex h-6 w-full items-center">
