@@ -28,7 +28,7 @@ const btnColor = (color) => {
     }
 }
 
-module.exports = plugin.withOptions(
+export default plugin.withOptions(
     function (options = {}) {
         options = { ...defaults, ...options }
         const name = (name) => `.${options.prefix}${name}`

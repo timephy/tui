@@ -1,10 +1,11 @@
 {
     "name": "@timephy/tui-colors-tw",
-    "version": "1.0.0",
+    "version": "0.0.1",
     "description": "The tui tailwind plugin/config.",
     "homepage": "https://github.com/timephy/tui/tree/main/tui-colors-tw#readme",
     "scripts": {
-        "lint": "prettier . --check"
+        "lint": "prettier . --check",
+        "prepublishOnly": "pnpm lint && publint"
     },
     "author": "",
     "license": "MIT",
@@ -12,6 +13,8 @@
         "tailwindcss": ">=3.0.0"
     },
     "devDependencies": {
-        "prettier": "^3.2.5"
-    }
+        "prettier": "^3.2.5",
+        "publint": "^0.2.8"
+    },
+    "type": "module"
 }
