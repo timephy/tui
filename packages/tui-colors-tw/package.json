@@ -4,8 +4,8 @@
     "description": "The tui tailwind plugin/config.",
     "homepage": "https://github.com/timephy/tui/tree/main/tui-colors-tw#readme",
     "scripts": {
-        "lint": "prettier --check . && eslint .",
-        "prepublishOnly": "pnpm run lint && publint"
+        "lint": "prettier --check . && eslint . && publint",
+        "check:publish": "pnpm run lint && "
     },
     "author": "",
     "license": "MIT",

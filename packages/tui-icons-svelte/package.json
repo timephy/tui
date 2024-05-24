@@ -6,10 +6,10 @@
     "description": "The Bootstrap SVG icons converted to be used with Svelte Awesome",
     "scripts": {
         "clean": "rm -rf dist/ icons/*.ts",
-        "lint": "prettier ./generate.ts --check",
+        "lint": "prettier ./generate.ts --check && eslint generate.ts && publint",
         "generate": "bun generate.ts",
-        "build": "tsc",
-        "prepublishOnly": "pnpm lint && pnpm generate && pnpm build && publint"
+        "build": "tsc && rm dist/generate.*",
+        "check:publish": "pnpm lint && pnpm generate && pnpm build && publint"
     },
     "files": [
         "dist"

@@ -7,11 +7,11 @@
         "clean": "rm -rf dist/ .svelte-kit/",
         "dev": "vite dev",
         "build": "vite build && svelte-package",
-        "prepublishOnly": "pnpm run lint && pnpm run package && publint",
+        "check:publish": "pnpm run lint && pnpm run build && publint",
         "preview": "vite preview",
         "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
         "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-        "lint": "pnpm run check && prettier --check .",
+        "lint": "pnpm run check && prettier --check . && publint",
         "format": "prettier --write ."
     },
     "files": [
