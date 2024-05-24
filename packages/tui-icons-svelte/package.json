@@ -12,12 +12,12 @@
         "check:publish": "pnpm lint && pnpm generate && pnpm build && publint"
     },
     "files": [
-        "dist"
+        "dist/icons/"
     ],
     "exports": {
         ".": {
-            "types": "./dist/index.d.ts",
-            "default": "./dist/index.js"
+            "types": "./dist/icons/index.d.ts",
+            "default": "./dist/icons/index.js"
         }
     },
     "author": "",

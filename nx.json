@@ -21,15 +21,9 @@
         "lint": {
             "dependsOn": [
                 "generate",
-                "^build"
+                "build"
             ],
             "cache": true
-        },
-        "nx-release-publish": {
-            "dependsOn": [
-                "lint",
-                "build"
-            ]
         }
     },
     "defaultBase": "main",
