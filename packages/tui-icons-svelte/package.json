@@ -30,5 +30,7 @@
         "typescript": "^5.4.5"
     },
     "type": "module",
-    "private": false
+    "publishConfig": {
+        "access": "public"
+    }
 }

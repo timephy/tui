@@ -53,5 +53,7 @@
         "svelte-awesome": "^3.3.1"
     },
     "type": "module",
-    "private": false
+    "publishConfig": {
+        "access": "public"
+    }
 }
