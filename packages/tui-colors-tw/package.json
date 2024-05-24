@@ -12,5 +12,6 @@
     "peerDependencies": {
         "tailwindcss": ">=3.0.0"
     },
-    "type": "module"
+    "type": "module",
+    "private": false
 }
