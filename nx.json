@@ -1,8 +1,35 @@
 {
-  "installation": {
-    "version": "19.0.4",
-    "plugins": {
-      "@nx/vite": "19.0.4"
+    "installation": {
+        "version": "19.0.4",
+        "plugins": {
+            "@nx/vite": "19.0.4"
+        }
+    },
+    "$schema": "./node_modules/nx/schemas/nx-schema.json",
+    "targetDefaults": {
+        "build": {
+            "dependsOn": [
+                "generate",
+                "^build"
+            ],
+            "outputs": [
+                "{projectRoot}/dist",
+                "{projectRoot}/.svelte-kit"
+            ],
+            "cache": true
+        },
+        "lint": {
+            "dependsOn": [
+                "generate",
+                "^build"
+            ],
+            "cache": true
+        }
+    },
+    "defaultBase": "main",
+    "release": {
+        "projects": [
+            "packages/*"
+        ]
     }
-  }
 }

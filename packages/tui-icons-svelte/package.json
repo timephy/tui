@@ -5,10 +5,11 @@
     "homepage": "https://github.com/timephy/tui/tree/main/tui-icons-svelte#readme",
     "description": "The Bootstrap SVG icons converted to be used with Svelte Awesome",
     "scripts": {
-        "clean": "rm -rf icons/*.ts dist",
-        "build": "bun generate.ts",
+        "clean": "rm -rf dist/ icons/*.ts",
         "lint": "prettier ./generate.ts --check",
-        "prepublishOnly": "pnpm lint && publint"
+        "generate": "bun generate.ts",
+        "build": "tsc",
+        "prepublishOnly": "pnpm lint && pnpm generate && pnpm build && publint"
     },
     "files": [
         "dist"
@@ -26,8 +27,6 @@
         "@types/svg-parser": "^2.0.6",
         "bootstrap-icons": "1.11.3",
         "bun": "^1.1.3",
-        "prettier": "^3.2.5",
-        "publint": "^0.2.8",
         "svg-parser": "^2.0.4",
         "typescript": "^5.4.5"
     }

@@ -9,7 +9,7 @@
     <div class="item flex items-center gap-2 rounded-full py-1 pl-2 pr-[10px]">
         <Icon data={globe} class="text-step-800" />
         <p class="flex -translate-y-[1px] items-center">
-            <span class="text-step-500 pr-px font-light tracking-tight">https://</span>
+            <span class="pr-px font-light tracking-tight text-step-500">https://</span>
             group
             <span class="px-[0.5px]">.</span>
             tube

@@ -4,17 +4,13 @@
     "description": "",
     "homepage": "https://github.com/timephy/tui/tree/main/tui-components-tw#readme",
     "scripts": {
-        "lint": "prettier . --check",
+        "lint": "prettier --check . && eslint .",
         "prepublishOnly": "pnpm lint && publint"
     },
     "author": "",
     "license": "MIT",
     "peerDependencies": {
         "tailwindcss": ">=3.0.0"
-    },
-    "devDependencies": {
-        "prettier": "^3.2.5",
-        "publint": "^0.2.8"
     },
     "type": "module"
 }

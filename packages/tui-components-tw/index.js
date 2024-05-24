@@ -1,4 +1,4 @@
-const plugin = require("tailwindcss/plugin")
+import plugin from "tailwindcss/plugin"
 
 const defaults = {
     // general
@@ -33,6 +33,7 @@ export default plugin.withOptions(
         options = { ...defaults, ...options }
         const name = (name) => `.${options.prefix}${name}`
 
+        // eslint-disable-next-line no-unused-vars
         return function ({ theme, addBase, addComponents }) {
             addBase({
                 html: {
@@ -114,6 +115,7 @@ export default plugin.withOptions(
             })
         }
     },
+    // eslint-disable-next-line no-unused-vars
     function (options = {}) {
         return {}
     },

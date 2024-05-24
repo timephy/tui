@@ -1,8 +1,9 @@
-import assert from "assert"
-import fs from "fs"
+import assert from "node:assert"
+import fs from "node:fs"
 import { parse } from "svg-parser"
 
-const SOURCE_DIR = "../node_modules/bootstrap-icons/icons"
+// path depends on package manager, but pnpm installs local in package
+const SOURCE_DIR = "./node_modules/bootstrap-icons/icons"
 const TARGET_DIR = "icons"
 
 // skip these files because they contain unsupported elements (`rect`)
