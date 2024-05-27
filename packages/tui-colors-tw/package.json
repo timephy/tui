@@ -7,6 +7,10 @@
         "lint": "prettier --check . && eslint . && publint",
         "check:publish": "pnpm run lint && "
     },
+    "files": [
+        "index.js",
+        "colors.js"
+    ],
     "author": "",
     "license": "MIT",
     "peerDependencies": {
