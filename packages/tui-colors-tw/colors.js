@@ -320,7 +320,7 @@ export default function ({ config, addBase }) {
             ...colors_css.dark,
             ...colors_css_mode.light,
             //
-            [darkMode === "class" ? ".dark" : "@media (prefers-color-scheme: dark)"]: {
+            [darkMode === "class" ? "&.dark" : "@media (prefers-color-scheme: dark)"]: {
                 ...colors_css_values_mode.dark,
                 //
                 ...colors_css_mode.dark,
