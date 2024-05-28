@@ -88,6 +88,6 @@ const output = fs
     .readdirSync(TARGET_DIR)
     .filter((file) => file.endsWith(".ts"))
     .map((file) => file.replace(".ts", ""))
-    .map((name) => `export { default as ${slug(name)} } from "./${name}"`)
+    .map((name) => `export { default as ${slug(name)} } from "./${name}.js"`)
     .join("\n")
 fs.writeFileSync(`${TARGET_DIR}/index.ts`, output)
