@@ -1,5 +1,7 @@
 <script lang="ts">
     import Slider from "$lib/Slider.svelte"
+    import { gear_wide_connected } from "@timephy/tui-icons-svelte"
+    import { Icon } from "svelte-awesome"
 
     let sliderValue: number = 1
 </script>
@@ -48,5 +50,11 @@
         <hr />
         <p class="pb-1 pl-1 font-mono text-sm">Slider ({sliderValue})</p>
         <Slider bind:value={sliderValue} min={0} max={2} step={0.05} />
+        <hr />
+        <div class="item item-p">abc</div>
+        <div class="item item-p">abc</div>
+        <div class="card card-p">abc</div>
+        <div class="card card-p">abc</div>
+        <Icon data={gear_wide_connected}></Icon>
     </div>
 </div>

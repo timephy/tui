@@ -51,18 +51,24 @@ export default plugin.withOptions(
                     borderWidth: "var(--border-width)",
                     borderColor: "var(--step-050)",
                 },
+                [name("card-p")]: {
+                    padding: `calc(${options.cardRadius} - ${options.itemRadius})`,
+                },
                 [name("item")]: {
                     backgroundColor: "var(--step-050)",
                     borderRadius: options.itemRadius,
                     borderWidth: "var(--border-width)",
                     borderColor: "var(--step-100)",
                 },
+                [name("item-p")]: {
+                    padding: options.itemRadius,
+                },
                 [name("btn")]: {
                     backgroundColor: "var(--step-100)",
                     borderRadius: options.itemRadius,
                     borderWidth: "var(--border-width)",
                     borderColor: "var(--step-150)",
-                    height: options.buttonHeight,
+                    // height: options.buttonHeight,
                     cursor: "pointer", // for use with <a>
                     userSelect: "none", // for use with <a>
                     display: "flex", // for use with <a>
@@ -81,6 +87,13 @@ export default plugin.withOptions(
                         pointerEvents: "none",
                         opacity: "50%",
                     },
+                },
+                [name("btn-p")]: {
+                    paddingLeft: options.itemRadius,
+                    paddingRight: options.itemRadius,
+                },
+                [name("btn-tall")]: {
+                    height: options.buttonHeight,
                 },
                 [name("btn-thin")]: {
                     height: options.buttonHeightThin,
