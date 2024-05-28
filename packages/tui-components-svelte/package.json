@@ -4,7 +4,7 @@
     "description": "",
     "homepage": "https://github.com/timephy/tui/tree/main/tui-components-svelte#readme",
     "scripts": {
-        "clean": "rm -rf dist/ .svelte-kit/",
+        "clean": "rm -rf dist/ .svelte-kit/ build/",
         "dev": "vite dev",
         "build": "vite build && svelte-package",
         "check:publish": "pnpm run lint && pnpm run build && publint",
@@ -26,7 +26,7 @@
     "author": "",
     "license": "MIT",
     "devDependencies": {
-        "@sveltejs/adapter-auto": "^3.0.0",
+        "@sveltejs/adapter-static": "^3.0.1",
         "@sveltejs/kit": "^2.0.0",
         "@sveltejs/package": "^2.3.1",
         "@sveltejs/vite-plugin-svelte": "^3.0.0",
