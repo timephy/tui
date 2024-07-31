@@ -11,6 +11,7 @@ const defaults = {
     // button
     buttonHeight: "40px",
     buttonHeightThin: "32px",
+    sectionPaddingX: "6px",
 }
 
 const btnColor = (color) => {
@@ -32,7 +33,7 @@ const btnColor = (color) => {
 export default plugin.withOptions(
     function (options = {}) {
         options = { ...defaults, ...options }
-        const name = (name) => `.${options.prefix}${name}`
+        const componentName = (name) => `.${options.prefix}${name}`
 
         // eslint-disable-next-line no-unused-vars
         return function ({ theme, addBase, addComponents, addUtilities }) {
@@ -47,25 +48,25 @@ export default plugin.withOptions(
             })
 
             addComponents({
-                [name("card")]: {
+                [componentName("card")]: {
                     backgroundColor: "rgb(var(--step-000-value), var(--tw-bg-opacity))",
                     borderRadius: options.cardRadius,
                     borderWidth: "var(--border-width)",
                     borderColor: "rgb(var(--step-050-value), var(--tw-border-opacity))",
                 },
-                [name("card-p")]: {
+                [componentName("card-p")]: {
                     padding: `calc(${options.cardRadius} - ${options.itemRadius})`,
                 },
-                [name("item")]: {
+                [componentName("item")]: {
                     backgroundColor: "rgb(var(--step-050-value), var(--tw-bg-opacity))",
                     borderRadius: options.itemRadius,
                     borderWidth: "var(--border-width)",
                     borderColor: "rgb(var(--step-100-value), var(--tw-border-opacity))",
                 },
-                [name("item-p")]: {
+                [componentName("item-p")]: {
                     padding: options.itemRadius,
                 },
-                [name("btn")]: {
+                [componentName("btn")]: {
                     backgroundColor: "rgb(var(--step-100-value), var(--tw-bg-opacity))",
                     borderRadius: options.itemRadius,
                     borderWidth: "var(--border-width)",
@@ -93,17 +94,17 @@ export default plugin.withOptions(
                         outlineColor: "var(--blue-000)",
                     },
                 },
-                [name("btn-p")]: {
+                [componentName("btn-p")]: {
                     paddingLeft: "1rem",
                     paddingRight: "1rem",
                 },
-                [name("btn-tall")]: {
+                [componentName("btn-tall")]: {
                     "min-height": options.buttonHeight,
                 },
-                [name("btn-thin")]: {
+                [componentName("btn-thin")]: {
                     "min-height": options.buttonHeightThin,
                 },
-                [name("btn-transparent")]: {
+                [componentName("btn-transparent")]: {
                     backgroundColor: `transparent`,
                     borderColor: `transparent`,
                     "&:hover": {
@@ -115,7 +116,7 @@ export default plugin.withOptions(
                         borderColor: `rgb(var(--step-350-value), var(--tw-border-opacity))`,
                     },
                 },
-                [name("btn-gray")]: {
+                [componentName("btn-gray")]: {
                     color: "unset",
                     backgroundColor: "rgb(var(--step-100-value), var(--tw-bg-opacity))",
                     borderColor: "rgb(var(--step-150-value), var(--tw-border-opacity))",
@@ -128,11 +129,11 @@ export default plugin.withOptions(
                         borderColor: "rgb(var(--step-350-value), var(--tw-border-opacity))",
                     },
                 },
-                [name("btn-blue")]: btnColor("blue"),
-                [name("btn-green")]: btnColor("green"),
-                [name("btn-red")]: btnColor("red"),
-                [name("btn-orange")]: btnColor("orange"),
-                [name("link")]: {
+                [componentName("btn-blue")]: btnColor("blue"),
+                [componentName("btn-green")]: btnColor("green"),
+                [componentName("btn-red")]: btnColor("red"),
+                [componentName("btn-orange")]: btnColor("orange"),
+                [componentName("link")]: {
                     color: "var(--blue-000)",
                     textUnderlineOffset: "2px", // for when `underline` is used
                     "&:hover": {
@@ -142,9 +143,58 @@ export default plugin.withOptions(
                         color: "var(--blue-200)",
                     },
                 },
+                [componentName("note")]: {
+                    color: "var(--step-500)",
+                    fontSize: "12px",
+                    lineHeight: "1rem",
+                },
+                [componentName("section")]: {
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "8px",
+                    "&>p,&>span,&>h1,&>h2,&>h3,&>h4,&>h5,&>h6": {
+                        paddingLeft: options.sectionPaddingX,
+                        paddingRight: options.sectionPaddingX,
+                    },
+                    "&>hr": {
+                        marginTop: "16px",
+                        marginBottom: "16px",
+                        marginLeft: options.sectionPaddingX,
+                        marginRight: options.sectionPaddingX,
+                    },
+                    "&>h1": {
+                        fontSize: theme("fontSize.xl"),
+                        fontWeight: theme("fontWeight.semibold"),
+                    },
+                    "&>h2": {
+                        fontSize: theme("fontSize.lg"),
+                        fontWeight: theme("fontWeight.medium"),
+                    },
+                    "&>h3": {
+                        fontSize: theme("fontSize.base"),
+                        fontWeight: theme("fontWeight.medium"),
+                    },
+                    "&>p": {
+                        // COPY OF `note`
+                        color: "var(--step-500)",
+                        fontSize: "12px",
+                        lineHeight: "1rem",
+                    },
+                },
             })
 
-            addUtilities({})
+            addUtilities({
+                ".px-section": {
+                    paddingLeft: options.sectionPaddingX,
+                    paddingRight: options.sectionPaddingX,
+                },
+                ".pl-section": {
+                    paddingLeft: options.sectionPaddingX,
+                },
+                ".pr-section": {
+                    paddingRight: options.sectionPaddingX,
+                },
+            })
         }
     },
     // eslint-disable-next-line no-unused-vars
