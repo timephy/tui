@@ -201,6 +201,29 @@ const color_definitions = {
     },
 }
 
+color_definitions.light["primary"] = "0, 0, 0"
+color_definitions.dark["primary"] = "255, 255, 255"
+color_definitions.light["secondary"] = color_definitions.light["step-700"]
+color_definitions.dark["secondary"] = color_definitions.dark["step-700"]
+color_definitions.light["tertiary"] = color_definitions.light["step-500"]
+color_definitions.dark["tertiary"] = color_definitions.dark["step-500"]
+
+for (const mode of [color_definitions.light, color_definitions.dark]) {
+    mode["red"] = mode["red-000"]
+    mode["orange"] = mode["orange-000"]
+    mode["yellow"] = mode["yellow-000"]
+    mode["green"] = mode["green-000"]
+    mode["mint"] = mode["mint-000"]
+    mode["teal"] = mode["teal-000"]
+    mode["cyan"] = mode["cyan-000"]
+    mode["blue"] = mode["blue-000"]
+    mode["indigo"] = mode["indigo-000"]
+    mode["purple"] = mode["purple-000"]
+    mode["pink"] = mode["pink-000"]
+    mode["brown"] = mode["brown-000"]
+    mode["gray"] = mode["gray-000"]
+}
+
 // assertions
 if (Object.keys(color_definitions.light).length !== Object.keys(color_definitions.dark).length) {
     console.error("Color definitions don't have equal length")
