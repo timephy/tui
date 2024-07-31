@@ -71,23 +71,6 @@ export default {
     },
 }
     `.trim()
-    fs.writeFileSync(`${TARGET_DIR}/${file.replace(".svg", ".ts")}`, output)
+    const filename = file.replace(".svg", ".ts").replaceAll("-", "_")
+    fs.writeFileSync(`${TARGET_DIR}/${filename}`, output)
 }
-
-// index.ts
-function slug(name: string): string {
-    const slug = name.replaceAll("-", "_")
-    if (slug.match(/^\d/)) {
-        return "n" + slug
-    } else {
-        return slug
-    }
-}
-
-const output = fs
-    .readdirSync(TARGET_DIR)
-    .filter((file) => file.endsWith(".ts"))
-    .map((file) => file.replace(".ts", ""))
-    .map((name) => `export { default as ${slug(name)} } from "./${name}.js"`)
-    .join("\n")
-fs.writeFileSync(`${TARGET_DIR}/index.ts`, output)
