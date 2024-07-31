@@ -42,7 +42,7 @@ export default [
 
     // Svelte
     {
-        files: ["**/*.svelte"],
+        files: ["**/*.svelte", "**/*.svelte.ts"],
         languageOptions: {
             parser: svelteParser,
             parserOptions: {
