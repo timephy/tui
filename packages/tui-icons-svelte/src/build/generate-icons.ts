@@ -4,7 +4,7 @@ import { parse } from "svg-parser"
 
 // path depends on package manager, but pnpm installs local in package
 const SOURCE_DIR = "./node_modules/bootstrap-icons/icons"
-const TARGET_DIR = "icons"
+const TARGET_DIR = "src/icons"
 
 // skip these files because they contain unsupported elements (`rect`)
 const SKIP_FILES = ["align-top.svg", "align-bottom.svg"]
@@ -62,15 +62,50 @@ for (const file of fs.readdirSync(SOURCE_DIR)) {
         }
     })
 
+    const varname = slug_from_filename(file)
     const output = `
-export default {
+const ${varname} = {
     _: {
         width: ${width},
         height: ${height},
         paths: ${JSON.stringify(paths, null, 4).replaceAll("\n", "\n        ")},
     },
 }
+export default ${varname}
     `.trim()
-    const filename = file.replace(".svg", ".ts").replaceAll("-", "_")
+    const filename = slug_from_filename(file) + ".ts"
     fs.writeFileSync(`${TARGET_DIR}/${filename}`, output)
 }
+
+/* ============================================================================================== */
+
+function slug_from_filename(name: string): string {
+    const slug = name.replaceAll("-", "_").replace(".svg", "")
+    if (slug.match(/^\d/)) {
+        return "n" + slug
+    } else {
+        return slug
+    }
+}
+
+const ICONS = fs
+    .readdirSync(TARGET_DIR)
+    .filter((file) => file.endsWith(".ts"))
+    .map((file) => file.replace(".ts", ""))
+    .sort() // sort alphabetically
+
+// ! ICONS -> icons/index.ts
+const output = ICONS.map((name) => `export { default as ${name} } from "./${name}.js"`).join("\n")
+fs.writeFileSync(`src/icons/index.ts`, output)
+
+// ! Update `package.json > exports`
+/** The `exports` mapping */
+const exports = {
+    ".": "./dist/index.js",
+    "./ICONS": "./dist/icons/index.js",
+    ...Object.fromEntries(ICONS.map((name) => [`./${name}`, `./dist/icons/${name}.js`])),
+}
+
+const pck = JSON.parse(fs.readFileSync("package.json").toString())
+pck.exports = exports
+fs.writeFileSync("package.json", JSON.stringify(pck, null, 4))
