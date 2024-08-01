@@ -7,7 +7,7 @@
         "clean": "rm -rf dist/ src/icons/*.ts",
         "lint": "prettier src/index.ts src/build/generate-icons.ts --check && eslint src/build/generate-icons.ts && publint",
         "generate": "bun src/build/generate-icons.ts",
-        "build": "rm -rf dist && tsc",
+        "build": "rm -rf dist && tsc && rm -rf dist/build",
         "check:publish": "pnpm lint && pnpm generate && pnpm build && publint"
     },
     "files": [
