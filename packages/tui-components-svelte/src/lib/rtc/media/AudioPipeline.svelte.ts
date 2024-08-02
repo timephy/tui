@@ -6,7 +6,9 @@ import NoiseSuppressorWorklet from "@timephy/rnnoise-wasm/NoiseSuppressorWorklet
 
 // Exponential Moving Average (EMA) for smoothing the volume meter
 // 1 = no smoothing, 0 = max smoothing (no change)
-const smoothingFactor = 0.2
+// NOTE: The smooting is also influenced by the frequency of the update loop (setInterval)
+const smoothingFactor = 0.125
+const smoothingFactorOutput = 0.075
 
 const gateReleaseTime = 400 // Time in milliseconds for the gate to remain open after the volume drops below the threshold
 const attackTime = 0.04 // Time in seconds for the gate to fully open
@@ -95,7 +97,7 @@ export class AudioPipeline {
     /* ========================================================================================== */
 
     // !! Used for Volume measurement (loop)
-    #animationFrame: number | null = null
+    #interval: ReturnType<typeof setInterval> | null = null
     #volumeGateTimeout: ReturnType<typeof setTimeout> | null = null
 
     /* ========================================================================================== */
@@ -306,7 +308,8 @@ export class AudioPipeline {
                 let sumSquares = pcmData.reduce((sum, amplitude) => sum + amplitude * amplitude, 0)
                 const instantVolume = Math.sqrt(sumSquares / pcmData.length)
                 const volumeDb = 20 * Math.log10(instantVolume + epsilon) // Convert to dB
-                this.#volume = smoothingFactor * volumeDb + (1 - smoothingFactor) * this.#volume
+                this.#volume =
+                    smoothingFactorOutput * volumeDb + (1 - smoothingFactorOutput) * this.#volume
             }
 
             // !! Open/Close Volume Gate
@@ -328,21 +331,18 @@ export class AudioPipeline {
                     this.#volumeGateTimeout = null
                 }, gateReleaseTime)
             }
-
-            // !! Continue Loop
-            this.#animationFrame = requestAnimationFrame(update)
         }
 
         // !! Start Loop
-        if (this.#animationFrame !== null) cancelAnimationFrame(this.#animationFrame)
-        this.#animationFrame = requestAnimationFrame(update)
+        if (this.#interval !== null) clearInterval(this.#interval)
+        this.#interval = setInterval(update, 7)
     }
 
     /** Stop the volume measurement and volume gate loop. */
     #stopUpdate() {
-        if (this.#animationFrame !== null) {
-            cancelAnimationFrame(this.#animationFrame)
-            this.#animationFrame = null
+        if (this.#interval !== null) {
+            clearInterval(this.#interval)
+            this.#interval = null
         }
         // Reset volume to `MIN_VOLUME`, otherwise this freezes the volume meter at the last value
         this.#volumeSource = this.#debug ? MIN_VOLUME : null
