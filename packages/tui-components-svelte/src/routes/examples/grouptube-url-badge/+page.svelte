@@ -1,8 +1,6 @@
 <script lang="ts">
-    import { globe } from "@timephy/tui-icons-svelte"
-    import { Icon } from "svelte-awesome"
-
-    /* ========================================================================================== */
+    import { Icon } from "@timephy/tui-icons-svelte"
+    import globe from "@timephy/tui-icons-svelte/globe"
 </script>
 
 <div class="flex h-full flex-col items-center justify-center p-6">
