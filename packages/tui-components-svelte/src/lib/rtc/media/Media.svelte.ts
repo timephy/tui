@@ -328,8 +328,8 @@ export class Media {
             ) {
                 this.#mic_audio?.stop()
                 this.#mic_audio = await track()
-                await this._mic_pipeline.setTrack(this.#mic_audio)
                 this.#mic_audio$.next(this.mic_audioOutput)
+                await this._mic_pipeline.setTrack(this.#mic_audio)
             }
         } else if (load === true) {
             // should load track, do that if it's not loaded or the id changed
@@ -339,16 +339,18 @@ export class Media {
             ) {
                 this.#mic_audio?.stop()
                 this.#mic_audio = await track()
-                await this._mic_pipeline.setTrack(this.#mic_audio)
                 this.#mic_audio$.next(this.mic_audioOutput)
+                await this._mic_pipeline.setTrack(this.#mic_audio)
             }
         } else if (load === false) {
             // should unload track, do that
             this.#mic_error = null
-            this.#mic_audio?.stop()
-            this.#mic_audio = null
-            await this._mic_pipeline.setTrack(null)
-            this.#mic_audio$.next(null)
+            if (this.#mic_audio !== null) {
+                this.#mic_audio.stop()
+                this.#mic_audio = null
+                this.#mic_audio$.next(null)
+                await this._mic_pipeline.setTrack(null)
+            }
         }
     }
 
@@ -375,6 +377,8 @@ export class Media {
                     })
                 }
                 this.#cam_error = null
+                // NOTE: Constrain cam to 720p
+                await this.#setVideoTrackMaxHeight(track, 720)
                 return track
             } catch (error) {
                 WARN(`Cam Error: ${error}`)
@@ -406,9 +410,11 @@ export class Media {
         } else if (load === false) {
             // should unload track, do that
             this.#cam_error = null
-            this.#cam_video?.stop()
-            this.#cam_video = null
-            this.#cam_video$.next(this.#cam_video)
+            if (this.#cam_video !== null) {
+                this.#cam_video.stop()
+                this.#cam_video = null
+                this.#cam_video$.next(this.#cam_video)
+            }
         }
     }
 
@@ -441,8 +447,8 @@ export class Media {
                     }
                 }
                 this.#screen_error = null
-                // special setup
-                await this.#setScreenVideoTrackMaxHeight(videoTrack, this.#screen_maxHeight)
+                // NOTE: Constrain screen video to `screen_maxHeight`
+                await this.#setVideoTrackMaxHeight(videoTrack, this.#screen_maxHeight)
                 return [videoTrack, audioTrack]
             } catch (error) {
                 WARN(`Screen Error: ${error}`)
@@ -464,11 +470,13 @@ export class Media {
         } else {
             // should unload track, do that
             this.#screen_error = null
-            this.#screen_video?.stop()
-            this.#screen_video = null
-            this.#screen_audio?.stop()
-            this.#screen_audio = null
-            this.#screen_tracks$.next(null)
+            if (this.#screen_video !== null || this.#screen_audio !== null) {
+                this.#screen_video?.stop()
+                this.#screen_video = null
+                this.#screen_audio?.stop()
+                this.#screen_audio = null
+                this.#screen_tracks$.next(null)
+            }
         }
     }
 
@@ -715,7 +723,7 @@ export class Media {
             this.#screen_maxHeight = _screen_maxHeight
             LS_SCREEN_MAX_HEIGHT_ID.value = this.#screen_maxHeight
             if (this.#screen_video) {
-                await this.#setScreenVideoTrackMaxHeight(this.#screen_video, this.#screen_maxHeight)
+                await this.#setVideoTrackMaxHeight(this.#screen_video, this.#screen_maxHeight)
             }
             DEBUG(`screen_maxHeight = ${_screen_maxHeight} end`)
         })
@@ -820,7 +828,7 @@ export class Media {
     }
 
     /** Apply size constraint to the screen video track. */
-    async #setScreenVideoTrackMaxHeight(track: MediaStreamTrack, maxHeight: number | null) {
+    async #setVideoTrackMaxHeight(track: MediaStreamTrack, maxHeight: number | null) {
         const constraints = maxHeight
             ? {
                   height: { max: maxHeight },
