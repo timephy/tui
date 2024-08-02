@@ -1,6 +1,6 @@
 <script lang="ts">
-    import * as icons from "@timephy/tui-icons-svelte"
-    import { Icon } from "svelte-awesome"
+    import { Icon } from "@timephy/tui-icons-svelte"
+    import * as icons from "@timephy/tui-icons-svelte/ICONS"
 
     let query = ""
     let showKeys = true
@@ -23,7 +23,7 @@
             bind:value={query}
         />
         <button class="input btn btn-p btn-thin btn-blue" on:click={() => (query = "")}>
-            <Icon data={icons.x_lg}></Icon>
+            <Icon data={icons.x_lg} />
         </button>
     </div>
     <div class="card card-p inline-grid grid-cols-10 items-center justify-center gap-2">
