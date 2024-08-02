@@ -2,11 +2,17 @@ import type { SignalIceCandidate, SignalSessionDescription } from "./shared"
 
 /* ============================================================================================== */
 
-// NOTE: These values were observed to be the defaults of a `new RTCPeerConnection()` (Chrome)
+// NOTE: These values were observed to be the defaults of a `new RTCPeerConnection()` [Chrome]
 const DEFAULT_RTCSignalingState = "stable"
 const DEFAULT_RTCIceGathererState = "new"
 const DEFAULT_RTCIceConnectionState = "new"
 const DEFAULT_RTCPeerConnectionState = "new"
+
+// NOTE: These values were observerd to be the mid values of the transceivers created by `addTransceiver()` [Chrome]
+export const TRANSCEIVER_MID_MIC_AUDIO = "0"
+export const TRANSCEIVER_MID_CAM_VIDEO = "1"
+export const TRANSCEIVER_MID_SCREEN_VIDEO = "2"
+export const TRANSCEIVER_MID_SCREEN_AUDIO = "3"
 
 /* ============================================================================================== */
 /*                                           Codec Order                                          */
@@ -40,6 +46,19 @@ const sortedCodecsVideo = (() => {
 
 console.log("[PeerConnection] sortedCodecsAudio", sortedCodecsAudio)
 console.log("[PeerConnection] sortedCodecsVideo", sortedCodecsVideo)
+
+/* ============================================================================================== */
+
+/**
+ * Modifies the description to enable stereo audio and increase bitrate.
+ * @param description The description to modify
+ */
+function mangleSessionDescription(description: RTCSessionDescriptionInit) {
+    description.sdp = description.sdp?.replaceAll(
+        "useinbandfec=1",
+        "useinbandfec=1;stereo=1;maxaveragebitrate=510000",
+    )
+}
 
 /* ============================================================================================== */
 /*                                         PeerConnection                                         */
@@ -120,6 +139,9 @@ export class PeerConnection {
     protected DEBUG = (...msgs: unknown[]) => {
         console.debug(`[PeerConnection ${this._debug_id}]`, ...msgs)
     }
+    protected INFO = (...msgs: unknown[]) => {
+        console.info(`[PeerConnection ${this._debug_id}]`, ...msgs)
+    }
     protected WARN = (...msgs: unknown[]) => {
         console.warn(`[PeerConnection ${this._debug_id}]`, ...msgs)
     }
@@ -165,16 +187,19 @@ export class PeerConnection {
 
         // !! on state
         this._pc.onconnectionstatechange = () => {
-            this._connectionState = this._pc.connectionState
+            this.onconnectionstatechange(this._pc.connectionState)
         }
         this._pc.onsignalingstatechange = () => {
-            this._signalingState = this._pc.signalingState
+            this.onsignalingstatechange(this._pc.signalingState)
         }
         this._pc.onicegatheringstatechange = () => {
-            this._iceGatheringState = this._pc.iceGatheringState
+            this.onicegatheringstatechange(this._pc.iceGatheringState)
         }
         this._pc.oniceconnectionstatechange = () => {
-            this._iceConnectionState = this._pc.iceConnectionState
+            this.oniceconnectionstatechange(this._pc.iceConnectionState)
+        }
+        this._pc.onicecandidateerror = (event) => {
+            this.onicecandidateerror(event)
         }
 
         // !! on ice candidate
@@ -182,9 +207,6 @@ export class PeerConnection {
             if (event.candidate) {
                 this._signalIceCandidate(event.candidate)
             }
-        }
-        this._pc.onicecandidateerror = (event) => {
-            this.WARN("onicecandidateerror", event)
         }
 
         // !! on track / data
@@ -194,7 +216,7 @@ export class PeerConnection {
 
             // NOTE: detecting transceivers by order of addition (`startConnection()`) on the "impolite" side
             // NOTE: direction has to be set to enable sending on the receiving ("polite") side
-            if (transceiver.mid === "0") {
+            if (transceiver.mid === TRANSCEIVER_MID_MIC_AUDIO) {
                 this.onRemoteTrackMic(track)
 
                 if (this._transceiverMicAudio === null) {
@@ -203,7 +225,7 @@ export class PeerConnection {
                     this._transceiverMicAudio.direction = "sendrecv"
                     this._transceiverMicAudio.sender.replaceTrack(this._localTrackMic)
                 }
-            } else if (transceiver.mid === "1") {
+            } else if (transceiver.mid === TRANSCEIVER_MID_CAM_VIDEO) {
                 this.onRemoteTrackCam(track)
 
                 if (this._transceiverCamVideo === null) {
@@ -212,7 +234,7 @@ export class PeerConnection {
                     this._transceiverCamVideo.direction = "sendrecv"
                     this._transceiverCamVideo.sender.replaceTrack(this._localTrackCam)
                 }
-            } else if (transceiver.mid === "2") {
+            } else if (transceiver.mid === TRANSCEIVER_MID_SCREEN_VIDEO) {
                 this.onRemoteTrackScreenVideo(track)
 
                 if (this._transceiverScreenVideo === null) {
@@ -221,7 +243,7 @@ export class PeerConnection {
                     this._transceiverScreenVideo.direction = "sendrecv"
                     this._transceiverScreenVideo.sender.replaceTrack(this._localTrackScreenVideo)
                 }
-            } else if (transceiver.mid === "3") {
+            } else if (transceiver.mid === TRANSCEIVER_MID_SCREEN_AUDIO) {
                 this.onRemoteTrackScreenAudio(track)
 
                 if (this._transceiverScreenAudio === null) {
@@ -258,12 +280,35 @@ export class PeerConnection {
         this.remoteStreamScreen.addTrack(track)
     }
 
+    // !! event handlers to override/hook to extend functionality
+    protected onsignalingstatechange(signalingState: RTCSignalingState) {
+        this.DEBUG("onsignalingstatechange", signalingState)
+        this._signalingState = signalingState
+    }
+    protected onicegatheringstatechange(iceGatheringState: RTCIceGathererState) {
+        this.DEBUG("onicegatheringstatechange", iceGatheringState)
+        this._iceGatheringState = iceGatheringState
+    }
+    protected oniceconnectionstatechange(iceConnectionState: RTCIceConnectionState) {
+        this.DEBUG("oniceconnectionstatechange", iceConnectionState)
+        this._iceConnectionState = iceConnectionState
+    }
+    protected onconnectionstatechange(connectionState: RTCPeerConnectionState) {
+        this.INFO("onconnectionstatechange", connectionState)
+        this._connectionState = connectionState
+    }
+    protected onicecandidateerror(event: RTCPeerConnectionIceErrorEvent) {
+        this.WARN("onicecandidateerror", event)
+    }
+
     /* ========================================================================================== */
     /*                                       Receive Signals                                      */
     /* ========================================================================================== */
 
     /** Receive a session description from the remote peer. */
     async receiveSessionDescription(description: RTCSessionDescriptionInit) {
+        mangleSessionDescription(description)
+
         this.DEBUG("receiveSessionDescription", description)
 
         // NOTE: For "perfect negotiation" pattern (https://w3c.github.io/webrtc-pc/#perfect-negotiation-example)
@@ -403,7 +448,11 @@ export class PeerConnection {
             ],
         })
         if (sortedCodecsAudio !== null) {
-            this._transceiverMicAudio.setCodecPreferences(sortedCodecsAudio)
+            try {
+                this._transceiverMicAudio.setCodecPreferences(sortedCodecsAudio)
+            } catch (error) {
+                this.ERROR("transceiverMicAudio.setCodecPreferences() error:", error)
+            }
         }
         this._transceiverMicAudio.sender.replaceTrack(this._localTrackMic)
 
@@ -411,7 +460,7 @@ export class PeerConnection {
             direction: "sendrecv",
             sendEncodings: [
                 {
-                    maxBitrate: 10_000_000,
+                    maxBitrate: 1_200_000,
                     networkPriority: "very-low",
                     priority: "very-low",
                     maxFramerate: 30,
@@ -419,7 +468,11 @@ export class PeerConnection {
             ],
         })
         if (sortedCodecsVideo !== null) {
-            this._transceiverCamVideo.setCodecPreferences(sortedCodecsVideo)
+            try {
+                this._transceiverCamVideo.setCodecPreferences(sortedCodecsVideo)
+            } catch (error) {
+                this.ERROR("transceiverCamVideo.setCodecPreferences() error:", error)
+            }
         }
         this._transceiverCamVideo.sender.replaceTrack(this._localTrackCam)
 
@@ -427,7 +480,7 @@ export class PeerConnection {
             direction: "sendrecv",
             sendEncodings: [
                 {
-                    maxBitrate: 10_000_000,
+                    maxBitrate: 8_000_000,
                     networkPriority: "low",
                     priority: "low",
                     maxFramerate: 60,
@@ -435,7 +488,11 @@ export class PeerConnection {
             ],
         })
         if (sortedCodecsVideo !== null) {
-            this._transceiverScreenVideo.setCodecPreferences(sortedCodecsVideo)
+            try {
+                this._transceiverScreenVideo.setCodecPreferences(sortedCodecsVideo)
+            } catch (error) {
+                this.ERROR("transceiverScreenVideo.setCodecPreferences() error:", error)
+            }
         }
         this._transceiverScreenVideo.sender.replaceTrack(this._localTrackScreenVideo)
 
@@ -450,7 +507,11 @@ export class PeerConnection {
             ],
         })
         if (sortedCodecsAudio !== null) {
-            this._transceiverScreenAudio.setCodecPreferences(sortedCodecsAudio)
+            try {
+                this._transceiverScreenAudio.setCodecPreferences(sortedCodecsAudio)
+            } catch (error) {
+                this.ERROR("transceiverScreenAudio.setCodecPreferences() error:", error)
+            }
         }
         this._transceiverScreenAudio.sender.replaceTrack(this._localTrackScreenAudio)
     }

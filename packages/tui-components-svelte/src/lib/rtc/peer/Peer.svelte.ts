@@ -1,7 +1,9 @@
 import { Field } from "$lib/localStorage/index.svelte"
+import { Subject } from "rxjs"
 import { AudioPipeline } from "../media/AudioPipeline.svelte"
 import { PeerConnection, type PeerConnectionOptions } from "./PeerConnection.svelte"
 import { DEFAULT_MEDIA_STATE, type MediaState } from "./shared"
+import { Stats } from "./Stats.svelte"
 
 /* ============================================================================================== */
 
@@ -16,6 +18,11 @@ export const LS_PEER_GAINS = new Field<Map<string, number>>(
 
 export type PeerId = string & { __brand: "PeerId" }
 
+export const peerIceError = ["disconnected", "failed"] as const
+export type PeerIceError = (typeof peerIceError)[number]
+export const peerConnectionError = ["closed", "disconnected", "failed"] as const
+export type PeerConnectionError = (typeof peerConnectionError)[number]
+
 /**
  * This class extends {@link PeerConnection}, helps to manage the audio pipeline and media info.
  *
@@ -23,6 +30,8 @@ export type PeerId = string & { __brand: "PeerId" }
  * - Manages the {@link MediaState} of the peer, for help with displaying the received media (whether to show <video> elements, etc.)
  */
 export class Peer extends PeerConnection {
+    readonly stats: Stats
+
     constructor(
         config: RTCConfiguration,
         readonly options: PeerConnectionOptions & { storageId: string | null },
@@ -37,6 +46,63 @@ export class Peer extends PeerConnection {
             gain: this.options.storageId ? LS_PEER_GAINS.value.get(this.options.storageId) ?? 1 : 1,
             playback: true,
         })
+
+        this.stats = new Stats(this._pc)
+    }
+
+    /* ========================================================================================== */
+
+    override closeConnection() {
+        super.closeConnection()
+
+        // TODO: Close Stats Interval, but cannot restart... therefore leaving on for now
+    }
+
+    /* ========================================================================================== */
+    /*                                            Error                                           */
+    /* ========================================================================================== */
+
+    private readonly _errorIceConnection$ = new Subject<PeerIceError>()
+    private readonly _errorConnection$ = new Subject<PeerConnectionError>()
+
+    private readonly _iceConnectionState$ = new Subject<RTCIceConnectionState>()
+    private readonly _connectionState$ = new Subject<RTCPeerConnectionState>()
+
+    protected override oniceconnectionstatechange(iceConnectionState: RTCIceConnectionState) {
+        super.oniceconnectionstatechange(iceConnectionState)
+
+        this._iceConnectionState$.next(iceConnectionState)
+
+        iceConnectionState = iceConnectionState as PeerIceError
+        if (peerIceError.includes(iceConnectionState)) {
+            this._errorIceConnection$.next(iceConnectionState)
+        }
+    }
+    protected override onconnectionstatechange(connectionState: RTCPeerConnectionState) {
+        super.onconnectionstatechange(connectionState)
+
+        this._connectionState$.next(connectionState)
+
+        connectionState = connectionState as PeerConnectionError
+        if (peerConnectionError.includes(connectionState)) {
+            this._errorConnection$.next(connectionState)
+        }
+    }
+
+    /* ========================================================================================== */
+
+    get errorIceConnection$() {
+        return this._errorIceConnection$
+    }
+    get errorConnection$() {
+        return this._errorConnection$
+    }
+
+    get iceConnectionState$() {
+        return this._iceConnectionState$
+    }
+    get connectionState$() {
+        return this._connectionState$
     }
 
     /* ========================================================================================== */
