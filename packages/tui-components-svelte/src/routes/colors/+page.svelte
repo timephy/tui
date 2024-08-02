@@ -44,18 +44,28 @@
     )
 </script>
 
+<div class="p-4">
+    <p class="dark:text-[#fff]">primary, secondary, tertiary</p>
+    <div class="flex flex-wrap gap-2">
+        {#each ["bg-primary", "bg-secondary", "bg-tertiary"] as cls}
+            <div class="size-24 rounded-lg {cls}"></div>
+        {/each}
+    </div>
+</div>
+
 {#each Object.entries(divClasses) as [color, classes]}
-    <div class="p-2">
+    <div class="p-4">
         <p class="dark:text-[#fff]">{color}</p>
         <div class="flex flex-wrap gap-2">
             {#each classes as cls}
-                <div class="size-24 {cls}"></div>
+                <div class="size-24 rounded-lg {cls}"></div>
             {/each}
         </div>
     </div>
 {/each}
 
 <!-- just so the css is included -->
+<div class="bg-primary"></div>
 <div class="bg-step-base"></div>
 <div class="bg-step-000"></div>
 <div class="bg-step-050"></div>
