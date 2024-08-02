@@ -2,7 +2,7 @@ import type { Server as HttpServer } from "http"
 import type { Http2Server } from "http2"
 import { Server } from "socket.io"
 import type { MediaState } from "../peer/shared"
-import { MSG, type AddPeer, type RecvSignal, type RemovePeer, type SendSignal } from "./shared"
+import { MSG, type AddPeer, type RecvSignal, type RemovePeer, type SendSignal } from "./shared.js"
 import type { PeerId } from "../peer/Peer.svelte"
 
 /* ============================================================================================== */
