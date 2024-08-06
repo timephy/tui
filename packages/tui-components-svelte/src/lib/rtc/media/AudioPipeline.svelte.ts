@@ -90,7 +90,7 @@ export class AudioPipeline {
     /** Volume measured from the source, if debug is `true`. */
     #volumeSource: number | null = $state(null)
     /** Volume measured from the (maybe noise suppressed) source, if `#volumeGate !== null`. */
-    #volumeVoice: number | null = $state(null)
+    #volumeVoice: number = $state(MIN_VOLUME)
     /** Volume measured from the output. */
     #volume: number = $state(MIN_VOLUME)
 
@@ -113,7 +113,7 @@ export class AudioPipeline {
         sourceMerger: this.#ctx.createChannelMerger(1),
         sourceAnalyser: this.#debug ? this.#ctx.createAnalyser() : null,
         rnnoise: null as AudioWorkletNode | null,
-        voiceAnalyser: this.#volumeGate ? this.#ctx.createAnalyser() : null,
+        voiceAnalyser: this.#ctx.createAnalyser(),
         gate: this.#volumeGate ? this.#ctx.createBiquadFilter() : null,
         gainNode: this.#ctx.createGain(),
         analyser: this.#ctx.createAnalyser(),
@@ -209,7 +209,7 @@ export class AudioPipeline {
 
         // !! Config
         Nodes.sourceAnalyser && (Nodes.sourceAnalyser.fftSize = 2048)
-        Nodes.voiceAnalyser && (Nodes.voiceAnalyser.fftSize = 2048)
+        Nodes.voiceAnalyser.fftSize = 2048
         Nodes.gate && (Nodes.gate.type = "lowpass")
         // TODO: is this right? - seems so... works well
         Nodes.gate && (Nodes.gate.frequency.value = 0) // Initially disable the audio
@@ -221,7 +221,7 @@ export class AudioPipeline {
         Nodes.sourceMerger.disconnect()
         Nodes.sourceAnalyser?.disconnect()
         Nodes.rnnoise?.disconnect()
-        Nodes.voiceAnalyser?.disconnect()
+        Nodes.voiceAnalyser.disconnect()
         Nodes.gate?.disconnect()
         Nodes.gainNode.disconnect()
         Nodes.analyser.disconnect()
@@ -246,10 +246,8 @@ export class AudioPipeline {
             // DEBUG("connect rnnoise")
             node = node.connect(Nodes.rnnoise)
         }
-        if (Nodes.voiceAnalyser) {
-            // DEBUG("connect voiceAnalyser")
-            node = node.connect(Nodes.voiceAnalyser)
-        }
+        // DEBUG("connect voiceAnalyser")
+        node = node.connect(Nodes.voiceAnalyser)
         if (Nodes.gate) {
             // DEBUG("connect gate")
             node = node.connect(Nodes.gate)
@@ -266,9 +264,7 @@ export class AudioPipeline {
         const sourcePcmData = Nodes.sourceAnalyser
             ? new Float32Array(Nodes.sourceAnalyser.fftSize)
             : null
-        const voicePcmData = Nodes.voiceAnalyser
-            ? new Float32Array(Nodes.voiceAnalyser.fftSize)
-            : null
+        const voicePcmData = new Float32Array(Nodes.voiceAnalyser.fftSize)
         const pcmData = new Float32Array(Nodes.analyser.fftSize)
 
         const update = () => {
@@ -289,7 +285,7 @@ export class AudioPipeline {
             }
             // !! Measure Voice Volume
             if (voicePcmData) {
-                Nodes.voiceAnalyser?.getFloatTimeDomainData(voicePcmData)
+                Nodes.voiceAnalyser.getFloatTimeDomainData(voicePcmData)
                 let sumSquares = voicePcmData.reduce(
                     (sum, amplitude) => sum + amplitude * amplitude,
                     0,
@@ -299,8 +295,6 @@ export class AudioPipeline {
                 this.#volumeVoice =
                     smoothingFactor * voiceVolumeDb +
                     (1 - smoothingFactor) * (this.#volumeVoice ?? MIN_VOLUME)
-            } else if (this.#volumeVoice !== null) {
-                this.#volumeVoice = null
             }
             // !! Measure Output Volume
             {
@@ -346,7 +340,7 @@ export class AudioPipeline {
         }
         // Reset volume to `MIN_VOLUME`, otherwise this freezes the volume meter at the last value
         this.#volumeSource = this.#debug ? MIN_VOLUME : null
-        this.#volumeVoice = this.#volumeGate !== null ? MIN_VOLUME : null
+        this.#volumeVoice = MIN_VOLUME
         this.#volume = MIN_VOLUME
         this.#volumeGateOpen = false
     }
@@ -392,17 +386,14 @@ export class AudioPipeline {
 
         if (gatedNow !== gatedBefore) {
             if (gatedNow) {
-                this.#nodes.voiceAnalyser = this.#ctx.createAnalyser()
                 this.#nodes.gate = this.#ctx.createBiquadFilter()
             } else {
-                this.#nodes.voiceAnalyser?.disconnect()
-                this.#nodes.voiceAnalyser = null
                 this.#nodes.gate?.disconnect()
                 this.#nodes.gate = null
             }
             this.#reconnect()
             this.#volumeGateOpen = this.#volumeGate === null ? true : false
-            this.#volumeVoice = this.#volumeGate ? MIN_VOLUME : null
+            this.#volumeVoice = MIN_VOLUME
         }
     }
 

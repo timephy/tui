@@ -242,9 +242,11 @@ export class Media {
 
     /** Deactivate all media devices. */
     async deactivateAll() {
-        await this._setMic(this.#mic_id, false)
-        await this._setCam(this.#cam_id, false)
-        await this._setScreen(false)
+        await Promise.all([
+            this._setMic(this.#mic_id, false),
+            this._setCam(this.#cam_id, false),
+            this._setScreen(false),
+        ])
     }
 
     /**

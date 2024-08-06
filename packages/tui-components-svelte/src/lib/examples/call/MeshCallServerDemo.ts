@@ -1,20 +1,21 @@
 import type { Server as HttpServer } from "http"
 import type { Http2Server } from "http2"
 import { Server } from "socket.io"
-import type { MediaState } from "../peer/shared"
-import { MSG, type AddPeer, type RecvSignal, type RemovePeer, type SendSignal } from "./shared.js"
-import type { PeerId } from "../peer/Peer.svelte"
+import { MSG, type RecvSignal, type SendSignal } from "./messages.js"
+import type { MediaState } from "../../rtc/media/MediaState"
+import type { AddPeer, RemovePeer } from "$lib/rtc/call/Call.svelte.js"
 
 /* ============================================================================================== */
 
 export type ClientId = string
 export type RoomId = string
-export type Room = {
-    clients: Clients
-    call: Call
+
+type Room = {
+    clients: ClientsState
+    call: CallState
 }
-export type Clients = Set<ClientId>
-export type Call = Map<ClientId, MediaState>
+export type ClientsState = Set<ClientId>
+export type CallState = Map<ClientId, MediaState>
 
 /* ============================================================================================== */
 
@@ -53,10 +54,10 @@ export function setupSocketIoServer(httpServer: HttpServer | Http2Server) {
             if (peerId === clientId) return
 
             io.to(clientId).emit(MSG.CALL.REMOVE_PEER, {
-                peerId: peerId as PeerId,
+                peerId: peerId,
             } satisfies RemovePeer)
             io.to(peerId).emit(MSG.CALL.REMOVE_PEER, {
-                peerId: clientId as PeerId,
+                peerId: clientId,
             } satisfies RemovePeer)
         })
     }
@@ -71,11 +72,11 @@ export function setupSocketIoServer(httpServer: HttpServer | Http2Server) {
             if (peerId === clientId) return
 
             io.to(clientId).emit(MSG.CALL.ADD_PEER, {
-                peerId: peerId as PeerId,
+                peerId: peerId,
                 offer: true,
             } satisfies AddPeer)
             io.to(peerId).emit(MSG.CALL.ADD_PEER, {
-                peerId: clientId as PeerId,
+                peerId: clientId,
                 offer: false,
             } satisfies AddPeer)
         })
@@ -85,7 +86,7 @@ export function setupSocketIoServer(httpServer: HttpServer | Http2Server) {
             if (peerId === clientId) return
 
             io.to(clientId).emit(MSG.CALL.SIGNAL.MEDIA_STATE, {
-                fromPeerId: peerId as PeerId,
+                fromPeerId: peerId,
                 content: mediaState,
             } satisfies RecvSignal<MediaState>)
         })
@@ -208,7 +209,7 @@ export function setupSocketIoServer(httpServer: HttpServer | Http2Server) {
 
                 // signaling
                 io.to(toPeerId).emit(MSG.CALL.SIGNAL.DESCRIPTION, {
-                    fromPeerId: clientId as PeerId,
+                    fromPeerId: clientId,
                     content,
                 } satisfies RecvSignal<RTCSessionDescriptionInit>)
             },
@@ -230,7 +231,7 @@ export function setupSocketIoServer(httpServer: HttpServer | Http2Server) {
 
                 // signaling
                 io.to(toPeerId).emit(MSG.CALL.SIGNAL.CANDIDATE, {
-                    fromPeerId: clientId as PeerId,
+                    fromPeerId: clientId,
                     content,
                 } satisfies RecvSignal<RTCIceCandidate>)
             },
@@ -252,7 +253,7 @@ export function setupSocketIoServer(httpServer: HttpServer | Http2Server) {
                 if (peerId === clientId) return
 
                 io.to(peerId).emit(MSG.CALL.SIGNAL.MEDIA_STATE, {
-                    fromPeerId: clientId as PeerId,
+                    fromPeerId: clientId,
                     content: mediaState,
                 } satisfies RecvSignal<MediaState>)
             })

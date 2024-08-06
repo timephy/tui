@@ -1,4 +1,4 @@
-import type { PeerId } from "../peer/Peer.svelte"
+import type { PeerId } from "../../rtc/call/Call.svelte"
 
 export type RecvSignal<C> = {
     fromPeerId: PeerId
@@ -7,14 +7,6 @@ export type RecvSignal<C> = {
 export type SendSignal<C> = {
     toPeerId: PeerId
     content: C
-}
-
-export type AddPeer = {
-    peerId: PeerId
-    offer: boolean
-}
-export type RemovePeer = {
-    peerId: PeerId
 }
 
 export const MSG = {
@@ -29,9 +21,9 @@ export const MSG = {
         REMOVE_PEER: "removePeer",
 
         SIGNAL: {
-            DESCRIPTION: "description",
-            CANDIDATE: "candidate",
             MEDIA_STATE: "mediaState",
+            CANDIDATE: "candidate",
+            DESCRIPTION: "description",
         },
     },
 } as const

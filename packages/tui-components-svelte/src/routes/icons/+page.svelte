@@ -12,14 +12,14 @@
             <p>Show Keys</p>
             <input
                 type="checkbox"
-                class="rounded-xl border border-step-100 bg-step-050 px-2 py-1 outline-blue-000"
+                class="rounded-xl border border-step-100 bg-step-050 px-2 py-1 outline-blue"
                 bind:checked={showKeys}
             />
         </div>
         <input
             type="text"
             placeholder="Search"
-            class="rounded-xl border border-step-100 bg-step-050 px-2 py-1 outline-blue-000"
+            class="rounded-xl border border-step-100 bg-step-050 px-2 py-1 outline-blue"
             bind:value={query}
         />
         <button class="input btn btn-p btn-thin btn-blue" on:click={() => (query = "")}>

@@ -1,7 +1,3 @@
-import type { SignalIceCandidate, SignalSessionDescription } from "./shared"
-
-/* ============================================================================================== */
-
 // NOTE: These values were observed to be the defaults of a `new RTCPeerConnection()` [Chrome]
 const DEFAULT_RTCSignalingState = "stable"
 const DEFAULT_RTCIceGathererState = "new"
@@ -66,8 +62,8 @@ function mangleSessionDescription(description: RTCSessionDescriptionInit) {
 
 export type PeerConnectionOptions = {
     polite: boolean
-    signalSessionDescription: SignalSessionDescription
-    signalIceCandidate: SignalIceCandidate
+    signalIceCandidate: (candidate: RTCIceCandidate) => void
+    signalSessionDescription: (description: RTCSessionDescription) => void
 }
 
 /**
@@ -96,20 +92,13 @@ export type PeerConnectionOptions = {
 export class PeerConnection {
     // !! Outputs from remote peer
     /** Remote stream with audio and video from mic and cam. */
-    readonly remoteStreamMicCam = new MediaStream()
+    protected readonly _remoteStreamMicCam = new MediaStream()
     /** Remote stream with audio and video from screen. */
-    readonly remoteStreamScreen = new MediaStream()
-
-    /* ========================================================================================== */
-    /*                                     Signaling functions                                    */
-    /* ========================================================================================== */
-
-    private readonly _signalIceCandidate: SignalIceCandidate
-    private readonly _signalSessionDescription: SignalSessionDescription
+    protected readonly _remoteStreamScreen = new MediaStream()
 
     /* ========================================================================================== */
 
-    readonly _pc: RTCPeerConnection
+    protected readonly _pc: RTCPeerConnection
 
     // NOTE: Variables for "perfect negotiation" pattern (https://w3c.github.io/webrtc-pc/#perfect-negotiation-example)
     private __makingOffer = false
@@ -156,16 +145,6 @@ export class PeerConnection {
         readonly options: PeerConnectionOptions,
         readonly _debug_id: string,
     ) {
-        // !! Setup signaling
-        this._signalSessionDescription = (description: RTCSessionDescriptionInit) => {
-            this.DEBUG("signalSessionDescription", description)
-            this.options.signalSessionDescription(description)
-        }
-        this._signalIceCandidate = (candidate: RTCIceCandidate) => {
-            this.DEBUG("signalIceCandidate", candidate)
-            this.options.signalIceCandidate(candidate)
-        }
-
         // !! Init PeerConnection
         this.DEBUG("new PeerConnection()", this.options.polite, this.config)
         this._pc = new RTCPeerConnection(this.config)
@@ -177,7 +156,7 @@ export class PeerConnection {
                 this.__makingOffer = true
                 await this._pc.setLocalDescription()
                 await this._pc.createOffer()
-                this._signalSessionDescription(this._pc.localDescription!)
+                this.signalSessionDescription(this._pc.localDescription!)
             } catch (error) {
                 this.ERROR(error)
             } finally {
@@ -205,7 +184,7 @@ export class PeerConnection {
         // !! on ice candidate
         this._pc.onicecandidate = (event) => {
             if (event.candidate) {
-                this._signalIceCandidate(event.candidate)
+                this.signalIceCandidate(event.candidate)
             }
         }
 
@@ -265,19 +244,19 @@ export class PeerConnection {
 
     /** Receive the mic audio track of the remote peer (from `ontrack`). */
     protected onRemoteTrackMic(track: MediaStreamTrack) {
-        this.remoteStreamMicCam.addTrack(track)
+        this._remoteStreamMicCam.addTrack(track)
     }
     /** Receive the cam video track of the remote peer (from `ontrack`). */
     protected onRemoteTrackCam(track: MediaStreamTrack) {
-        this.remoteStreamMicCam.addTrack(track)
+        this._remoteStreamMicCam.addTrack(track)
     }
     /** Receive the screen video track of the remote peer (from `ontrack`). */
     protected onRemoteTrackScreenVideo(track: MediaStreamTrack) {
-        this.remoteStreamScreen.addTrack(track)
+        this._remoteStreamScreen.addTrack(track)
     }
     /** Receive the screen audio track of the remote peer (from `ontrack`). */
     protected onRemoteTrackScreenAudio(track: MediaStreamTrack) {
-        this.remoteStreamScreen.addTrack(track)
+        this._remoteStreamScreen.addTrack(track)
     }
 
     // !! event handlers to override/hook to extend functionality
@@ -302,9 +281,35 @@ export class PeerConnection {
     }
 
     /* ========================================================================================== */
+    /*                                     Signaling functions                                    */
+    /* ========================================================================================== */
+
+    protected signalIceCandidate(candidate: RTCIceCandidate) {
+        this.DEBUG("signalIceCandidate", candidate)
+        this.options.signalIceCandidate(candidate)
+    }
+    protected signalSessionDescription(description: RTCSessionDescription) {
+        this.DEBUG("signalSessionDescription", description)
+        this.options.signalSessionDescription(description)
+    }
+
+    /* ========================================================================================== */
     /*                                       Receive Signals                                      */
     /* ========================================================================================== */
 
+    /** Receive an ice candidate from the remote peer. */
+    async receiveIceCandidate(candidate: RTCIceCandidateInit) {
+        this.DEBUG("receiveIceCandidate", candidate)
+
+        // NOTE: For "perfect negotiation" pattern (https://w3c.github.io/webrtc-pc/#perfect-negotiation-example)
+        try {
+            await this._pc.addIceCandidate(candidate)
+        } catch (err) {
+            if (!this.__ignoreOffer) {
+                console.error(err)
+            }
+        }
+    }
     /** Receive a session description from the remote peer. */
     async receiveSessionDescription(description: RTCSessionDescriptionInit) {
         mangleSessionDescription(description)
@@ -328,26 +333,12 @@ export class PeerConnection {
 
             if (description.type === "offer") {
                 await this._pc.setLocalDescription()
-                this._signalSessionDescription(this._pc.localDescription!)
+                this.signalSessionDescription(this._pc.localDescription!)
             }
         } catch (err) {
             console.error(err)
         } finally {
             this.__isSettingRemoteAnswerPending = false
-        }
-    }
-
-    /** Receive an ice candidate from the remote peer. */
-    async receiveIceCandidate(candidate: RTCIceCandidateInit) {
-        this.DEBUG("receiveIceCandidate", candidate)
-
-        // NOTE: For "perfect negotiation" pattern (https://w3c.github.io/webrtc-pc/#perfect-negotiation-example)
-        try {
-            await this._pc.addIceCandidate(candidate)
-        } catch (err) {
-            if (!this.__ignoreOffer) {
-                console.error(err)
-            }
         }
     }
 

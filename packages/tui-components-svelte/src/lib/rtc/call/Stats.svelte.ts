@@ -4,7 +4,7 @@ import {
     TRANSCEIVER_MID_CAM_VIDEO,
     TRANSCEIVER_MID_SCREEN_VIDEO,
     TRANSCEIVER_MID_SCREEN_AUDIO,
-} from "./PeerConnection.svelte"
+} from "./peer/PeerConnection.svelte"
 
 /* ============================================================================================== */
 

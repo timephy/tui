@@ -1,9 +1,11 @@
 import { Field } from "$lib/localStorage/index.svelte"
 import { Subject } from "rxjs"
-import { AudioPipeline } from "../media/AudioPipeline.svelte"
+import { AudioPipeline } from "../../media/AudioPipeline.svelte"
 import { PeerConnection, type PeerConnectionOptions } from "./PeerConnection.svelte"
-import { DEFAULT_MEDIA_STATE, type MediaState } from "./shared"
-import { Stats } from "./Stats.svelte"
+import { DEFAULT_MEDIA_STATE, type MediaState } from "../../media/MediaState"
+import { Stats } from "../Stats.svelte"
+import type { Signal } from "../../debug/DebugSignaling.svelte"
+import type { Display } from "../Call.svelte"
 
 /* ============================================================================================== */
 
@@ -16,8 +18,6 @@ export const LS_PEER_GAINS = new Field<Map<string, number>>(
 
 /* ============================================================================================== */
 
-export type PeerId = string & { __brand: "PeerId" }
-
 export const peerIceError = ["disconnected", "failed"] as const
 export type PeerIceError = (typeof peerIceError)[number]
 export const peerConnectionError = ["closed", "disconnected", "failed"] as const
@@ -29,7 +29,7 @@ export type PeerConnectionError = (typeof peerConnectionError)[number]
  * - Implements an {@link AudioPipeline} for the received audio (to display a volume meter, etc.)
  * - Manages the {@link MediaState} of the peer, for help with displaying the received media (whether to show <video> elements, etc.)
  */
-export class Peer extends PeerConnection {
+export class Peer extends PeerConnection implements Display {
     readonly stats: Stats
 
     constructor(
@@ -168,5 +168,62 @@ export class Peer extends PeerConnection {
 
     get mediaState() {
         return this._mediaState
+    }
+
+    /* ========================================================================================== */
+    /*                                     ClientMediaDisplay                                     */
+    /* ========================================================================================== */
+
+    get micCamStream() {
+        return this._remoteStreamMicCam
+    }
+    get screenStream() {
+        return this._remoteStreamScreen
+    }
+
+    /* ========================================================================================== */
+    /*                                       Debug Signaling                                      */
+    /* ========================================================================================== */
+
+    private readonly _signals: Signal[] = $state([])
+
+    protected override signalIceCandidate(iceCandidate: RTCIceCandidate) {
+        super.signalIceCandidate(iceCandidate)
+
+        this._signals.push({
+            from: "local",
+            content: iceCandidate,
+        })
+    }
+    protected override signalSessionDescription(sessionDescription: RTCSessionDescription) {
+        super.signalSessionDescription(sessionDescription)
+
+        this._signals.push({
+            from: "local",
+            content: sessionDescription,
+        })
+    }
+
+    override async receiveIceCandidate(iceCandidate: RTCIceCandidateInit) {
+        super.receiveIceCandidate(iceCandidate)
+
+        this._signals.push({
+            from: "remote",
+            content: iceCandidate,
+        })
+    }
+    override async receiveSessionDescription(sessionDescription: RTCSessionDescriptionInit) {
+        super.receiveSessionDescription(sessionDescription)
+
+        this._signals.push({
+            from: "remote",
+            content: sessionDescription,
+        })
+    }
+
+    /* ========================================================================================== */
+
+    get signals() {
+        return this._signals
     }
 }
