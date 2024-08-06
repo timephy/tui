@@ -22,6 +22,12 @@ export type Options<V> = {
  *
  * @example
  * const username = new Field("username", "Steve", Field.load_string, true)
+ * username.value // "Steve"
+ * username.value = "John" // automatically saved to localStorage
+ * username.value // "John"
+ * username.value = "Steve" // deleted from localStorage, because it's the default value
+ * username.value // "Steve"
+ *
  * const debug = new Field("debug", false, Field.load_boolean)
  */
 export class Field<V> {
@@ -38,6 +44,7 @@ export class Field<V> {
         /** The fallback value to use if no value is stored or parsing fails. */
         _default: V,
 
+        /** A function to parse a the value's serialized representation into its value type. */
         parse: (str: string) => V | null,
         options: Options<V>,
     ) {
@@ -53,7 +60,7 @@ export class Field<V> {
             const value = $state(storedValue ?? _default)
             this._value = value
         } catch (error) {
-            console.warn("Failed to load value from localStorage:", key, str, error)
+            console.warn("Failed to parse value from localStorage:", key, str, error)
             const value = $state(_default)
             this._value = value
         }
@@ -83,8 +90,13 @@ export class Field<V> {
     /*                                       Load Functions                                       */
     /* ========================================================================================== */
 
-    static readonly parse_string = (str: string): string => {
-        return str
+    static readonly parse_string = (str: string): string | null => {
+        const value = JSON.parse(str)
+        if (typeof value === "string") {
+            return value
+        } else {
+            return null
+        }
     }
 
     static readonly parse_float = (str: string): number | null => {
