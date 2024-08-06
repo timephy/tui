@@ -2,8 +2,8 @@ import type { Server as HttpServer } from "http"
 import type { Http2Server } from "http2"
 import { Server } from "socket.io"
 import { MSG, type RecvSignal, type SendSignal } from "./messages.js"
-import type { MediaState } from "../../rtc/media/MediaState"
-import type { AddPeer, RemovePeer } from "$lib/rtc/call/Call.svelte.js"
+import type { MediaState } from "../../media/MediaState"
+import type { AddPeer, RemovePeer } from "$lib/call/Call.svelte"
 
 /* ============================================================================================== */
 

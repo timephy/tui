@@ -4,7 +4,7 @@ import { AudioPipeline } from "../../media/AudioPipeline.svelte"
 import { PeerConnection, type PeerConnectionOptions } from "./PeerConnection.svelte"
 import { DEFAULT_MEDIA_STATE, type MediaState } from "../../media/MediaState"
 import { Stats } from "../Stats.svelte"
-import type { Signal } from "../../debug/DebugSignaling.svelte"
+import type { Signal } from "../../call/components/debug/DebugSignaling.svelte"
 import type { Display } from "../Call.svelte"
 
 /* ============================================================================================== */

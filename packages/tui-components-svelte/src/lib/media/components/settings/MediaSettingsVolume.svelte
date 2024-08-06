@@ -6,9 +6,9 @@
 <script lang="ts">
     import Slider from "$lib/components/Slider.svelte"
     import SwitchLabel from "$lib/components/SwitchLabel.svelte"
-    import { DEFAULT_MIC_VOLUME_GATE, Media } from "$lib/rtc/media"
-    import VolumeMeter, * as Volume from "$lib/rtc/media/components/settings/volume/VolumeMeter.svelte"
-    import VolumeSlider from "$lib/rtc/media/components/settings/volume/VolumeSlider.svelte"
+    import { DEFAULT_MIC_VOLUME_GATE, Media } from "$lib/media"
+    import VolumeMeter, * as Volume from "$lib/media/components/settings/volume/VolumeMeter.svelte"
+    import VolumeSlider from "$lib/media/components/settings/volume/VolumeSlider.svelte"
     import filter_left from "@timephy/tui-icons-svelte/filter_left"
     import soundwave from "@timephy/tui-icons-svelte/soundwave"
     import volume_mute_fill from "@timephy/tui-icons-svelte/volume_mute_fill"

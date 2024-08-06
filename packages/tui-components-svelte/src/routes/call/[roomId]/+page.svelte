@@ -1,11 +1,11 @@
 <script lang="ts">
     import { page } from "$app/stores"
-    import CallControls from "$lib/rtc/call/components/CallControls.svelte"
-    import MediaState from "$lib/rtc/media/components/MediaState.svelte"
-    import MediaSelect from "$lib/rtc/media/components/settings/MediaSettingsSelect.svelte"
-    import MediaVolume from "$lib/rtc/media/components/settings/MediaSettingsVolume.svelte"
-    import Video from "$lib/rtc/call/components/Video.svelte"
-    import DebugPeer from "$lib/rtc/debug/DebugPeer.svelte"
+    import CallControls from "$lib/call/components/CallControls.svelte"
+    import MediaState from "$lib/media/components/MediaState.svelte"
+    import MediaSelect from "$lib/media/components/settings/MediaSettingsSelect.svelte"
+    import MediaVolume from "$lib/media/components/settings/MediaSettingsVolume.svelte"
+    import Video from "$lib/call/components/Video.svelte"
+    import DebugPeer from "$lib/call/components/debug/DebugPeer.svelte"
     import { MeshCallClientDemo } from "$lib/examples/call/MeshCallClientDemo.svelte"
     import { onDestroy, onMount } from "svelte"
 

@@ -1,10 +1,9 @@
 import { io, Socket } from "socket.io-client"
-import { Media } from "../../rtc/media"
-import { type MediaState } from "../../rtc/media/MediaState"
+import { Media, type MediaState } from "../../media"
 import type { CallState, ClientsState } from "./MeshCallServerDemo"
 import { MSG, type RecvSignal, type SendSignal } from "./messages"
-import type { AddPeer, PeerId, RemovePeer } from "../../rtc/call/Call.svelte"
-import { MeshCall } from "$lib/rtc/call/MeshCall.svelte"
+import type { AddPeer, PeerId, RemovePeer } from "../../call/Call.svelte"
+import { MeshCall } from "../../call/MeshCall.svelte"
 
 const ICE_SERVERS = [
     // Public (Google)

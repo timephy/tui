@@ -5,8 +5,8 @@
 
 <script lang="ts">
     import Select from "$lib/components/Select.svelte"
-    import type { Media } from "$lib/rtc/media"
-    import { getMic } from "$lib/rtc/media/getMedia"
+    import type { Media } from "$lib/media"
+    import { getMic } from "$lib/media/getMedia"
     import mic_fill from "@timephy/tui-icons-svelte/mic_fill"
 
     let { media }: { media: Media } = $props()

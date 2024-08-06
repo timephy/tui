@@ -1,4 +1,4 @@
-import type { PeerId } from "../../rtc/call/Call.svelte"
+import type { PeerId } from "../../call/Call.svelte"
 
 export type RecvSignal<C> = {
     fromPeerId: PeerId

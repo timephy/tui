@@ -9,7 +9,7 @@ const webSocketServer = {
             return
         }
 
-        const { setupSocketIoServer } = await import("./src/lib/rtc/server/server")
+        const { setupSocketIoServer } = await import("./src/lib/examples/call/MeshCallServerDemo")
         setupSocketIoServer(server.httpServer)
 
         console.log("WebSocket server is running")

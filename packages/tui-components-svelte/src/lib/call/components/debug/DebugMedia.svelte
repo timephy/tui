@@ -1,8 +1,8 @@
 <script lang="ts">
     import { onMount } from "svelte"
-    import type { Media } from "../media"
-    import Video from "../call/components/Video.svelte"
-    import MediaControls from "../media/components/MediaControls.svelte"
+    import type { Media } from "../../../media"
+    import Video from "../Video.svelte"
+    import MediaControls from "../../../media/components/MediaControls.svelte"
 
     /* ========================================================================================== */
 
