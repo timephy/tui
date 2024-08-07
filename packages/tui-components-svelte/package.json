@@ -18,14 +18,14 @@
             "build": {
                 "inputs": [
                     "default",
-                    "!{projectRoot}/.svelte-kit",
-                    "!{projectRoot}/build",
-                    "!{projectRoot}/dist"
+                    "!{projectRoot}/.svelte-kit/",
+                    "!{projectRoot}/build/",
+                    "!{projectRoot}/dist/"
                 ],
                 "outputs": [
-                    "{projectRoot}/.svelte-kit",
-                    "{projectRoot}/build",
-                    "{projectRoot}/dist"
+                    "{projectRoot}/.svelte-kit/",
+                    "{projectRoot}/build/",
+                    "{projectRoot}/dist/"
                 ]
             }
         },
@@ -36,7 +36,7 @@
         ]
     },
     "files": [
-        "dist"
+        "dist/"
     ],
     "author": "",
     "license": "MIT",
@@ -63,7 +63,7 @@
         "vite": "^5.3.4"
     },
     "dependencies": {
-        "@timephy/rnnoise-wasm": "file:../../../rnnoise-wasm",
+        "@timephy/rnnoise-wasm": "^1.0.0",
         "@timephy/tui-colors-tw": "workspace:*",
         "@timephy/tui-components-tw": "workspace:*",
         "@timephy/tui-icons-svelte": "workspace:*",
