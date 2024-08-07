@@ -254,13 +254,14 @@ export class Stats {
             }
         }
 
+        // NOTE: using "x is not null" because svelte-check does not understand it, although it is using typescript>5
         this._general_recv = sum(
             [
                 this._mic_audio_recv,
                 this._cam_video_recv,
                 this._screen_video_recv,
                 this._screen_audio_recv,
-            ].filter((x) => x !== null),
+            ].filter((x): x is Recv => x !== null),
             KEYS_TO_SUM,
         ) as Recv
         this._general_sent = sum(
@@ -269,7 +270,7 @@ export class Stats {
                 this._cam_video_sent,
                 this._screen_video_sent,
                 this._screen_audio_sent,
-            ].filter((x) => x !== null),
+            ].filter((x): x is Sent => x !== null),
             KEYS_TO_SUM,
         ) as Sent
     }

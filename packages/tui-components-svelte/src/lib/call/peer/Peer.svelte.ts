@@ -43,7 +43,9 @@ export class Peer extends PeerConnection implements Display {
             debug: false,
             noiseSuppression: false,
             volumeGate: null,
-            gain: this.options.storageId ? LS_PEER_GAINS.value.get(this.options.storageId) ?? 1 : 1,
+            gain: this.options.storageId
+                ? (LS_PEER_GAINS.value.get(this.options.storageId) ?? 1)
+                : 1,
             playback: true,
         })
 

@@ -20,7 +20,6 @@ call.local.screenStream
 call.peers[peerId].mediaState
 call.peers[peerId].micCamStream
 call.peers[peerId].screenStream
-
 ```
 
 ![README](./README.excalidraw.png)
