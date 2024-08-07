@@ -7,13 +7,21 @@
     },
     "$schema": "./node_modules/nx/schemas/nx-schema.json",
     "targetDefaults": {
+        "clean": {
+            "dependsOn": [],
+            "cache": false
+        },
+        "codegen": {
+            "dependsOn": [],
+            "cache": true
+        },
         "build": {
-            "dependsOn": ["generate", "^build"],
-            "outputs": ["{projectRoot}/dist", "{projectRoot}/.svelte-kit"],
+            "dependsOn": ["codegen", "^build"],
             "cache": true
         },
         "lint": {
-            "dependsOn": ["generate", "build"],
+            "dependsOn": ["build"],
+            "inputs": ["default"],
             "cache": true
         }
     },

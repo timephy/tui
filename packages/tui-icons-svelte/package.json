@@ -5,32 +5,33 @@
     "description": "The Bootstrap SVG icons converted to be used with Svelte Awesome",
     "scripts": {
         "clean": "rm -rf dist/ src/icons/*.ts",
-        "generate": "rm src/icons/*.ts && bun src/build/generate-icons.ts",
-        "build": "rm -rf dist && tsc && rm -rf dist/build",
+        "codegen": "rm -rf src/icons/*.ts && bun src/codegen/icons.ts",
+        "build": "rm -rf dist && tsc && rm -rf dist/codegen",
         "lint": "prettier . --check && eslint . && publint"
     },
     "nx": {
         "targets": {
-            "generate": {
+            "codegen": {
                 "inputs": [
-                    "node_modules/bootstrap-icons/icons/"
+                    "{projectRoot}/node_modules/bootstrap-icons/icons/*.svg"
                 ],
                 "outputs": [
-                    "src/icons/"
+                    "{projectRoot}/src/icons/*.ts"
                 ]
             },
             "build": {
                 "inputs": [
-                    "src/"
+                    "default",
+                    "!{projectRoot}/dist/"
                 ],
                 "outputs": [
-                    "dist/"
+                    "{projectRoot}/dist/"
                 ]
             }
         },
         "includedScripts": [
             "clean",
-            "generate",
+            "codegen",
             "build",
             "lint"
         ]
