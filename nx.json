@@ -8,28 +8,16 @@
     "$schema": "./node_modules/nx/schemas/nx-schema.json",
     "targetDefaults": {
         "build": {
-            "dependsOn": [
-                "generate",
-                "^build"
-            ],
-            "outputs": [
-                "{projectRoot}/dist",
-                "{projectRoot}/.svelte-kit"
-            ],
+            "dependsOn": ["generate", "^build"],
+            "outputs": ["{projectRoot}/dist", "{projectRoot}/.svelte-kit"],
             "cache": true
         },
         "lint": {
-            "dependsOn": [
-                "generate",
-                "build"
-            ],
+            "dependsOn": ["generate", "build"],
             "cache": true
         }
     },
-    "defaultBase": "main",
     "release": {
-        "projects": [
-            "packages/*"
-        ]
+        "projects": ["packages/*"]
     }
 }

@@ -9,12 +9,12 @@ const TARGET_DIR = "src/icons"
 // skip these files because they contain unsupported elements (`rect`)
 const SKIP_FILES = ["align-top.svg", "align-bottom.svg"]
 
-// clear target dir
-for (const file of fs.readdirSync(TARGET_DIR)) {
-    // print(file)
-    if (file.startsWith(".")) continue
-    fs.rmSync(`${TARGET_DIR}/${file}`)
-}
+// // clear target dir
+// for (const file of fs.readdirSync(TARGET_DIR)) {
+//     // print(file)
+//     if (file.startsWith(".")) continue
+//     fs.rmSync(`${TARGET_DIR}/${file}`)
+// }
 
 // read source dir
 for (const file of fs.readdirSync(SOURCE_DIR)) {
@@ -108,4 +108,5 @@ const exports = {
 
 const pck = JSON.parse(fs.readFileSync("package.json").toString())
 pck.exports = exports
-fs.writeFileSync("package.json", JSON.stringify(pck, null, 4))
+// NOTE: End file with newline
+fs.writeFileSync("package.json", JSON.stringify(pck, null, 4) + "\n")
