@@ -42,10 +42,22 @@
         ".": "./dist/index.js",
         "./localStorage": "./dist/localStorage/index.svelte.js",
         "./call": "./dist/call/index.js",
-        "./Select": "./dist/ui/Select.svelte",
-        "./Slider": "./dist/ui/Slider.svelte",
-        "./Switch": "./dist/ui/Switch.svelte",
-        "./SwitchLabel": "./dist/ui/SwitchLabel.svelte"
+        "./Select.svelte": {
+            "types": "./dist/ui/Select.svelte.d.ts",
+            "svelte": "./dist/ui/Select.svelte"
+        },
+        "./Slider.svelte": {
+            "types": "./dist/ui/Slider.svelte.d.ts",
+            "svelte": "./dist/ui/Slider.svelte"
+        },
+        "./Switch.svelte": {
+            "types": "./dist/ui/Switch.svelte.d.ts",
+            "svelte": "./dist/ui/Switch.svelte"
+        },
+        "./SwitchLabel.svelte": {
+            "types": "./dist/ui/SwitchLabel.svelte.d.ts",
+            "svelte": "./dist/ui/SwitchLabel.svelte"
+        }
     },
     "author": "",
     "license": "MIT",
