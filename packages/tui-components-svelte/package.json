@@ -1,10 +1,10 @@
 {
     "name": "@timephy/tui-components-svelte",
-    "version": "0.0.3",
+    "version": "0.0.4",
     "description": "",
     "homepage": "https://github.com/timephy/tui/tree/main/tui-components-svelte#readme",
     "scripts": {
-        "clean": "rm -rf dist/ .svelte-kit/ build/",
+        "clean": "rm -rf .svelte-kit/ build/ dist/",
         "build": "vite build && svelte-package",
         "lint": "pnpm run check && prettier --check . && publint",
         "dev": "vite dev",
@@ -38,6 +38,15 @@
     "files": [
         "dist/"
     ],
+    "exports": {
+        ".": "./dist/index.js",
+        "./localStorage": "./dist/localStorage/index.svelte.js",
+        "./call": "./dist/call/index.js",
+        "./Select": "./dist/ui/Select.svelte",
+        "./Slider": "./dist/ui/Slider.svelte",
+        "./Switch": "./dist/ui/Switch.svelte",
+        "./SwitchLabel": "./dist/ui/SwitchLabel.svelte"
+    },
     "author": "",
     "license": "MIT",
     "devDependencies": {

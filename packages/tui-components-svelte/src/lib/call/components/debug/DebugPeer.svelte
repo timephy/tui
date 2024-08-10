@@ -1,9 +1,9 @@
 <script lang="ts">
     import { onMount } from "svelte"
-    import VolumeMeter from "../../../media/components/settings/volume/VolumeMeter.svelte"
+    import VolumeMeter from "../../../media/ui/settings/volume/VolumeMeter.svelte"
     import type { Peer } from "../../peer/Peer.svelte"
-    import MediaState from "../../../media/components/MediaState.svelte"
-    import VolumeSlider from "../../../media/components/settings/volume/VolumeSlider.svelte"
+    import MediaState from "../../../media/ui/MediaState.svelte"
+    import VolumeSlider from "../../../media/ui/settings/volume/VolumeSlider.svelte"
     import Video from "../Video.svelte"
     import Stats from "../Stats.svelte"
 

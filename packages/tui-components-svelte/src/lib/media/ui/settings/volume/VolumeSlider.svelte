@@ -4,7 +4,7 @@
 -->
 
 <script lang="ts">
-    import Slider from "$lib/components/Slider.svelte"
+    import Slider from "$lib/ui/Slider.svelte"
     import arrow_counterclockwise from "@timephy/tui-icons-svelte/arrow_counterclockwise"
     import { Icon } from "@timephy/tui-icons-svelte"
 

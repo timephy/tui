@@ -4,7 +4,7 @@
 -->
 
 <script lang="ts">
-    import Select from "$lib/components/Select.svelte"
+    import Select from "$lib/ui/Select.svelte"
     import display from "@timephy/tui-icons-svelte/display"
     import { type Media } from "../../Media.svelte"
     import { RESOLUTIONS } from "../../shared"

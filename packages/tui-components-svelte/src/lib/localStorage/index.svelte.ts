@@ -6,7 +6,7 @@
 /*                                              Field                                             */
 /* ============================================================================================== */
 
-type Key = string
+export type Key = string
 
 export type Options<V> = {
     /** Serialize a value to a string representation. */

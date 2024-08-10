@@ -1,5 +1,5 @@
 <script lang="ts">
-    import Slider from "$lib/components/Slider.svelte"
+    import Slider from "$lib/ui/Slider.svelte"
     import gear_wide_connected from "@timephy/tui-icons-svelte/gear_wide_connected"
     import { Icon } from "@timephy/tui-icons-svelte"
 

@@ -3,7 +3,7 @@
     import gear_wide_connected from "@timephy/tui-icons-svelte/gear_wide_connected"
     import telephone_fill from "@timephy/tui-icons-svelte/telephone_fill"
     import type { Call } from "../Call.svelte"
-    import MediaControls from "$lib/media/components/MediaControls.svelte"
+    import MediaControls from "$lib/media/ui/MediaControls.svelte"
 
     let {
         layout,

@@ -4,7 +4,7 @@
 -->
 
 <script lang="ts">
-    import Select from "$lib/components/Select.svelte"
+    import Select from "$lib/ui/Select.svelte"
     import type { Media } from "$lib/media"
     import { getMic } from "$lib/media/getMedia"
     import mic_fill from "@timephy/tui-icons-svelte/mic_fill"

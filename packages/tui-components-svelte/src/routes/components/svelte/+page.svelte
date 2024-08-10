@@ -1,8 +1,8 @@
 <script lang="ts">
-    import Select from "$lib/components/Select.svelte"
-    import Slider from "$lib/components/Slider.svelte"
-    import Switch from "$lib/components/Switch.svelte"
-    import SwitchLabel from "$lib/components/SwitchLabel.svelte"
+    import Select from "$lib/ui/Select.svelte"
+    import Slider from "$lib/ui/Slider.svelte"
+    import Switch from "$lib/ui/Switch.svelte"
+    import SwitchLabel from "$lib/ui/SwitchLabel.svelte"
 </script>
 
 {#snippet title(name: string)}
