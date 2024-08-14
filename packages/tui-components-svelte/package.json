@@ -1,6 +1,6 @@
 {
     "name": "@timephy/tui-components-svelte",
-    "version": "0.0.7",
+    "version": "0.0.8",
     "description": "",
     "homepage": "https://github.com/timephy/tui/tree/main/tui-components-svelte#readme",
     "scripts": {
@@ -41,48 +41,48 @@
     "exports": {
         "./localStorage": "./dist/localStorage/index.svelte.js",
         "./call": "./dist/call/index.js",
-        "./call/CallControls": {
+        "./call/CallControls.svelte": {
             "types": "./dist/call/ui/CallControls.svelte.d.ts",
             "svelte": "./dist/call/ui/CallControls.svelte"
         },
-        "./call/Stats": {
+        "./call/Stats.svelte": {
             "types": "./dist/call/ui/Stats.svelte.d.ts",
             "svelte": "./dist/call/ui/Stats.svelte"
         },
-        "./call/Video": {
+        "./call/Video.svelte": {
             "types": "./dist/call/ui/Video.svelte.d.ts",
             "svelte": "./dist/call/ui/Video.svelte"
         },
         "./media": "./dist/media/index.js",
-        "./media/MediaControls": {
+        "./media/MediaControls.svelte": {
             "types": "./dist/media/ui/MediaControls.svelte.d.ts",
             "svelte": "./dist/media/ui/MediaControls.svelte"
         },
-        "./media/MediaState": {
+        "./media/MediaState.svelte": {
             "types": "./dist/media/ui/MediaState.svelte.d.ts",
             "svelte": "./dist/media/ui/MediaState.svelte"
         },
-        "./media/MediaSettingsSelect": {
+        "./media/MediaSettingsSelect.svelte": {
             "types": "./dist/media/ui/settings/MediaSettingsSelect.svelte.d.ts",
             "svelte": "./dist/media/ui/settings/MediaSettingsSelect.svelte"
         },
-        "./media/MediaSettingsVolume": {
+        "./media/MediaSettingsVolume.svelte": {
             "types": "./dist/media/ui/settings/MediaSettingsVolume.svelte.d.ts",
             "svelte": "./dist/media/ui/settings/MediaSettingsVolume.svelte"
         },
-        "./Select": {
+        "./Select.svelte": {
             "types": "./dist/ui/Select.svelte.d.ts",
             "svelte": "./dist/ui/Select.svelte"
         },
-        "./Slider": {
+        "./Slider.svelte": {
             "types": "./dist/ui/Slider.svelte.d.ts",
             "svelte": "./dist/ui/Slider.svelte"
         },
-        "./Switch": {
+        "./Switch.svelte": {
             "types": "./dist/ui/Switch.svelte.d.ts",
             "svelte": "./dist/ui/Switch.svelte"
         },
-        "./SwitchLabel": {
+        "./SwitchLabel.svelte": {
             "types": "./dist/ui/SwitchLabel.svelte.d.ts",
             "svelte": "./dist/ui/SwitchLabel.svelte"
         }
