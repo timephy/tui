@@ -47,7 +47,11 @@ export abstract class MeshCall extends Call {
     public override readonly peers: Map<PeerId, Peer> = new SvelteMap()
     private readonly peerSubscriptions: Map<PeerId, Subscription[]> = new Map()
 
-    protected override async receiveAddPeer({ peerId, offer }: AddPeer) {
+    protected override async receiveAddPeer({
+        peerId,
+        offer,
+        storageId = null,
+    }: AddPeer & { storageId?: string | null }) {
         this.DEBUG("receiveAddPeer", peerId, "offer", offer)
 
         let peer = this.peers.get(peerId)
@@ -65,7 +69,7 @@ export abstract class MeshCall extends Call {
                     this.signalSessionDescription(peerId, sessionDescription),
                 signalIceCandidate: (iceCandidate: RTCIceCandidate) =>
                     this.signalIceCandidate(peerId, iceCandidate),
-                storageId: peerId,
+                storageId,
             },
             peerId,
         )

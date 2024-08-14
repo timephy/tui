@@ -146,7 +146,6 @@ export class Peer extends PeerConnection implements Display {
         this._audioPipeline.gain = value
 
         if (this.options.storageId !== null) {
-            console.log(this.options.storageId)
             LS_PEER_GAINS.value = LS_PEER_GAINS.value.set(this.options.storageId, value)
         }
     }
