@@ -1,6 +1,6 @@
 {
     "name": "@timephy/tui-components-svelte",
-    "version": "0.0.6",
+    "version": "0.0.7",
     "description": "",
     "homepage": "https://github.com/timephy/tui/tree/main/tui-components-svelte#readme",
     "scripts": {
@@ -53,6 +53,7 @@
             "types": "./dist/call/ui/Video.svelte.d.ts",
             "svelte": "./dist/call/ui/Video.svelte"
         },
+        "./media": "./dist/media/index.js",
         "./media/MediaControls": {
             "types": "./dist/media/ui/MediaControls.svelte.d.ts",
             "svelte": "./dist/media/ui/MediaControls.svelte"
