@@ -2,6 +2,8 @@
  * @file Exports the `Field<V>` class to load and store values in localStorage.
  */
 
+import { browser } from "$app/environment"
+
 /* ============================================================================================== */
 /*                                              Field                                             */
 /* ============================================================================================== */
@@ -52,6 +54,13 @@ export class Field<V> {
         this.setNullOnDefault = options.setNullOnDefault ?? true
 
         this._default_serialized = this.serialize(_default)
+
+        // NOTE: Cannot access localStorage on the server
+        if (!browser) {
+            const value = $state(_default)
+            this._value = value
+            return
+        }
 
         // calculate/load initial value
         const str = localStorage.getItem(key)

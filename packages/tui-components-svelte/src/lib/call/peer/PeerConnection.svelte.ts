@@ -1,3 +1,5 @@
+import { browser } from "$app/environment"
+
 // NOTE: These values were observed to be the defaults of a `new RTCPeerConnection()` [Chrome]
 const DEFAULT_RTCSignalingState = "stable"
 const DEFAULT_RTCIceGathererState = "new"
@@ -26,6 +28,9 @@ function sortByMimeTypes(codecs: RTCRtpCodecCapability[], preferredOrder: string
 }
 
 const sortedCodecsAudio = (() => {
+    // NOTE: Cannot access RTCRtpReceiver on the server
+    if (!browser) return []
+
     const supportedCodecsAudio = RTCRtpReceiver.getCapabilities("audio")?.codecs ?? null
     const preferredCodecsAudio = ["audio/opus"]
     return supportedCodecsAudio !== null
@@ -33,6 +38,9 @@ const sortedCodecsAudio = (() => {
         : null
 })()
 const sortedCodecsVideo = (() => {
+    // NOTE: Cannot access RTCRtpReceiver on the server
+    if (!browser) return []
+
     const supportedCodecsVideo = RTCRtpReceiver.getCapabilities("video")?.codecs ?? null
     const preferredCodecsVideo = ["video/AV1", "video/H264", "video/VP8", "video/VP9"]
     return supportedCodecsVideo !== null
