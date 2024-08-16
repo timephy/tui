@@ -15,7 +15,7 @@ const attackTime = 0.04 // Time in seconds for the gate to fully open
 const releaseTime = 0.2 // Time in seconds for the gate to fully close
 const epsilon = 1e-10
 
-const MIN_VOLUME = 20 * Math.log10(epsilon) // -200 dB
+export const MIN_VOLUME = 20 * Math.log10(epsilon) // -200 dB
 
 /* ============================================================================================== */
 

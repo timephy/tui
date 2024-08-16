@@ -3,7 +3,7 @@ import { BehaviorSubject } from "rxjs"
 import { AudioPipeline } from "./AudioPipeline.svelte"
 import { getCam, getMic, getScreen } from "./getMedia"
 import { type DeviceInfo } from "./shared"
-import { Field } from "$lib/localStorage/index.svelte"
+import { Field } from "$lib/storage/index.svelte"
 
 /* ============================================================================================== */
 
@@ -106,6 +106,8 @@ export class Media {
     #mic_id: DeviceId = $state(LS_MIC_ID.value)
     /** The error state of the mic, updated by {@link _setMic}. */
     #mic_error: Error | null = $state(null)
+    /** An Observable of {@link mic_error}. */
+    #mic_error$ = new BehaviorSubject<Error | null>(null)
     /** The mic audio track, updated by {@link _setMic}. */
     #mic_audio: MediaStreamTrack | null = $state(null)
     /** An Observable of {@link mic_audioOutput}. */
@@ -116,6 +118,8 @@ export class Media {
     #cam_id: DeviceId = $state(LS_CAM_ID.value)
     /** The error state of the cam, updated by {@link _setCam}. */
     #cam_error: Error | null = $state(null)
+    /** An Observable of {@link cam_error}. */
+    #cam_error$ = new BehaviorSubject<Error | null>(null)
     /** The cam video track, updated by {@link _setCam}. */
     #cam_video: MediaStreamTrack | null = $state(null)
     /** An Observable of {@link cam_video}. */
@@ -124,6 +128,8 @@ export class Media {
     // !! Screen
     /** The error state of the screen, updated by {@link _setScreen}. */
     #screen_error: Error | null = $state(null)
+    /** An Observable of {@link screen_error}. */
+    #screen_error$ = new BehaviorSubject<Error | null>(null)
     /** The screen video track, updated by {@link _setScreen}. */
     #screen_video: MediaStreamTrack | null = $state(null)
     /** The screen audio track, updated by {@link _setScreen}. */
@@ -312,12 +318,14 @@ export class Media {
                     })
                 }
                 this.#mic_error = null
+                this.#mic_error$.next(this.#mic_error)
                 // special setup
                 this.#setMicTrackEnabled(track, this.#mute, this.#deaf)
                 return track
             } catch (error) {
                 WARN(`Mic Error: ${error}`)
                 this.#mic_error = "error"
+                this.#mic_error$.next(this.#mic_error)
                 return null
             }
         }
@@ -347,6 +355,7 @@ export class Media {
         } else if (load === false) {
             // should unload track, do that
             this.#mic_error = null
+            this.#mic_error$.next(this.#mic_error)
             if (this.#mic_audio !== null) {
                 this.#mic_audio.stop()
                 this.#mic_audio = null
@@ -379,12 +388,14 @@ export class Media {
                     })
                 }
                 this.#cam_error = null
+                this.#cam_error$.next(this.#cam_error)
                 // NOTE: Constrain cam to 720p
                 await this.#setVideoTrackMaxHeight(track, 720)
                 return track
             } catch (error) {
                 WARN(`Cam Error: ${error}`)
                 this.#cam_error = "error"
+                this.#cam_error$.next(this.#cam_error)
                 return null
             }
         }
@@ -412,6 +423,7 @@ export class Media {
         } else if (load === false) {
             // should unload track, do that
             this.#cam_error = null
+            this.#cam_error$.next(this.#cam_error)
             if (this.#cam_video !== null) {
                 this.#cam_video.stop()
                 this.#cam_video = null
@@ -449,12 +461,14 @@ export class Media {
                     }
                 }
                 this.#screen_error = null
+                this.#screen_error$.next(this.#screen_error)
                 // NOTE: Constrain screen video to `screen_maxHeight`
                 await this.#setVideoTrackMaxHeight(videoTrack, this.#screen_maxHeight)
                 return [videoTrack, audioTrack]
             } catch (error) {
                 WARN(`Screen Error: ${error}`)
                 this.#screen_error = "error"
+                this.#screen_error$.next(this.#screen_error)
                 return null
             }
         }
@@ -472,6 +486,7 @@ export class Media {
         } else {
             // should unload track, do that
             this.#screen_error = null
+            this.#screen_error$.next(this.#screen_error)
             if (this.#screen_video !== null || this.#screen_audio !== null) {
                 this.#screen_video?.stop()
                 this.#screen_video = null
@@ -554,6 +569,10 @@ export class Media {
     /** The error state of the mic. */
     get mic_error() {
         return this.#mic_error
+    }
+    /** An Observable of {@link mic_error}. */
+    get mic_error$() {
+        return this.#mic_error$
     }
 
     /* ===================================== `mic_pipeline` ===================================== */
@@ -669,6 +688,10 @@ export class Media {
     get cam_error() {
         return this.#cam_error
     }
+    /** An Observable of {@link cam_error}. */
+    get cam_error$() {
+        return this.#cam_error$
+    }
 
     /* ========================================================================================== */
     /*                                          `screen`                                          */
@@ -708,6 +731,10 @@ export class Media {
     /** The error state of the screen. */
     get screen_error() {
         return this.#screen_error
+    }
+    /** An Observable of {@link screen_error}. */
+    get screen_error$() {
+        return this.#screen_error$
     }
 
     // !! Settings

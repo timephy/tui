@@ -16,11 +16,21 @@ export type RemovePeer = {
 
 /* ============================================================================================== */
 
+/**
+ * A type that should be used for any user interface for displaying a call user.
+ *
+ * Represents a call user, either a remote one, or the local user itself.
+ */
 export type Display = {
     mediaState: MediaState
 
     micCamStream: MediaStream
     screenStream: MediaStream
+
+    /** The volume of the microphone. */
+    volume: number
+    /** Is null when representing the local user. */
+    connectionState: RTCPeerConnectionState | null
 }
 
 /* ============================================================================================== */
@@ -100,6 +110,12 @@ export abstract class Call {
                 return self.media.screen_video
                     ? new MediaStream([self.media.screen_video])
                     : new MediaStream()
+            },
+            get volume() {
+                return self.media.mic_volumeOutput
+            },
+            get connectionState() {
+                return null
             },
         }
     })(this)
