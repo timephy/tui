@@ -8,6 +8,7 @@
     import DebugPeer from "$lib/call/ui/debug/DebugPeer.svelte"
     import { MeshCallClientDemo } from "$lib/examples/call/MeshCallClientDemo.svelte"
     import { onDestroy, onMount } from "svelte"
+    import PeerOptions from "$lib/call/ui/PeerOptions.svelte"
 
     /* ========================================================================================== */
 
@@ -73,7 +74,33 @@
         <!-- !! Peers -->
         {#each call.peers as [_, p]}
             <div class="card card-p section">
-                <DebugPeer peer={p} />
+                {#if debug}
+                    <DebugPeer peer={p} />
+                {:else}
+                    <div class="section flex flex-row items-center justify-between gap-4">
+                        <h1 class="truncate">{p._debug_id}</h1>
+                        <MediaState mediaState={p.mediaState} />
+                    </div>
+
+                    {#if p.mediaState.cam}
+                        <Video
+                            stream={p.micCamStream}
+                            muted={true}
+                            class="item box-content bg-step-base"
+                        />
+                    {/if}
+                    {#if p.mediaState.screen}
+                        <Video
+                            stream={p.screenStream}
+                            muted={false}
+                            class="item box-content bg-step-base"
+                        />
+                    {/if}
+
+                    <hr />
+
+                    <PeerOptions peer={p} />
+                {/if}
             </div>
         {/each}
 
