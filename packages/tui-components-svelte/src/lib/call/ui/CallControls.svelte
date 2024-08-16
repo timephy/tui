@@ -9,7 +9,6 @@
         layout,
         call,
         muteMic,
-        // class: CLASS,
         //
         showMediaSettings,
         joinCallText,
@@ -18,7 +17,6 @@
         layout: "normal" | "row"
         call: Call
         muteMic?: boolean
-        // class?: string
         //
         showMediaSettings: () => void
         joinCallText: string
