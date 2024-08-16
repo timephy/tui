@@ -45,6 +45,10 @@
             "types": "./dist/call/ui/CallControls.svelte.d.ts",
             "svelte": "./dist/call/ui/CallControls.svelte"
         },
+        "./call/PeerOptions.svelte": {
+            "types": "./dist/call/ui/PeerOptions.svelte.d.ts",
+            "svelte": "./dist/call/ui/PeerOptions.svelte"
+        },
         "./call/Stats.svelte": {
             "types": "./dist/call/ui/Stats.svelte.d.ts",
             "svelte": "./dist/call/ui/Stats.svelte"
