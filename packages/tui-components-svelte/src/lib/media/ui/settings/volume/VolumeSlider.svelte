@@ -10,15 +10,21 @@
 
     let {
         value = $bindable(),
+        min = 0,
+        max = 4,
+        step = 0.05,
         class: CLASS = "",
     }: {
         value: number
+        min?: number
+        max?: number
+        step?: number
         class?: string
     } = $props()
 </script>
 
 <div class="flex items-center gap-3 {CLASS}">
-    <Slider bind:value min={0.1} max={4} step={0.05} />
+    <Slider bind:value {min} {max} {step} />
 
     <button
         class="btn btn-thin btn-transparent aspect-square"
