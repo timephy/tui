@@ -2,7 +2,7 @@
 
 ```svelte
 <script lang="ts">
-    import { Icon } from "@timephy/tui-icons-svelte"
+    import Icon from "@timephy/tui-components-svelte/Icon.svelte"
 
     import camera_video_fill from "@timephy/tui-icons-svelte/camera_video_fill"
     import display from "@timephy/tui-icons-svelte/display"
