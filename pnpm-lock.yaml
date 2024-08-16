@@ -77,6 +77,9 @@ importers:
       svelte:
         specifier: 5.0.0-next.178
         version: 5.0.0-next.178
+      svelte-awesome:
+        specifier: ^3.3.1
+        version: 3.3.1(svelte@5.0.0-next.178)
     devDependencies:
       '@sveltejs/adapter-node':
         specifier: ^5.2.0
@@ -5522,6 +5525,10 @@ snapshots:
       has-flag: 4.0.0
 
   supports-preserve-symlinks-flag@1.0.0: {}
+
+  svelte-awesome@3.3.1(svelte@5.0.0-next.178):
+    dependencies:
+      svelte: 5.0.0-next.178
 
   svelte-awesome@3.3.1(svelte@5.0.0-next.191):
     dependencies:
