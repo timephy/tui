@@ -5,7 +5,7 @@ import { PeerConnection, type PeerConnectionOptions } from "./PeerConnection.sve
 import { DEFAULT_MEDIA_STATE, type MediaState } from "../../media/MediaState"
 import { Stats } from "../Stats.svelte"
 import type { Signal } from "../ui/debug/DebugSignaling.svelte"
-import type { Display } from "../Call.svelte"
+import type { PeerDisplay } from "../Call.svelte"
 
 /* ============================================================================================== */
 
@@ -29,7 +29,7 @@ export type PeerConnectionError = (typeof peerConnectionError)[number]
  * - Implements an {@link AudioPipeline} for the received audio (to display a volume meter, etc.)
  * - Manages the {@link MediaState} of the peer, for help with displaying the received media (whether to show <video> elements, etc.)
  */
-export class Peer extends PeerConnection implements Display {
+export class Peer extends PeerConnection implements PeerDisplay {
     readonly stats: Stats
 
     constructor(
@@ -151,6 +151,10 @@ export class Peer extends PeerConnection implements Display {
     }
     get volume() {
         return this._audioPipeline.volume
+    }
+
+    get storageId() {
+        return this.options.storageId
     }
 
     /* ========================================================================================== */

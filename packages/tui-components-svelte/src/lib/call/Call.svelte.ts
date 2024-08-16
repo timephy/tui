@@ -1,6 +1,7 @@
 import type { Subscription } from "rxjs"
 import type { Media } from "../media"
 import { DEFAULT_MEDIA_STATE, mediaState$, type MediaState } from "../media/MediaState"
+import type { Stats } from "./Stats.svelte"
 
 /* ============================================================================================== */
 
@@ -26,11 +27,25 @@ export type Display = {
 
     micCamStream: MediaStream
     screenStream: MediaStream
+}
+
+export type LocalDisplay = Display & {
+    /** Whether we are sending audio. */
+    volumeGateOpen: boolean
+}
+
+export type PeerDisplay = Display & {
+    signalingState: RTCSignalingState
+    iceGatheringState: RTCIceGathererState
+    iceConnectionState: RTCIceConnectionState
+    connectionState: RTCPeerConnectionState
 
     /** The volume of the microphone. */
     volume: number
-    /** Is null when representing the local user. */
-    connectionState: RTCPeerConnectionState | null
+    gain: number
+    stats: Stats
+
+    storageId: string | null
 }
 
 /* ============================================================================================== */
@@ -96,7 +111,7 @@ export abstract class Call {
 
     /* ========================================================================================== */
 
-    public readonly local: Display = ((self: Call) => {
+    public readonly local: LocalDisplay = ((self: Call) => {
         return {
             get mediaState() {
                 return self._mediaState
@@ -111,8 +126,8 @@ export abstract class Call {
                     ? new MediaStream([self.media.screen_video])
                     : new MediaStream()
             },
-            get volume() {
-                return self.media.mic_volumeOutput
+            get volumeGateOpen() {
+                return self.media.mic_volumeGateOpen
             },
             get connectionState() {
                 return null
@@ -120,7 +135,7 @@ export abstract class Call {
         }
     })(this)
 
-    public abstract readonly peers: Map<PeerId, Display>
+    public abstract readonly peers: Map<PeerId, PeerDisplay>
 
     /** Should be derived from the known server-state. */
     public abstract get isConnected(): boolean
