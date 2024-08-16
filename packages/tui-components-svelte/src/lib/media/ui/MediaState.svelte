@@ -89,19 +89,23 @@
     import volume_mute_fill from "@timephy/tui-icons-svelte/volume_mute_fill"
     import volume_up from "@timephy/tui-icons-svelte/volume_up"
     import volume_up_fill from "@timephy/tui-icons-svelte/volume_up_fill"
-    import type { MediaState } from "../MediaState"
+    import type { MediaState as IMediaState } from "../MediaState"
 
+    /* ========================================================================================== */
+    /*                                            Props                                           */
     /* ========================================================================================== */
 
     let {
         mediaState,
         debug = false,
         config: _config,
+        extraIcons = [],
         class: CLASS,
     }: {
-        mediaState: MediaState
+        mediaState: IMediaState
         debug?: boolean
         config?: DisplayConfig
+        extraIcons?: IconType[]
         class?: string
     } = $props()
 
@@ -114,31 +118,47 @@
     let camState: CamState = $derived(!mediaState.cam ? "disabled" : "enabled")
     let screenState: ScreenState = $derived(!mediaState.screen ? "disabled" : "enabled")
     let screenAudioState: ScreenState = $derived(!mediaState.screen_audio ? "disabled" : "enabled")
+
+    /* ========================================================================================== */
+    /*                                            State                                           */
+    /* ========================================================================================== */
+
+    const show_mic = $derived(config.mic.includes(micState))
+    const show_deaf = $derived(config.deaf.includes(deafState))
+    const show_cam = $derived(config.cam.includes(camState))
+    const show_screen = $derived(config.screen.includes(screenState))
+    const show_screen_audio = $derived(config.screen_audio.includes(screenAudioState))
 </script>
 
-<div class="flex items-center gap-3 {CLASS}">
-    <!-- !! Mic -->
-    {#if config.mic.includes(micState)}
-        <Icon {...MIC[micState]} />
-    {/if}
+{#if show_mic || show_deaf || show_cam || show_screen || show_screen_audio || extraIcons.length > 0}
+    <div class="flex items-center gap-3 {CLASS}">
+        <!-- !! Mic -->
+        {#if show_mic}
+            <Icon {...MIC[micState]} />
+        {/if}
 
-    <!-- !! Deaf -->
-    {#if config.deaf.includes(deafState)}
-        <Icon {...DEAF[deafState]} />
-    {/if}
+        <!-- !! Deaf -->
+        {#if show_deaf}
+            <Icon {...DEAF[deafState]} />
+        {/if}
 
-    <!-- !! Cam -->
-    {#if config.cam.includes(camState)}
-        <Icon {...CAM[camState]} />
-    {/if}
+        <!-- !! Cam -->
+        {#if show_cam}
+            <Icon {...CAM[camState]} />
+        {/if}
 
-    <!-- !! Screen Video -->
-    {#if config.screen.includes(screenState)}
-        <Icon {...SCREEN[screenState]} />
-    {/if}
+        <!-- !! Screen Video -->
+        {#if show_screen}
+            <Icon {...SCREEN[screenState]} />
+        {/if}
 
-    <!-- !! Screen Audio -->
-    {#if config.screen_audio.includes(screenAudioState)}
-        <Icon {...SCREEN_AUDIO[screenAudioState]} />
-    {/if}
-</div>
+        <!-- !! Screen Audio -->
+        {#if show_screen_audio}
+            <Icon {...SCREEN_AUDIO[screenAudioState]} />
+        {/if}
+
+        {#each extraIcons as icon}
+            <Icon data={icon} />
+        {/each}
+    </div>
+{/if}
