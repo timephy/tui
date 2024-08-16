@@ -40,6 +40,17 @@ export class Field<V> {
     private serialize: (val: V) => string
     private setNullOnDefault: boolean
 
+    /* ========================================================================================== */
+
+    DEBUG(...msgs: unknown[]) {
+        console.debug(`[storage] "${this.key}"`, ...msgs)
+    }
+    WARN(...msgs: unknown[]) {
+        console.warn(`[storage] "${this.key}"`, ...msgs)
+    }
+
+    /* ========================================================================================== */
+
     constructor(
         /** The key under which the value is stored. */
         readonly key: Key,
@@ -55,23 +66,42 @@ export class Field<V> {
 
         this._default_serialized = this.serialize(_default)
 
+        /** Return the default wrapped with `$state(...)` and console log. */
+        const _initDefault = () => {
+            const value = $state(_default)
+            this.DEBUG("Initialized with default:", this.value)
+            return value
+        }
+
         // NOTE: Cannot access localStorage on the server
         if (!browser) {
-            const value = $state(_default)
-            this._value = value
+            this._value = _initDefault()
             return
         }
 
         // calculate/load initial value
         const str = localStorage.getItem(key)
-        try {
-            const storedValue = str !== null ? parse(str) : null
-            const value = $state(storedValue ?? _default)
-            this._value = value
-        } catch (error) {
-            console.warn("Failed to parse value from localStorage:", key, str, error)
-            const value = $state(_default)
-            this._value = value
+        if (str !== null) {
+            try {
+                const storedValue = parse(str)
+                if (storedValue !== null) {
+                    // successfully parsed stored value
+                    const value = $state(storedValue)
+                    this.DEBUG("Initialized with loaded:", value)
+                    this._value = value
+                } else {
+                    // parse returned null
+                    this.WARN("parsing aborted:", key, str)
+                    this._value = _initDefault()
+                }
+            } catch (error) {
+                // parsing threw an error
+                this.WARN("parse threw an error:", key, str, error)
+                this._value = _initDefault()
+            }
+        } else {
+            // no value stored
+            this._value = _initDefault()
         }
     }
 

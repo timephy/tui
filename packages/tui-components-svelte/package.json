@@ -39,7 +39,7 @@
         "dist/"
     ],
     "exports": {
-        "./localStorage": "./dist/localStorage/index.svelte.js",
+        "./storage": "./dist/storage/index.svelte.js",
         "./call": "./dist/call/index.js",
         "./call/CallControls.svelte": {
             "types": "./dist/call/ui/CallControls.svelte.d.ts",
@@ -70,6 +70,14 @@
             "types": "./dist/media/ui/settings/MediaSettingsVolume.svelte.d.ts",
             "svelte": "./dist/media/ui/settings/MediaSettingsVolume.svelte"
         },
+        "./media/VolumeMeter.svelte": {
+            "types": "./dist/media/ui/settings/volume/VolumeMeter.svelte.d.ts",
+            "svelte": "./dist/media/ui/settings/volume/VolumeMeter.svelte"
+        },
+        "./media/VolumeSlider.svelte": {
+            "types": "./dist/media/ui/settings/volume/VolumeSlider.svelte.d.ts",
+            "svelte": "./dist/media/ui/settings/volume/VolumeSlider.svelte"
+        },
         "./Select.svelte": {
             "types": "./dist/ui/Select.svelte.d.ts",
             "svelte": "./dist/ui/Select.svelte"
@@ -85,6 +93,10 @@
         "./SwitchLabel.svelte": {
             "types": "./dist/ui/SwitchLabel.svelte.d.ts",
             "svelte": "./dist/ui/SwitchLabel.svelte"
+        },
+        "./Icon.svelte": {
+            "types": "./dist/ui/Icon.svelte.d.ts",
+            "svelte": "./dist/ui/Icon.svelte"
         }
     },
     "author": "",
@@ -120,7 +132,8 @@
         "rxjs": "^7.8.1",
         "socket.io": "^4.7.5",
         "socket.io-client": "^4.7.5",
-        "svelte": "5.0.0-next.178"
+        "svelte": "5.0.0-next.178",
+        "svelte-awesome": "^3.3.1"
     },
     "type": "module",
     "publishConfig": {

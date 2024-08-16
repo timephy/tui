@@ -1,9 +1,9 @@
 <script lang="ts">
-    import { Icon } from "@timephy/tui-icons-svelte"
+    import MediaControls from "$lib/media/ui/MediaControls.svelte"
+    import Icon from "$lib/ui/Icon.svelte"
     import gear_wide_connected from "@timephy/tui-icons-svelte/gear_wide_connected"
     import telephone_fill from "@timephy/tui-icons-svelte/telephone_fill"
     import type { Call } from "../Call.svelte"
-    import MediaControls from "$lib/media/ui/MediaControls.svelte"
 
     let {
         layout,
@@ -62,12 +62,7 @@
     <div class="grid gap-2 {containerClass}">
         <MediaControls {media} {muteMic} />
 
-        <button
-            tabindex={-1}
-            onclick={showMediaSettings}
-            class="btn btn-tall gap-2 {buttonClass}"
-            disabled
-        >
+        <button tabindex={-1} onclick={showMediaSettings} class="btn btn-tall gap-2 {buttonClass}">
             <Icon data={gear_wide_connected} class="size-[18px]" />
         </button>
 

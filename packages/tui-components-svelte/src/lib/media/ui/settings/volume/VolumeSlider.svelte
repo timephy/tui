@@ -6,7 +6,7 @@
 <script lang="ts">
     import Slider from "$lib/ui/Slider.svelte"
     import arrow_counterclockwise from "@timephy/tui-icons-svelte/arrow_counterclockwise"
-    import { Icon } from "@timephy/tui-icons-svelte"
+    import Icon from "$lib/ui/Icon.svelte"
 
     let {
         value = $bindable(),

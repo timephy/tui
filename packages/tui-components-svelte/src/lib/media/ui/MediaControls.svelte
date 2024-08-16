@@ -6,7 +6,7 @@
 -->
 
 <script lang="ts">
-    import { Icon } from "@timephy/tui-icons-svelte"
+    import Icon from "$lib/ui/Icon.svelte"
     import camera_video_fill from "@timephy/tui-icons-svelte/camera_video_fill"
     import display from "@timephy/tui-icons-svelte/display"
     import display_fill from "@timephy/tui-icons-svelte/display_fill"
@@ -16,6 +16,15 @@
     import volume_up_fill from "@timephy/tui-icons-svelte/volume_up_fill"
     import { type Media } from "../Media.svelte"
 
+    /* ========================================================================================== */
+
+    // NOTE: only because of auto-formatting fails with arrow function in snippet
+    type OnClick = (event: MouseEvent) => void
+
+    /* ========================================================================================== */
+    /*                                            Props                                           */
+    /* ========================================================================================== */
+
     let {
         media,
         muteMic = true,
@@ -24,9 +33,6 @@
         /** Mute mic instead of deactivating (default = true). */
         muteMic?: boolean
     } = $props()
-
-    // NOTE: only because of auto-formatting fails with arrow function in snippet
-    type OnClick = (event: MouseEvent) => void
 </script>
 
 {#snippet btn({

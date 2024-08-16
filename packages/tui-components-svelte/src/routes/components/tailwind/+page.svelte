@@ -1,7 +1,7 @@
 <script lang="ts">
     import Slider from "$lib/ui/Slider.svelte"
     import gear_wide_connected from "@timephy/tui-icons-svelte/gear_wide_connected"
-    import { Icon } from "@timephy/tui-icons-svelte"
+    import Icon from "$lib/ui/Icon.svelte"
 
     let sliderValue: number = 1
 </script>

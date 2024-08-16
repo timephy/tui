@@ -8,7 +8,7 @@
 </script>
 
 <script lang="ts" generics="Value">
-    import { Icon, type IconType } from "@timephy/tui-icons-svelte"
+    import Icon, { type IconType } from "$lib/ui/Icon.svelte"
     import chevron_down from "@timephy/tui-icons-svelte/chevron_down"
 
     /* ========================================================================================== */

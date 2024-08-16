@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Icon, type IconType } from "@timephy/tui-icons-svelte"
+    import Icon, { type IconType } from "$lib/ui/Icon.svelte"
     import type { ComponentProps } from "svelte"
     import Switch from "./Switch.svelte"
 

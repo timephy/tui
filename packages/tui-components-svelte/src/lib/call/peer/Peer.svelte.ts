@@ -1,4 +1,4 @@
-import { Field } from "$lib/localStorage/index.svelte"
+import { Field } from "$lib/storage/index.svelte"
 import { Subject } from "rxjs"
 import { AudioPipeline } from "../../media/AudioPipeline.svelte"
 import { PeerConnection, type PeerConnectionOptions } from "./PeerConnection.svelte"

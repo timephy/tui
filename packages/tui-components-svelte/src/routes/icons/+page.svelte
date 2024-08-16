@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Icon } from "@timephy/tui-icons-svelte"
+    import Icon from "$lib/ui/Icon.svelte"
     import * as icons from "@timephy/tui-icons-svelte/ICONS"
 
     let query = ""

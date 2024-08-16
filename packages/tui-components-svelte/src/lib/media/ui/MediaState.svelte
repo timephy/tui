@@ -52,11 +52,11 @@
         class: string
     }
 
-    const CLASS_DISABLED = "text-red opacity-50"
+    const CLASS_DISABLED = "opacity-50"
 
     const MIC: Record<MicState, State> = {
         enabled: { data: mic_fill, class: "opacity-50" },
-        disabled: { data: mic, class: CLASS_DISABLED },
+        disabled: { data: mic_mute, class: CLASS_DISABLED },
         muted: { data: mic_mute_fill, class: "" },
     }
     const DEAF: Record<DeafState, State> = {
@@ -65,7 +65,7 @@
     }
     const CAM: Record<CamState, State> = {
         enabled: { data: camera_video_fill, class: "" },
-        disabled: { data: camera_video, class: CLASS_DISABLED },
+        disabled: { data: camera_video_off, class: CLASS_DISABLED },
     }
     const SCREEN: Record<ScreenState, State> = {
         enabled: { data: display_fill, class: "" },
@@ -78,13 +78,13 @@
 </script>
 
 <script lang="ts">
-    import { Icon, type IconType } from "@timephy/tui-icons-svelte"
-    import camera_video from "@timephy/tui-icons-svelte/camera_video"
+    import Icon, { type IconType } from "$lib/ui/Icon.svelte"
     import camera_video_fill from "@timephy/tui-icons-svelte/camera_video_fill"
+    import camera_video_off from "@timephy/tui-icons-svelte/camera_video_off"
     import display from "@timephy/tui-icons-svelte/display"
     import display_fill from "@timephy/tui-icons-svelte/display_fill"
-    import mic from "@timephy/tui-icons-svelte/mic"
     import mic_fill from "@timephy/tui-icons-svelte/mic_fill"
+    import mic_mute from "@timephy/tui-icons-svelte/mic_mute"
     import mic_mute_fill from "@timephy/tui-icons-svelte/mic_mute_fill"
     import volume_mute_fill from "@timephy/tui-icons-svelte/volume_mute_fill"
     import volume_up from "@timephy/tui-icons-svelte/volume_up"
@@ -97,10 +97,12 @@
         mediaState,
         debug = false,
         config: _config,
+        class: CLASS,
     }: {
         mediaState: MediaState
         debug?: boolean
         config?: DisplayConfig
+        class?: string
     } = $props()
 
     let config = $derived(_config ?? (debug ? DEBUG_CONFIG : DEFAULT_CONFIG))
@@ -114,7 +116,7 @@
     let screenAudioState: ScreenState = $derived(!mediaState.screen_audio ? "disabled" : "enabled")
 </script>
 
-<div class="flex justify-center gap-2">
+<div class="flex items-center gap-3 {CLASS}">
     <!-- !! Mic -->
     {#if config.mic.includes(micState)}
         <Icon {...MIC[micState]} />
