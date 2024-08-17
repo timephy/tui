@@ -3,6 +3,7 @@
  */
 
 import { browser } from "$app/environment"
+import { BehaviorSubject } from "rxjs"
 
 /* ============================================================================================== */
 /*                                              Field                                             */
@@ -34,6 +35,8 @@ export type Options<V> = {
  */
 export class Field<V> {
     private _value: V
+    /** Used as the source of the exported `Observable` that allows consumers to subscribe to change. */
+    private _value$: BehaviorSubject<V>
 
     private _default_serialized: string
 
@@ -59,23 +62,24 @@ export class Field<V> {
 
         /** A function to parse a the value's serialized representation into its value type. */
         parse: (str: string) => V | null,
-        options: Options<V>,
+        options?: Options<V>,
     ) {
-        this.serialize = options.serialize ?? JSON.stringify
-        this.setNullOnDefault = options.setNullOnDefault ?? true
+        this.serialize = options?.serialize ?? JSON.stringify
+        this.setNullOnDefault = options?.setNullOnDefault ?? true
 
         this._default_serialized = this.serialize(_default)
 
         /** Return the default wrapped with `$state(...)` and console log. */
         const _initDefault = () => {
             const value = $state(_default)
-            this.DEBUG("Initialized with default:", this.value)
+            this.DEBUG("Initialized with default:", _default)
             return value
         }
 
         // NOTE: Cannot access localStorage on the server
         if (!browser) {
             this._value = _initDefault()
+            this._value$ = new BehaviorSubject(this._value)
             return
         }
 
@@ -103,16 +107,11 @@ export class Field<V> {
             // no value stored
             this._value = _initDefault()
         }
+
+        this._value$ = new BehaviorSubject(this._value)
     }
 
-    /* ========================================================================================== */
-
-    get value() {
-        return this._value
-    }
-    set value(value) {
-        this._value = value
-
+    private _save(value: V) {
         if (localStorage) {
             if (
                 value === null ||
@@ -123,6 +122,21 @@ export class Field<V> {
                 localStorage.setItem(this.key, this.serialize(value))
             }
         }
+    }
+
+    /* ========================================================================================== */
+
+    get value() {
+        return this._value
+    }
+    set value(value) {
+        this._value = value
+        this._value$.next(value)
+
+        this._save(value)
+    }
+    get value$() {
+        return this._value$.asObservable()
     }
 
     /* ========================================================================================== */
@@ -165,7 +179,7 @@ export class Field<V> {
         }
     }
 
-    /* ========================================================================================== */
+    /* =========================================== Map ========================================== */
 
     static readonly parse_map = (str: string): Map<string, unknown> | null => {
         return new Map(JSON.parse(str))
@@ -173,5 +187,15 @@ export class Field<V> {
 
     static readonly serialize_map = (map: Map<string, unknown>): string => {
         return JSON.stringify([...map])
+    }
+
+    /* =========================================== Set ========================================== */
+
+    static readonly parse_set = (str: string): Set<unknown> | null => {
+        return new Set(JSON.parse(str))
+    }
+
+    static readonly serialize_set = (set: Set<unknown>): string => {
+        return JSON.stringify([...set])
     }
 }
