@@ -101,7 +101,6 @@ fs.writeFileSync(`src/icons/index.ts`, output)
 // ! Update `package.json > exports`
 /** The `exports` mapping */
 const exports = {
-    ".": "./dist/index.js",
     "./ICONS": "./dist/icons/index.js",
     ...Object.fromEntries(ICONS.map((name) => [`./${name}`, `./dist/icons/${name}.js`])),
 }
