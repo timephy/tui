@@ -1,6 +1,6 @@
 {
     "name": "@timephy/tui-icons-svelte",
-    "version": "1.11.6",
+    "version": "1.11.7",
     "homepage": "https://github.com/timephy/tui/tree/main/tui-icons-svelte#readme",
     "description": "The Bootstrap SVG icons converted to be used with Svelte Awesome",
     "scripts": {
