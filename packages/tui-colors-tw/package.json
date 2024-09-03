@@ -1,10 +1,11 @@
 {
     "name": "@timephy/tui-colors-tw",
     "version": "0.0.4",
-    "description": "The tui tailwind plugin/config.",
+    "description": "",
     "homepage": "https://github.com/timephy/tui/tree/main/tui-colors-tw#readme",
     "scripts": {
-        "lint": "prettier --check . && eslint . && publint"
+        "lint": "prettier --check . && eslint .",
+        "package": "publint"
     },
     "files": [
         "index.js",

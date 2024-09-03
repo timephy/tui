@@ -2,12 +2,13 @@
     "name": "@timephy/tui-icons-svelte",
     "version": "1.11.7",
     "homepage": "https://github.com/timephy/tui/tree/main/tui-icons-svelte#readme",
-    "description": "The Bootstrap SVG icons converted to be used with Svelte Awesome",
+    "description": "",
     "scripts": {
         "clean": "rm -rf dist/ src/icons/*.ts",
         "codegen": "rm -rf src/icons/*.ts && bun src/codegen/icons.ts",
+        "lint": "prettier . --check && eslint .",
         "build": "rm -rf dist && tsc && rm -rf dist/codegen",
-        "lint": "prettier . --check && eslint . && publint"
+        "package": "publint"
     },
     "nx": {
         "targets": {
@@ -34,8 +35,9 @@
         "includedScripts": [
             "clean",
             "codegen",
+            "lint",
             "build",
-            "lint"
+            "package"
         ]
     },
     "files": [

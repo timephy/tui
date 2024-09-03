@@ -15,17 +15,34 @@
             "dependsOn": [],
             "cache": true
         },
-        "build": {
-            "dependsOn": ["^build", "codegen"],
+        "lint": {
+            "dependsOn": [
+                "^build",
+                "codegen"
+            ],
+            "inputs": [
+                "default"
+            ],
             "cache": true
         },
-        "lint": {
-            "dependsOn": ["build"],
-            "inputs": ["default"],
+        "build": {
+            "dependsOn": [
+                "^build",
+                "codegen"
+            ],
+            "cache": true
+        },
+        "package": {
+            "dependsOn": [
+                "lint",
+                "build"
+            ],
             "cache": true
         }
     },
     "release": {
-        "projects": ["packages/*"]
+        "projects": [
+            "packages/*"
+        ]
     }
 }

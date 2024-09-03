@@ -4,7 +4,8 @@
     "description": "",
     "homepage": "https://github.com/timephy/tui/tree/main/tui-components-tw#readme",
     "scripts": {
-        "lint": "prettier --check . && eslint . && publint"
+        "lint": "prettier --check . && eslint .",
+        "package": "publint"
     },
     "author": "",
     "license": "MIT",
