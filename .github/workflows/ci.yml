@@ -30,4 +30,4 @@ jobs:
 
       # - uses: nrwl/nx-set-shas@v4
 
-      - run: pnpm nx run-many -t lint build
+      - run: pnpm nx run-many -t package
