@@ -1,5 +1,7 @@
 # tui-icons-svelte
 
+This is a icon library that exports [Bootstrap Icons](https://icons.getbootstrap.com) in a format that can be used together with [Svelte Awesome](https://www.npmjs.com/package/svelte-awesome).
+
 ```svelte
 <script lang="ts">
     import Icon from "@timephy/tui-components-svelte/Icon.svelte"
@@ -26,7 +28,9 @@
 - Prefixed filenames and identifiers starting with a digit with the letter "n"
 - Reexports `<Icon />` and `IconType` from `svelte-awesome` for easy use
 
-## Notes
+---
+
+## Dev Notes
 
 - `package.json > exports` seem to have to be listed all seperately, the following pattern does work for TS autocomplete imports, but sadly not in Svelte files
 
