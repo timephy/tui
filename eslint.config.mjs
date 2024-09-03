@@ -19,6 +19,7 @@ export default [
     // JavaScript
     {
         files: ["**/*.js", "**/*.cjs", "**/*.mjs"],
+        ignores: ["**/.svelte-kit/**/*", "**/dist/**/*", "**/build"],
     },
 
     // TypeScript
