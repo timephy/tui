@@ -7,7 +7,7 @@ A collection of UI styles, components and tools for building user interfaces.
 How to publish all packages to npm:
 
 ```bash
-nx run-many -t build lint
+nx run-many -t package
 pnpm publish -r
 ```
 
