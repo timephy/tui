@@ -16,8 +16,10 @@
                     "{projectRoot}/node_modules/bootstrap-icons/icons/*.svg"
                 ],
                 "outputs": [
-                    "{projectRoot}/src/icons/*.ts"
-                ]
+                    "{projectRoot}/src/icons/*.ts",
+                    "{projectRoot}/package.json"
+                ],
+                "cache": false
             },
             "build": {
                 "inputs": [
@@ -2098,7 +2100,7 @@
         "bootstrap-icons": "1.11.3",
         "bun": "^1.1.3",
         "svg-parser": "^2.0.4",
-        "typescript": "^5.4.5"
+        "typescript": "^5.5.4"
     },
     "dependencies": {
         "svelte-awesome": "^3.3.1"
