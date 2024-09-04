@@ -2,8 +2,8 @@
     import Icon from "$lib/ui/Icon.svelte"
     import * as icons from "@timephy/tui-icons-svelte/ICONS"
 
-    let query = ""
-    let showKeys = true
+    let query = $state("")
+    let showKeys = $state(true)
 </script>
 
 <div class="flex flex-col items-center gap-6 p-6">
@@ -22,7 +22,7 @@
             class="rounded-xl border border-step-100 bg-step-050 px-2 py-1 outline-blue"
             bind:value={query}
         />
-        <button class="input btn btn-p btn-thin btn-blue" on:click={() => (query = "")}>
+        <button class="input btn btn-p btn-thin btn-blue" onclick={() => (query = "")}>
             <Icon data={icons.x_lg} />
         </button>
     </div>
@@ -30,7 +30,7 @@
         {#each Object.entries(icons) as [key, icon]}
             {#if query === "" || key.includes(query)}
                 <div class="flex flex-col items-center gap-1">
-                    <button class="item p-4 hover:btn hover:h-auto" on:click={() => alert(key)}>
+                    <button class="item p-4 hover:btn hover:h-auto" onclick={() => alert(key)}>
                         <Icon data={icon} class="size-10" />
                     </button>
                     {#if showKeys}
