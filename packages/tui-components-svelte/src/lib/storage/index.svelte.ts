@@ -34,7 +34,7 @@ export type Options<V> = {
  * const debug = new Field("debug", false, Field.load_boolean)
  */
 export class Field<V> {
-    private _value: V
+    private _value: V = $state()! // TODO: required to declare $state, but not able to init until constructor
     /** Used as the source of the exported `Observable` that allows consumers to subscribe to change. */
     private _value$: BehaviorSubject<V>
 
@@ -69,11 +69,10 @@ export class Field<V> {
 
         this._default_serialized = this.serialize(_default)
 
-        /** Return the default wrapped with `$state(...)` and console log. */
+        /** Return the default and console log. */
         const _initDefault = () => {
-            const value = $state(_default)
             this.DEBUG("Initialized with default:", _default)
-            return value
+            return _default
         }
 
         // NOTE: Cannot access localStorage on the server
@@ -90,9 +89,8 @@ export class Field<V> {
                 const storedValue = parse(str)
                 if (storedValue !== null) {
                     // successfully parsed stored value
-                    const value = $state(storedValue)
-                    this.DEBUG("Initialized with loaded:", value)
-                    this._value = value
+                    this.DEBUG("Initialized with loaded:", storedValue)
+                    this._value = storedValue
                 } else {
                     // parse returned null
                     this.WARN("parsing aborted:", key, str)
