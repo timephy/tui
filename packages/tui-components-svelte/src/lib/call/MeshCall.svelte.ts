@@ -80,7 +80,7 @@ export abstract class MeshCall extends Call {
             this.media.deaf$.subscribe(async (deaf) => {
                 peer.playback = !deaf
             }),
-            this.media.mic_audio$.subscribe(async (track) => {
+            this.media.mic_audioOutput$.subscribe(async (track) => {
                 await peer.setTrackMic(track)
             }),
             this.media.cam_video$.subscribe(async (track) => {

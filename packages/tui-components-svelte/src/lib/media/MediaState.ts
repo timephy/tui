@@ -24,7 +24,7 @@ export function mediaState$(media: Media) {
     return combineLatest([
         media.mute$,
         media.deaf$,
-        media.mic_audio$,
+        media.mic_audioOutput$,
         media.cam_video$,
         media.screen_tracks$,
     ]).pipe(

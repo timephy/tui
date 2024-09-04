@@ -110,8 +110,10 @@ export class Media {
     #mic_error$ = new BehaviorSubject<Error | null>(null)
     /** The mic audio track, updated by {@link _setMic}. */
     #mic_audio: MediaStreamTrack | null = $state(null)
+    /** An Observable of {@link mic_audio}. */
+    #mic_audioSource$ = new BehaviorSubject<MediaStreamTrack | null>(null)
     /** An Observable of {@link mic_audioOutput}. */
-    #mic_audio$ = new BehaviorSubject<MediaStreamTrack | null>(null)
+    #mic_audioOutput$ = new BehaviorSubject<MediaStreamTrack | null>(null)
 
     // !! Cam
     /** The cam device id, updated by {@link _setCam}. */
@@ -230,7 +232,8 @@ export class Media {
         // Stop mic
         this.#mic_audio?.stop()
         this.#mic_audio = null
-        this.#mic_audio$.next(null)
+        this.#mic_audioSource$.next(null)
+        this.#mic_audioOutput$.next(null)
         // Stop cam
         this.#cam_video?.stop()
         this.#cam_video = null
@@ -338,7 +341,8 @@ export class Media {
             ) {
                 this.#mic_audio?.stop()
                 this.#mic_audio = await track()
-                this.#mic_audio$.next(this.mic_audioOutput)
+                this.#mic_audioSource$.next(this.#mic_audio)
+                this.#mic_audioOutput$.next(this.mic_audioOutput)
                 await this._mic_pipeline.setTrack(this.#mic_audio)
             }
         } else if (load === true) {
@@ -349,7 +353,8 @@ export class Media {
             ) {
                 this.#mic_audio?.stop()
                 this.#mic_audio = await track()
-                this.#mic_audio$.next(this.mic_audioOutput)
+                this.#mic_audioSource$.next(this.#mic_audio)
+                this.#mic_audioOutput$.next(this.mic_audioOutput)
                 await this._mic_pipeline.setTrack(this.#mic_audio)
             }
         } else if (load === false) {
@@ -359,7 +364,8 @@ export class Media {
             if (this.#mic_audio !== null) {
                 this.#mic_audio.stop()
                 this.#mic_audio = null
-                this.#mic_audio$.next(null)
+                this.#mic_audioSource$.next(null)
+                this.#mic_audioOutput$.next(null)
                 await this._mic_pipeline.setTrack(null)
             }
         }
@@ -562,9 +568,13 @@ export class Media {
     get mic_audioOutput() {
         return this._mic_pipeline.output
     }
+    /** An Observable of {@link mic_audioSource}. */
+    get mic_audioSource$() {
+        return this.#mic_audioSource$.asObservable()
+    }
     /** An Observable of {@link mic_audioOutput}. */
-    get mic_audio$() {
-        return this.#mic_audio$.asObservable()
+    get mic_audioOutput$() {
+        return this.#mic_audioOutput$.asObservable()
     }
     /** The error state of the mic. */
     get mic_error() {
