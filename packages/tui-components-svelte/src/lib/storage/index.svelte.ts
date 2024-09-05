@@ -143,12 +143,14 @@ export default class Storage<V extends Value> {
 
     // NOTE: `D extends V | null` to allow null as the default value, then the returned type will be `Storage<V | null>`, but only if null was set as the default value
 
-    static string = <D extends string | null>(
+    // NOTE: These weird generics allow use of literal string types as V
+    static string = <V extends string | null = string, D extends string | null = V>(
         key: Key,
         _default: D,
         options?: Partial<Options>,
     ) => {
-        return new Storage<string | D>(key, _default, parse_string, JSON.stringify, options)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return new Storage<V | D>(key, _default, parse_string as any, JSON.stringify, options)
     }
 
     static boolean = <D extends boolean | null>(
@@ -250,4 +252,18 @@ const parse_map = <K, V>(str: string): SvelteMap<K, V> | null => {
 
 const serialize_map = <K, V>(map: SvelteMap<K, V>): string => {
     return JSON.stringify([...map])
+}
+
+/* ============================================================================================== */
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function test() {
+    const literalString1 = Storage.string("literalString", null)
+    const literalString12 = Storage.string<null>("literalString", null)
+    const literalString2 = Storage.string<"A" | "B">("literalString", "B")
+    const literalString3 = Storage.string<"A" | "B" | null>("literalString", null)
+    literalString1.value
+    literalString12.value
+    literalString2.value
+    literalString3.value
 }
