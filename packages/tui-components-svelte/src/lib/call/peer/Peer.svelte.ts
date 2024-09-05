@@ -1,4 +1,3 @@
-import { Field } from "$lib/storage/index.svelte"
 import { Subject } from "rxjs"
 import { AudioPipeline } from "../../media/AudioPipeline.svelte"
 import { PeerConnection, type PeerConnectionOptions } from "./PeerConnection.svelte"
@@ -6,15 +5,12 @@ import { DEFAULT_MEDIA_STATE, type MediaState } from "../../media/MediaState"
 import { Stats } from "../Stats.svelte"
 import type { Signal } from "../ui/debug/DebugSignaling.svelte"
 import type { PeerDisplay } from "../Call.svelte"
+import { SvelteMap } from "svelte/reactivity"
+import Storage from "$lib/storage/index.svelte"
 
 /* ============================================================================================== */
 
-export const LS_PEER_GAINS = new Field<Map<string, number>>(
-    "tui-rtc.peer_gains",
-    new Map(),
-    Field.parse_map as (str: string) => Map<string, number>,
-    { serialize: Field.serialize_map },
-)
+export const LS_PEER_GAINS = Storage.Map<string, number>("tui-rtc.peer_gains", new SvelteMap())
 
 /* ============================================================================================== */
 

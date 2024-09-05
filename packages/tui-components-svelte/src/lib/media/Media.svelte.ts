@@ -3,7 +3,7 @@ import { BehaviorSubject } from "rxjs"
 import { AudioPipeline } from "./AudioPipeline.svelte"
 import { getCam, getMic, getScreen } from "./getMedia"
 import { type DeviceInfo } from "./shared"
-import { Field } from "$lib/storage/index.svelte"
+import Storage from "$lib/storage/index.svelte"
 
 /* ============================================================================================== */
 
@@ -17,24 +17,15 @@ import { Field } from "$lib/storage/index.svelte"
 export const DEFAULT_MIC_VOLUME_GATE = -45
 // export const DEFAULT_MIC_NOISE_SUPPRESSION = true
 
-const LS_MIC_ID = new Field("tui-rtc.mic_id", null, Field.parse_string, { setNullOnDefault: true })
-const LS_CAM_ID = new Field("tui-rtc.cam_id", null, Field.parse_string, { setNullOnDefault: true })
-const LS_SCREEN_MAX_HEIGHT_ID = new Field("tui-rtc.screen_maxHeight", null, Field.parse_int, {
-    setNullOnDefault: true,
-})
-const LS_MIC_VOLUME_GATE = new Field<number | null>(
+const LS_MIC_ID = Storage.string("tui-rtc.mic_id", null)
+const LS_CAM_ID = Storage.string("tui-rtc.cam_id", null)
+const LS_SCREEN_MAX_HEIGHT_ID = Storage.int("tui-rtc.screen_maxHeight", null)
+const LS_MIC_VOLUME_GATE = Storage.float<number | null>(
     "tui-rtc.mic_volumeGate",
     DEFAULT_MIC_VOLUME_GATE,
-    Field.parse_float,
-    { setNullOnDefault: false },
 )
-const LS_MIC_GAIN = new Field("tui-rtc.mic_gain", 1, Field.parse_float, { setNullOnDefault: true })
-const LS_MIC_NOISE_SUPPRESSION = new Field(
-    "tui-rtc.mic_noiseSuppression",
-    true,
-    Field.parse_boolean,
-    { setNullOnDefault: true },
-)
+const LS_MIC_GAIN = Storage.float("tui-rtc.mic_gain", 1)
+const LS_MIC_NOISE_SUPPRESSION = Storage.boolean("tui-rtc.mic_noiseSuppression", true)
 
 /* ============================================================================================== */
 /*                                              Types                                             */

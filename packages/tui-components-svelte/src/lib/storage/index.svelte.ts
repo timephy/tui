@@ -1,21 +1,23 @@
 /**
- * @file Exports the `Field<V>` class to load and store values in localStorage.
+ * @file Exports the `Stored<V>` class to load and store values in localStorage.
  */
 
 import { browser } from "$app/environment"
 import { BehaviorSubject } from "rxjs"
+import { SvelteMap, SvelteSet } from "svelte/reactivity"
 
 /* ============================================================================================== */
-/*                                              Field                                             */
+/*                                             Stored                                             */
 /* ============================================================================================== */
 
 export type Key = string
 
-export type Options<V> = {
-    /** Serialize a value to a string representation. */
-    serialize?: (val: V) => string
+type ValuePrimitive = null | number | string | boolean
+type Value = ValuePrimitive | SvelteMap<unknown, unknown> | SvelteSet<unknown>
+
+export type Options = {
     /** Whether to set the stored value to null if the default value is set. */
-    setNullOnDefault?: boolean
+    setNullOnDefault: boolean
 }
 
 /**
@@ -24,24 +26,22 @@ export type Options<V> = {
  * @template V The type of the value to store.
  *
  * @example
- * const username = new Field("username", "Steve", Field.load_string, true)
+ * const username = new Storage("username", "Steve")
  * username.value // "Steve"
  * username.value = "John" // automatically saved to localStorage
  * username.value // "John"
  * username.value = "Steve" // deleted from localStorage, because it's the default value
  * username.value // "Steve"
  *
- * const debug = new Field("debug", false, Field.load_boolean)
+ * const debug = new Storage("debug", false)
  */
-export class Field<V> {
+export default class Storage<V extends Value> {
     private _value: V = $state()! // TODO: required to declare $state, but not able to init until constructor
     /** Used as the source of the exported `Observable` that allows consumers to subscribe to change. */
     private _value$: BehaviorSubject<V>
 
     private _default_serialized: string
-
-    private serialize: (val: V) => string
-    private setNullOnDefault: boolean
+    private _options: Options
 
     /* ========================================================================================== */
 
@@ -62,12 +62,12 @@ export class Field<V> {
 
         /** A function to parse a the value's serialized representation into its value type. */
         parse: (str: string) => V | null,
-        options?: Options<V>,
-    ) {
-        this.serialize = options?.serialize ?? JSON.stringify
-        this.setNullOnDefault = options?.setNullOnDefault ?? true
+        private serialize: (val: V) => string,
 
+        options?: Partial<Options>,
+    ) {
         this._default_serialized = this.serialize(_default)
+        this._options = { setNullOnDefault: true, ...options }
 
         /** Return the default and console log. */
         const _initDefault = () => {
@@ -113,7 +113,8 @@ export class Field<V> {
         if (localStorage) {
             if (
                 value === null ||
-                (this.serialize(value) === this._default_serialized && this.setNullOnDefault)
+                (this.serialize(value) === this._default_serialized &&
+                    this._options.setNullOnDefault)
             ) {
                 localStorage.removeItem(this.key)
             } else {
@@ -128,6 +129,7 @@ export class Field<V> {
         return this._value
     }
     set value(value) {
+        this.DEBUG("=", value)
         this._value = value
         this._value$.next(value)
 
@@ -138,62 +140,114 @@ export class Field<V> {
     }
 
     /* ========================================================================================== */
-    /*                                       Load Functions                                       */
-    /* ========================================================================================== */
 
-    static readonly parse_string = (str: string): string | null => {
-        const value = JSON.parse(str)
-        if (typeof value === "string") {
-            return value
-        } else {
-            return null
-        }
+    // NOTE: `D extends V | null` to allow null as the default value, then the returned type will be `Storage<V | null>`, but only if null was set as the default value
+
+    static string = <D extends string | null>(
+        key: Key,
+        _default: D,
+        options?: Partial<Options>,
+    ) => {
+        return new Storage<string | D>(key, _default, parse_string, JSON.stringify, options)
     }
 
-    static readonly parse_float = (str: string): number | null => {
-        const float = parseFloat(str)
-        if (isNaN(float)) {
-            return null
-        } else {
-            return float
-        }
+    static boolean = <D extends boolean | null>(
+        key: Key,
+        _default: D,
+        options?: Partial<Options>,
+    ) => {
+        return new Storage<boolean | D>(key, _default, parse_boolean, JSON.stringify, options)
     }
 
-    static readonly parse_int = (str: string): number | null => {
-        const int = parseInt(str)
-        if (isNaN(int)) {
-            return null
-        } else {
-            return int
-        }
+    static float = <D extends number | null>(
+        key: Key,
+        _default: D,
+        options?: Partial<Options>, //
+    ) => {
+        return new Storage<number | D>(key, _default, parse_float, JSON.stringify, options)
     }
 
-    static readonly parse_boolean = (str: string): boolean | null => {
-        const value = JSON.parse(str)
-        if (typeof value === "boolean") {
-            return value
-        } else {
-            return null
-        }
+    static int = <D extends number | null>(
+        key: Key,
+        _default: D,
+        options?: Partial<Options>, //
+    ) => {
+        return new Storage<number | D>(key, _default, parse_int, JSON.stringify, options)
     }
 
-    /* =========================================== Map ========================================== */
-
-    static readonly parse_map = (str: string): Map<string, unknown> | null => {
-        return new Map(JSON.parse(str))
+    static Set = <V extends ValuePrimitive>(
+        key: Key,
+        _default: SvelteSet<V>,
+        options?: Partial<Options>, //
+    ) => {
+        return new Storage<SvelteSet<V>>(key, _default, parse_set, serialize_set, options)
     }
 
-    static readonly serialize_map = (map: Map<string, unknown>): string => {
-        return JSON.stringify([...map])
+    static Map = <K extends ValuePrimitive, V extends ValuePrimitive>(
+        key: Key,
+        _default: SvelteMap<K, V>,
+        options?: Partial<Options>, //
+    ) => {
+        return new Storage<SvelteMap<K, V>>(key, _default, parse_map, serialize_map, options)
     }
+}
 
-    /* =========================================== Set ========================================== */
+/* ============================================================================================== */
+/*                                         Load Functions                                         */
+/* ============================================================================================== */
 
-    static readonly parse_set = (str: string): Set<unknown> | null => {
-        return new Set(JSON.parse(str))
+const parse_string = (str: string): string | null => {
+    const value = JSON.parse(str)
+    if (typeof value === "string") {
+        return value
+    } else {
+        return null
     }
+}
 
-    static readonly serialize_set = (set: Set<unknown>): string => {
-        return JSON.stringify([...set])
+const parse_float = (str: string): number | null => {
+    const float = parseFloat(str)
+    if (isNaN(float)) {
+        return null
+    } else {
+        return float
     }
+}
+
+const parse_int = (str: string): number | null => {
+    const int = parseInt(str)
+    if (isNaN(int)) {
+        return null
+    } else {
+        return int
+    }
+}
+
+const parse_boolean = (str: string): boolean | null => {
+    const value = JSON.parse(str)
+    if (typeof value === "boolean") {
+        return value
+    } else {
+        return null
+    }
+}
+
+/* ============================================= Set ============================================ */
+
+const parse_set = <V>(str: string): SvelteSet<V> | null => {
+    return new SvelteSet(JSON.parse(str))
+}
+
+const serialize_set = <V>(set: SvelteSet<V>): string => {
+    return JSON.stringify([...set])
+}
+
+/* ============================================= Map ============================================ */
+
+const parse_map = <K, V>(str: string): SvelteMap<K, V> | null => {
+    return new SvelteMap(JSON.parse(str))
+}
+
+const serialize_map = <K, V>(map: SvelteMap<K, V>): string => {
+    return JSON.stringify([...map])
 }
