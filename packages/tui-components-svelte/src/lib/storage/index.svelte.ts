@@ -46,10 +46,10 @@ export default class Storage<V extends Value> {
     /* ========================================================================================== */
 
     DEBUG(...msgs: unknown[]) {
-        console.debug(`[storage] "${this.key}"`, ...msgs)
+        console.debug(`[Storage] "${this.key}"`, ...msgs)
     }
     WARN(...msgs: unknown[]) {
-        console.warn(`[storage] "${this.key}"`, ...msgs)
+        console.warn(`[Storage] "${this.key}"`, ...msgs)
     }
 
     /* ========================================================================================== */
