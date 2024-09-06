@@ -122,7 +122,6 @@ export class Peer extends PeerConnection implements PeerDisplay {
         audio.srcObject = new MediaStream([track])
         // NOTE: This does not seem to be required but might be sensible
         audio.muted = true
-        console.log(audio)
 
         this._audioPipeline.setTrack(track)
     }
