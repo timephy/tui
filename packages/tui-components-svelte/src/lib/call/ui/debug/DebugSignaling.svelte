@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
     export type Signal = {
         from: "local" | "remote"
         content: RTCIceCandidateInit | RTCSessionDescriptionInit
