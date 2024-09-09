@@ -96,6 +96,9 @@ importers:
       '@sveltejs/vite-plugin-svelte':
         specifier: 4.0.0-next.6
         version: 4.0.0-next.6(svelte@5.0.0-next.243)(vite@5.4.3(@types/node@20.12.12))
+      '@types/audioworklet':
+        specifier: ^0.0.60
+        version: 0.0.60
       '@types/eslint':
         specifier: ^8.56.0
         version: 8.56.10
@@ -757,6 +760,9 @@ packages:
 
   '@timephy/rnnoise-wasm@1.0.0':
     resolution: {integrity: sha512-zzRdFyALbhaNIuEo3LKazPWxabatbPxkaBrHzRjGDlVHX2dFklh68HUENHlvHkKsq+OOQSC1ag5sGPDMDgg2CA==}
+
+  '@types/audioworklet@0.0.60':
+    resolution: {integrity: sha512-BCYklConpVRbPlNVcjzIhRsPWBTbCFSbkfjBC+VLULryaBI1M651y4nK0SMsSuTgtVSrKVY7Y+fsobCjviuDWA==}
 
   '@types/body-parser@1.19.5':
     resolution: {integrity: sha512-fB3Zu92ucau0iQ0JMCFQE7b/dv8Ot07NI3KaZIkIUNXq82k4eBAqUaneXfleGY9JWskeS9y+u0nXMyspcuQrCg==}
@@ -3462,6 +3468,8 @@ snapshots:
       - supports-color
 
   '@timephy/rnnoise-wasm@1.0.0': {}
+
+  '@types/audioworklet@0.0.60': {}
 
   '@types/body-parser@1.19.5':
     dependencies:
