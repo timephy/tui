@@ -229,18 +229,10 @@ if (Object.keys(color_definitions.light).length !== Object.keys(color_definition
     console.error("Color definitions don't have equal length")
 }
 
-if (
-    Object.keys(color_definitions.light).some(
-        (key) => !Object.keys(color_definitions.dark).includes(key),
-    )
-) {
+if (Object.keys(color_definitions.light).some((key) => !Object.keys(color_definitions.dark).includes(key))) {
     console.error("Color definitions don't have the same keys")
 }
-if (
-    Object.keys(color_definitions.dark).some(
-        (key) => !Object.keys(color_definitions.light).includes(key),
-    )
-) {
+if (Object.keys(color_definitions.dark).some((key) => !Object.keys(color_definitions.light).includes(key))) {
     console.error("Color definitions don't have the same keys")
 }
 
@@ -248,55 +240,34 @@ if (
 
 const colors_css_values = {
     light: Object.fromEntries(
-        Object.entries(color_definitions.light).map(([color, value]) => [
-            `--${color}-light-value`,
-            `${value}`,
-        ]),
+        Object.entries(color_definitions.light).map(([color, value]) => [`--${color}-light-value`, `${value}`]),
     ),
     dark: Object.fromEntries(
-        Object.entries(color_definitions.dark).map(([color, value]) => [
-            `--${color}-dark-value`,
-            `${value}`,
-        ]),
+        Object.entries(color_definitions.dark).map(([color, value]) => [`--${color}-dark-value`, `${value}`]),
     ),
 }
 
 const colors_css_values_mode = {
     light: Object.fromEntries(
-        Object.keys(color_definitions.light).map((color) => [
-            `--${color}-value`,
-            `var(--${color}-light-value)`,
-        ]),
+        Object.keys(color_definitions.light).map((color) => [`--${color}-value`, `var(--${color}-light-value)`]),
     ),
     dark: Object.fromEntries(
-        Object.keys(color_definitions.dark).map((color) => [
-            `--${color}-value`,
-            `var(--${color}-dark-value)`,
-        ]),
+        Object.keys(color_definitions.dark).map((color) => [`--${color}-value`, `var(--${color}-dark-value)`]),
     ),
 }
 
 const colors_css = {
     light: Object.fromEntries(
-        Object.keys(color_definitions.light).map((color) => [
-            `--${color}-light`,
-            `rgb(var(--${color}-light-value))`,
-        ]),
+        Object.keys(color_definitions.light).map((color) => [`--${color}-light`, `rgb(var(--${color}-light-value))`]),
     ),
     dark: Object.fromEntries(
-        Object.keys(color_definitions.dark).map((color) => [
-            `--${color}-dark`,
-            `rgb(var(--${color}-dark-value))`,
-        ]),
+        Object.keys(color_definitions.dark).map((color) => [`--${color}-dark`, `rgb(var(--${color}-dark-value))`]),
     ),
 }
 
 const colors_css_mode = {
     light: Object.fromEntries(
-        Object.keys(color_definitions.light).map((color) => [
-            `--${color}`,
-            `var(--${color}-light)`,
-        ]),
+        Object.keys(color_definitions.light).map((color) => [`--${color}`, `var(--${color}-light)`]),
     ),
     dark: Object.fromEntries(
         Object.keys(color_definitions.dark).map((color) => [`--${color}`, `var(--${color}-dark)`]),
@@ -317,10 +288,7 @@ export const colors_tailwind = {
         ]),
     ),
     ...Object.fromEntries(
-        Object.keys(color_definitions.dark).map((color) => [
-            `${color}`,
-            `rgb(var(--${color}-value), <alpha-value>)`,
-        ]),
+        Object.keys(color_definitions.dark).map((color) => [`${color}`, `rgb(var(--${color}-value), <alpha-value>)`]),
     ),
 }
 
