@@ -15,4 +15,5 @@ pnpm publish -r
 
 ## Todos
 
+- [x] Replace all `context="module"` with `module`
 - [ ] Change TW plugins to use TS and then export to JS
