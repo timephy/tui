@@ -24,7 +24,7 @@
     <!-- !! Mic -->
     <h3>Microphone</h3>
     <SelectMic {media} />
-    <!-- NOTE: Check for mic_id too, because in Safari permissions are not updated  -->
+    <!-- NOTE: Check for device list too, because in Safari permissions are not updated -->
     {#if media.mic_permission === "denied" && media.mic_devices.length === 0}
         <p class="!text-red">Allow access in browser settings.</p>
     {:else if media.mic_id === null}
@@ -44,6 +44,7 @@
     <!-- !! Cam -->
     <h3>Camera</h3>
     <SelectCam {media} />
+    <!-- NOTE: Check for device list too, because in Safari permissions are not updated -->
     {#if media.cam_permission === "denied" && media.cam_devices.length === 0}
         <p class="!text-red">Allow access in browser settings.</p>
     {:else if media.cam_id === null}
