@@ -1,42 +1,33 @@
 import { browser } from "$app/environment"
+import Storage from "$lib/storage/index.svelte"
 import { BehaviorSubject } from "rxjs"
 import { AudioPipeline } from "./AudioPipeline.svelte"
 import { getCam, getMic, getScreen } from "./getMedia"
 import { type DeviceInfo } from "./shared"
-import Storage from "$lib/storage/index.svelte"
 
-/* ============================================================================================== */
-
-// TODO: Should we someday `stop()` the old track AFTER getting the new one in `_setMic` and `_setCam`, instead of before?
-
-/* ============================================================================================== */
-/*                                          Constant Keys                                         */
-/* ============================================================================================== */
-
-// export const DEFAULT_MIC_GAIN = 1
-export const DEFAULT_MIC_VOLUME_GATE = -45
-// export const DEFAULT_MIC_NOISE_SUPPRESSION = true
+/* ================================================================================================================== */
+/*                                                      Constants                                                     */
+/* ================================================================================================================== */
 
 const LS_MIC_ID = Storage.string("tui-rtc.mic_id", null)
 const LS_CAM_ID = Storage.string("tui-rtc.cam_id", null)
 const LS_SCREEN_MAX_HEIGHT_ID = Storage.int("tui-rtc.screen_maxHeight", null)
-const LS_MIC_VOLUME_GATE = Storage.float<number | null>(
-    "tui-rtc.mic_volumeGate",
-    DEFAULT_MIC_VOLUME_GATE,
-)
-const LS_MIC_GAIN = Storage.float("tui-rtc.mic_gain", 1)
-const LS_MIC_NOISE_SUPPRESSION = Storage.boolean("tui-rtc.mic_noiseSuppression", true)
 
-/* ============================================================================================== */
-/*                                              Types                                             */
-/* ============================================================================================== */
+const LS_MIC_NOISE_SUPPRESSION = Storage.boolean("tui-rtc.mic_noiseSuppression", true)
+const LS_MIC_VOLUME_GATE = Storage.boolean("tui-rtc.mic_volumeGate", true)
+const LS_MIC_VOLUME_GATE_THRESHOLD = Storage.float<number>("tui-rtc.mic_volumeGateThreshold", -45)
+const LS_MIC_GAIN = Storage.float("tui-rtc.mic_gain", 1)
+
+/* ================================================================================================================== */
+/*                                                        Types                                                       */
+/* ================================================================================================================== */
 
 type DeviceId = string | null
 export type Error = "error"
 
-/* ============================================================================================== */
-/*                                              Locks                                             */
-/* ============================================================================================== */
+/* ================================================================================================================== */
+/*                                                        Locks                                                       */
+/* ================================================================================================================== */
 
 const LOCK_MIC = (cb: () => Promise<void>) => {
     return navigator.locks.request("tui-rtc.mic", cb)
@@ -48,7 +39,9 @@ const LOCK_SCREEN = (cb: () => Promise<void>) => {
     return navigator.locks.request("tui-rtc.screen", cb)
 }
 
-/* ============================================================================================== */
+/* ================================================================================================================== */
+/*                                                       Console                                                      */
+/* ================================================================================================================== */
 
 const DEBUG = (...msgs: unknown[]) => {
     console.debug("[Media]", ...msgs)
@@ -57,9 +50,9 @@ const WARN = (...msgs: unknown[]) => {
     console.warn("[Media]", ...msgs)
 }
 
-/* ============================================================================================== */
-/*                                           newMedia()                                           */
-/* ============================================================================================== */
+/* ================================================================================================================== */
+/*                                                        Media                                                       */
+/* ================================================================================================================== */
 
 /**
  * The {@link Media} class manages the media devices (mic, cam, screen) and their tracks.
@@ -68,11 +61,10 @@ const WARN = (...msgs: unknown[]) => {
  * It is responsible for loading the devices, setting the devices, and managing the tracks.
  */
 export class Media {
-    /* ========================================================================================== */
-    /*                                    Devices + Permissions                                   */
-    /* ========================================================================================== */
+    /* ============================================================================================================== */
+    // MARK: Device Lists + Permissions
 
-    // !! Mic
+    // ! Mic
     /** A list of all available mics, updated by {@link _loadDevices} on "devicechange" and "permission.change" events. */
     #mic_devices: DeviceInfo[] = $state([])
     /** The state of the mic permission, updated on "permission.change" event. */
@@ -80,7 +72,7 @@ export class Media {
     /** A reference to the {@link PermissionStatus} object for removing the event listener on {@link destroy()}. */
     #mic_permission: PermissionStatus | null = null
 
-    // !! Cam
+    // ! Cam
     /** A list of all available cams, updated by {@link _loadDevices} on "devicechange" and "permission.change" events. */
     #cam_devices: DeviceInfo[] = $state([])
     /** The state of the cam permission, updated on "permission.change" event. */
@@ -88,11 +80,10 @@ export class Media {
     /** A reference to the {@link PermissionStatus} object for removing the event listener on {@link destroy()}. */
     #cam_permission: PermissionStatus | null = null
 
-    /* ========================================================================================== */
-    /*                                 DeviceIds + Errors + Tracks                                */
-    /* ========================================================================================== */
+    /* ============================================================================================================== */
+    // MARK: DeviceIds + Tracks + Errors
 
-    // !! Mic
+    // ! Mic
     /** The mic device id, updated by {@link _setMic}. */
     #mic_id: DeviceId = $state(LS_MIC_ID.value)
     /** The error state of the mic, updated by {@link _setMic}. */
@@ -106,7 +97,7 @@ export class Media {
     /** An Observable of {@link mic_audioOutput}. */
     #mic_audioOutput$ = new BehaviorSubject<MediaStreamTrack | null>(null)
 
-    // !! Cam
+    // ! Cam
     /** The cam device id, updated by {@link _setCam}. */
     #cam_id: DeviceId = $state(LS_CAM_ID.value)
     /** The error state of the cam, updated by {@link _setCam}. */
@@ -118,7 +109,7 @@ export class Media {
     /** An Observable of {@link cam_video}. */
     #cam_video$ = new BehaviorSubject<MediaStreamTrack | null>(null)
 
-    // !! Screen
+    // ! Screen
     /** The error state of the screen, updated by {@link _setScreen}. */
     #screen_error: Error | null = $state(null)
     /** An Observable of {@link screen_error}. */
@@ -130,9 +121,8 @@ export class Media {
     /** An Observable of the screen tracks. */
     #screen_tracks$ = new BehaviorSubject<[MediaStreamTrack, MediaStreamTrack | null] | null>(null)
 
-    /* ========================================================================================== */
-    /*                                         Mute + Deaf                                        */
-    /* ========================================================================================== */
+    /* ============================================================================================================== */
+    // MARK: mute + deaf
 
     /** If the mic is muted, updated by {@link mute}. */
     #mute = $state(false)
@@ -144,21 +134,23 @@ export class Media {
     /** An Observable of {@link deaf}. */
     #deaf$ = new BehaviorSubject(this.#deaf)
 
-    /* ========================================================================================== */
+    /* ============================================================================================================== */
+    // MARK: Pipeline + other
 
-    // !! Settings / Constraints
+    // ! Settings / Constraints
     /** The max height of the screen video track, updated by {@link screen_maxHeight}. */
     #screen_maxHeight = $state(LS_SCREEN_MAX_HEIGHT_ID.value)
 
-    // !! Audio Pipeline
+    // ! Audio Pipeline
     readonly _mic_pipeline = new AudioPipeline({
         noiseSuppression: LS_MIC_NOISE_SUPPRESSION.value,
-        volumeGate: LS_MIC_VOLUME_GATE.value,
+        volumeGate: LS_MIC_VOLUME_GATE.value ? LS_MIC_VOLUME_GATE_THRESHOLD.value : null,
         gain: LS_MIC_GAIN.value,
         debug: true,
     })
 
-    /* ========================================================================================== */
+    /* ============================================================================================================== */
+    // MARK: init + destroy
 
     constructor() {
         DEBUG("new Media()")
@@ -249,6 +241,9 @@ export class Media {
         ])
     }
 
+    /* ============================================================================================================== */
+    // MARK: loadDevices()
+
     /**
      * Load the list of available devices.
      * And change the currently active devices if needed (selected one is now available).
@@ -268,15 +263,11 @@ export class Media {
                 label: device.label.replace(/ \([0-9a-f]{4}:[0-9a-f]{4}\)$/, ""),
             }
         }
-        this.#mic_devices = _devices
-            .filter((device) => device.kind === "audioinput")
-            .map(deviceInfo)
-        this.#cam_devices = _devices
-            .filter((device) => device.kind === "videoinput")
-            .map(deviceInfo)
+        this.#mic_devices = _devices.filter((device) => device.kind === "audioinput").map(deviceInfo)
+        this.#cam_devices = _devices.filter((device) => device.kind === "videoinput").map(deviceInfo)
 
-        // re-activate devices to activate the user-selected ones if possible
-        // (may not have been available before, e.g. if the preffered mic was disconnected and is not reconnected)
+        // NOTE: re-activate devices to activate the user-selected ones if possible
+        // NOTE: (may not have been available before, e.g. if the preffered mic was disconnected and is not reconnected)
         LOCK_MIC(async () => {
             await this._setMic(LS_MIC_ID.value)
         })
@@ -285,10 +276,13 @@ export class Media {
         })
     }
 
-    /* ========================================================================================== */
-    /*                           `setMic()` + `setCam()` + `setScreen()`                          */
-    /* ========================================================================================== */
+    /* ============================================================================================================== */
+    /*                                     `setMic()` + `setCam()` + `setScreen()`                                    */
+    /* ============================================================================================================== */
 
+    // TODO: Should we someday `stop()` the old track AFTER getting the new one in `_setMic` and `_setCam`, instead of before?
+
+    // MARK: setMic()
     /**
      * Set the mic deviceId and maybe load or unload it.
      * @param setId The deviceId of the mic to use.
@@ -313,8 +307,6 @@ export class Media {
                 }
                 this.#mic_error = null
                 this.#mic_error$.next(this.#mic_error)
-                // special setup
-                this.#setMicTrackEnabled(track, this.#mute, this.#deaf)
                 return track
             } catch (error) {
                 WARN(`Mic Error: ${error}`)
@@ -326,30 +318,24 @@ export class Media {
 
         if (load === null) {
             // id changed, reload track if it was loaded before
-            if (
-                this.#mic_audio !== null &&
-                this.#mic_audio.getSettings().deviceId !== this.#mic_id
-            ) {
+            if (this.#mic_audio !== null && this.#mic_audio.getSettings().deviceId !== this.#mic_id) {
                 this.#mic_audio?.stop()
                 this.#mic_audio = await track()
                 this.#mic_audioSource$.next(this.#mic_audio)
                 this.#mic_audioOutput$.next(this.mic_audioOutput)
-                await this._mic_pipeline.setTrack(this.#mic_audio)
+                await this._mic_pipeline.setInput(this.#mic_audio)
             }
         } else if (load === true) {
-            // should load track, do that if it's not loaded or the id changed
-            if (
-                this.#mic_audio === null ||
-                this.#mic_audio.getSettings().deviceId !== this.#mic_id
-            ) {
+            // should load track if it's not loaded or the id changed
+            if (this.#mic_audio === null || this.#mic_audio.getSettings().deviceId !== this.#mic_id) {
                 this.#mic_audio?.stop()
                 this.#mic_audio = await track()
                 this.#mic_audioSource$.next(this.#mic_audio)
                 this.#mic_audioOutput$.next(this.mic_audioOutput)
-                await this._mic_pipeline.setTrack(this.#mic_audio)
+                await this._mic_pipeline.setInput(this.#mic_audio)
             }
         } else if (load === false) {
-            // should unload track, do that
+            // should unload track
             this.#mic_error = null
             this.#mic_error$.next(this.#mic_error)
             if (this.#mic_audio !== null) {
@@ -357,11 +343,12 @@ export class Media {
                 this.#mic_audio = null
                 this.#mic_audioSource$.next(null)
                 this.#mic_audioOutput$.next(null)
-                await this._mic_pipeline.setTrack(null)
+                await this._mic_pipeline.setInput(null)
             }
         }
     }
 
+    // MARK: setCam()
     /**
      * Set the cam deviceId and maybe load or unload it.
      * @param setId The deviceId of the cam to use.
@@ -399,26 +386,20 @@ export class Media {
 
         if (load === null) {
             // id changed, reload track if it was loaded before
-            if (
-                this.#cam_video !== null &&
-                this.#cam_video.getSettings().deviceId !== this.#cam_id
-            ) {
+            if (this.#cam_video !== null && this.#cam_video.getSettings().deviceId !== this.#cam_id) {
                 this.#cam_video?.stop()
                 this.#cam_video = await track()
                 this.#cam_video$.next(this.#cam_video)
             }
         } else if (load === true) {
-            // should load track, do that if it's not loaded or the id changed
-            if (
-                this.#cam_video === null ||
-                this.#cam_video.getSettings().deviceId !== this.#cam_id
-            ) {
+            // should load track if it's not loaded or the id changed
+            if (this.#cam_video === null || this.#cam_video.getSettings().deviceId !== this.#cam_id) {
                 this.#cam_video?.stop()
                 this.#cam_video = await track()
                 this.#cam_video$.next(this.#cam_video)
             }
         } else if (load === false) {
-            // should unload track, do that
+            // should unload track
             this.#cam_error = null
             this.#cam_error$.next(this.#cam_error)
             if (this.#cam_video !== null) {
@@ -429,6 +410,7 @@ export class Media {
         }
     }
 
+    // MARK: setScreen()
     /**
      * Load or unload the screen.
      * @param load Whether to load the screen (`true`), or unload the screen (`false`).
@@ -471,17 +453,15 @@ export class Media {
         }
 
         if (load) {
-            // should load track, do that
+            // should load track
             this.#screen_video?.stop()
             this.#screen_audio?.stop()
             const _tracks = await tracks()
             this.#screen_video = _tracks?.[0] ?? null
             this.#screen_audio = _tracks?.[1] ?? null
-            this.#screen_tracks$.next(
-                this.#screen_video !== null ? [this.#screen_video, this.#screen_audio] : null,
-            )
+            this.#screen_tracks$.next(this.#screen_video !== null ? [this.#screen_video, this.#screen_audio] : null)
         } else {
-            // should unload track, do that
+            // should unload track
             this.#screen_error = null
             this.#screen_error$.next(this.#screen_error)
             if (this.#screen_video !== null || this.#screen_audio !== null) {
@@ -494,7 +474,8 @@ export class Media {
         }
     }
 
-    /* ========================================= Exports ======================================== */
+    /* ============================================================================================================== */
+    // MARK: === Exports ===
 
     /** The list of available mics. */
     get mic_devices() {
@@ -514,9 +495,8 @@ export class Media {
         return this.#cam_permission_state
     }
 
-    /* ========================================================================================== */
-    /*                                            `mic`                                           */
-    /* ========================================================================================== */
+    /* ============================================================================================================== */
+    // MARK: > mic
 
     /**
      * The device id of the mic.
@@ -529,8 +509,8 @@ export class Media {
     set mic_id(_mic_id: DeviceId) {
         LOCK_MIC(async () => {
             DEBUG(`mic_id = ${_mic_id}`)
-            await this._setMic(_mic_id)
             LS_MIC_ID.value = this.#mic_id
+            await this._setMic(_mic_id)
             DEBUG(`mic_id = ${_mic_id} end`)
         })
     }
@@ -550,7 +530,7 @@ export class Media {
         })
     }
 
-    // !! Track + Error
+    // ! Track + Error
     /** The mic source track, straight from the mic, before the {@link AudioPipeline}. */
     get mic_audioSource() {
         return this.#mic_audio
@@ -576,12 +556,62 @@ export class Media {
         return this.#mic_error$
     }
 
-    /* ===================================== `mic_pipeline` ===================================== */
+    /* ============================================================================================================== */
+    // MARK: > mic_pipeline
 
-    // !! Volume
-    get mic_volumeSource() {
-        return this._mic_pipeline.volumeSource
+    // ! Noise Suppression
+    /** If noise suppression is enabled. */
+    get mic_noiseSuppression() {
+        return this._mic_pipeline.noiseSuppression
     }
+    set mic_noiseSuppression(_noiseSuppression) {
+        LS_MIC_NOISE_SUPPRESSION.value = _noiseSuppression
+        this._mic_pipeline.noiseSuppression = _noiseSuppression
+    }
+    get mic_noiseSuppressionLoaded() {
+        return this._mic_pipeline.noiseSuppressionLoaded
+    }
+
+    // ! Volume Gate
+    /** If the volume gate is enabled. */
+    get mic_volumeGate() {
+        return LS_MIC_VOLUME_GATE.value
+    }
+    set mic_volumeGate(_volumeGate) {
+        DEBUG(`mic_volumeGate = ${_volumeGate}`)
+        LS_MIC_VOLUME_GATE.value = _volumeGate
+        this._mic_pipeline.volumeGate = LS_MIC_VOLUME_GATE.value ? LS_MIC_VOLUME_GATE_THRESHOLD.value : null
+        DEBUG(`mic_volumeGate = ${_volumeGate} end`)
+    }
+    /** The volume gate of the mic, audio is only passed of above this threshold. */
+    get mic_volumeGateThreshold() {
+        return LS_MIC_VOLUME_GATE_THRESHOLD.value
+    }
+    set mic_volumeGateThreshold(_volumeGateThreshold) {
+        DEBUG(`mic_volumeGateThreshold = ${_volumeGateThreshold}`)
+        LS_MIC_VOLUME_GATE_THRESHOLD.value = _volumeGateThreshold
+        this._mic_pipeline.volumeGate = LS_MIC_VOLUME_GATE.value ? LS_MIC_VOLUME_GATE_THRESHOLD.value : null
+        DEBUG(`mic_volumeGateThreshold = ${_volumeGateThreshold} end`)
+    }
+
+    /** Whether the volume gate is open. */
+    get mic_volumeGateOpen() {
+        return this._mic_pipeline.volumeGateOpen
+    }
+
+    // ! Gain
+    /** The gain of the mic, audio is multiplied by this value. */
+    get mic_gain() {
+        return this._mic_pipeline.gain
+    }
+    set mic_gain(_gain) {
+        DEBUG(`mic_gain = ${_gain}`)
+        LS_MIC_GAIN.value = _gain
+        this._mic_pipeline.gain = _gain
+        DEBUG(`mic_gain = ${_gain} end`)
+    }
+
+    // ! Volume
     get mic_volumeVoice() {
         return this._mic_pipeline.volumeVoice
     }
@@ -590,48 +620,7 @@ export class Media {
         return this._mic_pipeline.volume
     }
 
-    // !! Noise Suppression
-    /** Whether noise suppression is enabled. */
-    get mic_noiseSuppression() {
-        return this._mic_pipeline.noiseSuppression
-    }
-    set mic_noiseSuppression(_noiseSuppression) {
-        this._mic_pipeline.noiseSuppression = _noiseSuppression
-        LS_MIC_NOISE_SUPPRESSION.value = _noiseSuppression
-    }
-    get mic_noiseSuppressionLoaded() {
-        return this._mic_pipeline.noiseSuppressionLoaded
-    }
-
-    // !! Volume Gate
-    /** The volume gate of the mic, audio is only passed of above this threshold. */
-    get mic_volumeGate() {
-        return this._mic_pipeline.volumeGate
-    }
-    set mic_volumeGate(_volumeGate) {
-        DEBUG(`mic_volumeGate = ${_volumeGate}`)
-        this._mic_pipeline.volumeGate = _volumeGate
-        LS_MIC_VOLUME_GATE.value = _volumeGate
-        DEBUG(`mic_volumeGate = ${_volumeGate} end`)
-    }
-    /** Whether the volume gate is open. */
-    get mic_volumeGateOpen() {
-        return this._mic_pipeline.volumeGateOpen
-    }
-
-    // !! Gain
-    /** The gain of the mic, audio is multiplied by this value. */
-    get mic_gain() {
-        return this._mic_pipeline.gain
-    }
-    set mic_gain(_gain) {
-        DEBUG(`mic_gain = ${_gain}`)
-        this._mic_pipeline.gain = _gain
-        LS_MIC_GAIN.value = _gain
-        DEBUG(`mic_gain = ${_gain} end`)
-    }
-
-    // !! Playback
+    // ! Playback
     /** If the output of the {@link AudioPipeline} should be played back to the user. */
     get mic_playback() {
         return this._mic_pipeline.playback
@@ -640,9 +629,8 @@ export class Media {
         this._mic_pipeline.playback = _playback
     }
 
-    /* ========================================================================================== */
-    /*                                            `cam`                                           */
-    /* ========================================================================================== */
+    /* ============================================================================================================== */
+    // MARK: > cam
 
     /**
      * The device id of the cam.
@@ -655,8 +643,8 @@ export class Media {
     set cam_id(id: DeviceId) {
         LOCK_CAM(async () => {
             DEBUG(`cam_id = ${id}`)
-            await this._setCam(id)
             LS_CAM_ID.value = this.#cam_id
+            await this._setCam(id)
             DEBUG(`cam_id = ${id} end`)
         })
     }
@@ -676,7 +664,7 @@ export class Media {
         })
     }
 
-    // !! Track + Error
+    // ! Track + Error
     /** The cam video track. */
     get cam_video() {
         return this.#cam_video
@@ -694,9 +682,8 @@ export class Media {
         return this.#cam_error$
     }
 
-    /* ========================================================================================== */
-    /*                                          `screen`                                          */
-    /* ========================================================================================== */
+    /* ============================================================================================================== */
+    // MARK: > screen
 
     /**
      * If the screen is active.
@@ -716,7 +703,7 @@ export class Media {
         this._setScreen(load)
     }
 
-    // !! Track + Error
+    // ! Track + Error
     /** The screen video track. */
     get screen_video() {
         return this.#screen_video
@@ -738,7 +725,7 @@ export class Media {
         return this.#screen_error$
     }
 
-    // !! Settings
+    // ! Settings
     /**
      * The max height of the screen video track.
      *
@@ -750,8 +737,8 @@ export class Media {
     set screen_maxHeight(_screen_maxHeight: number | null) {
         LOCK_SCREEN(async () => {
             DEBUG(`screen_maxHeight = ${_screen_maxHeight}`)
-            this.#screen_maxHeight = _screen_maxHeight
             LS_SCREEN_MAX_HEIGHT_ID.value = this.#screen_maxHeight
+            this.#screen_maxHeight = _screen_maxHeight
             if (this.#screen_video) {
                 await this.#setVideoTrackMaxHeight(this.#screen_video, this.#screen_maxHeight)
             }
@@ -768,11 +755,10 @@ export class Media {
         return !!navigator.mediaDevices?.getDisplayMedia // && false
     }
 
-    /* ========================================================================================== */
-    /*                                         Mute + Deaf                                        */
-    /* ========================================================================================== */
+    /* ============================================================================================================== */
+    // MARK: > mute + deaf
 
-    // !! Mute
+    // ! Mute
     /**
      * If the mic is muted.
      *
@@ -787,9 +773,7 @@ export class Media {
             this.#mute = _mute
             this.#mute$.next(this.#mute)
 
-            if (this.#mic_audio) {
-                this.#setMicTrackEnabled(this.#mic_audio, this.#mute, this.#deaf)
-            }
+            this.#setAudioTrackEnabled(this._mic_pipeline.output, this.#mute, this.#deaf)
             DEBUG(`mute = ${_mute} end`)
         })
     }
@@ -798,7 +782,7 @@ export class Media {
         return this.#mute$.asObservable()
     }
 
-    // !! Deaf
+    // ! Deaf
     /**
      * If the audio is deafened.
      *
@@ -814,9 +798,7 @@ export class Media {
             this.#deaf = _deaf
             this.#deaf$.next(this.#deaf)
 
-            if (this.#mic_audio) {
-                this.#setMicTrackEnabled(this.#mic_audio, this.#mute, this.#deaf)
-            }
+            this.#setAudioTrackEnabled(this._mic_pipeline.output, this.#mute, this.#deaf)
             DEBUG(`deaf = ${_deaf} end`)
         })
     }
@@ -825,15 +807,13 @@ export class Media {
         return this.#deaf$.asObservable()
     }
 
-    /* ========================================================================================== */
-    /*                                           Helpers                                          */
-    /* ========================================================================================== */
+    /* ============================================================================================================== */
+    /*                                                     Helpers                                                    */
+    /* ============================================================================================================== */
+    // MARK: Utils
 
     #fixMicId(micId: DeviceId): DeviceId {
-        if (
-            micId === null ||
-            (micId !== null && !this.#mic_devices.some((device) => device.deviceId === micId))
-        ) {
+        if (micId === null || (micId !== null && !this.#mic_devices.some((device) => device.deviceId === micId))) {
             if (this.#mic_devices.some((device) => device.deviceId === "default")) {
                 return "default"
             } else {
@@ -843,17 +823,14 @@ export class Media {
         return micId
     }
     #fixCamId(camId: DeviceId): DeviceId {
-        if (
-            camId === null ||
-            (camId !== null && !this.#cam_devices.some((device) => device.deviceId === camId))
-        ) {
+        if (camId === null || (camId !== null && !this.#cam_devices.some((device) => device.deviceId === camId))) {
             return this.#cam_devices.at(0)?.deviceId ?? null
         }
         return camId
     }
 
-    /** Enable track when we are neigher `mute`, nor `deaf`. */
-    #setMicTrackEnabled(track: MediaStreamTrack, mute: boolean, deaf: boolean) {
+    /** Enable track when neither `mute`, nor `deaf`. */
+    #setAudioTrackEnabled(track: MediaStreamTrack, mute: boolean, deaf: boolean) {
         track.enabled = !mute && !deaf
     }
 

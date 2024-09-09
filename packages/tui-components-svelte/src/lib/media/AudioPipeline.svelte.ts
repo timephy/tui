@@ -2,28 +2,29 @@ import { NoiseSuppressorWorklet_Name } from "@timephy/rnnoise-wasm"
 // NOTE: `?worker&url` is important (`worker` to generate a working script, `url` to get its url to load it)
 import NoiseSuppressorWorklet from "@timephy/rnnoise-wasm/NoiseSuppressorWorklet?worker&url"
 
-/* ============================================================================================== */
+import {
+    calculateVolume,
+    GATE_THRESHOLD_PARAM,
+    MIN_VOLUME,
+    scaleVolume,
+    SMOOTHING_FACTOR,
+    VolumeMeterGateWorklet_Name,
+    type VolumeMeterGateMessage,
+} from "./volume"
+// NOTE: `?worker&url` is important (`worker` to generate a working script, `url` to get its url to load it)
+import VolumeMeterGateWorklet from "./volume/VolumeMeterGateWorklet?worker&url"
 
-// Exponential Moving Average (EMA) for smoothing the volume meter
-// 1 = no smoothing, 0 = max smoothing (no change)
-// NOTE: The smooting is also influenced by the frequency of the update loop (setInterval)
-const smoothingFactor = 0.125
-const smoothingFactorOutput = 0.075
-
-const gateReleaseTime = 400 // Time in milliseconds for the gate to remain open after the volume drops below the threshold
-const attackTime = 0.04 // Time in seconds for the gate to fully open
-const releaseTime = 0.2 // Time in seconds for the gate to fully close
-const epsilon = 1e-10
-
-export const MIN_VOLUME = 20 * Math.log10(epsilon) // -200 dB
-
-/* ============================================================================================== */
+/* ================================================================================================================== */
+/*                                                        Locks                                                       */
+/* ================================================================================================================== */
 
 const LOCK = (cb: () => Promise<void>) => {
     return navigator.locks.request("tui-rtc.pipeline", cb)
 }
 
-/* ============================================================================================== */
+/* ================================================================================================================== */
+/*                                                       Console                                                      */
+/* ================================================================================================================== */
 
 const DEBUG = (...msgs: unknown[]) => {
     console.debug("[AudioPipeline]", ...msgs)
@@ -32,34 +33,36 @@ const WARN = (...msgs: unknown[]) => {
     console.warn("[AudioPipeline]", ...msgs)
 }
 
-/* ============================================================================================== */
+/* ================================================================================================================== */
+/*                                                    AudioPipeline                                                   */
+/* ================================================================================================================== */
 
 /**
  * An audio pipeline that processes audio data.
  * Useful for voice call applications.
  *
  * The pipeline consists of the following steps:
- * - Input
- *   - merge to mono
- *   - measure volume
- * - Noise Suppression (RNNoise) *[optional]*
- * - Volume Gate *[optional]*
- *   - measure volume
- *   - gated passthrough
- * - Gain (volume multiplier)
- * - Output
- *   - measure volume
- *   - playback on local audio output *[optional]*
+ * - **Noise Suppression**: Reduces background noise.
+ * - **Volume Meter Gate**: Measures the volume of the input and gates the output based on the volume.
+ * - **Gain**: Multiplies the output volume.
  */
 export class AudioPipeline {
-    /* ========================================================================================== */
-    /*                                          Settings                                          */
-    /* ========================================================================================== */
+    // MARK: Variables (debug)
 
     /** If should measure volume of the source. */
     #debug: boolean = false
 
-    // !! Noise Suppression
+    /** Volume measured from the source, if debug is `true`. */
+    #debugVolumeSource: number | null = $state(null)
+    /** Volume measured from the source, if debug is `true`. */
+    #debugVolumeOutput: number | null = $state(null)
+
+    #debugGateFactor = $state(0)
+
+    /* ============================================================================================================== */
+    // MARK: Variables
+
+    // ! AudioWorklets
     /**
      * If the noise suppression worket has been added successfully (`audioContext.audioWorklet.addModule(NoiseSuppressorWorklet)`).
      *
@@ -68,39 +71,45 @@ export class AudioPipeline {
      * - `null`: not loaded yet
      */
     #noiseSuppressionLoaded: boolean | null = $state(null)
-    /** If noise suppression is enabled (RNNoise should be applied on the source). */
+    /**
+     * If the volume meter gate worket has been added successfully (`audioContext.audioWorklet.addModule(VolumeMeterGateWorklet)`).
+     *
+     * - `true`: success
+     * - `false`: error
+     * - `null`: not loaded yet
+     */
+    #volumeMeterGateLoaded: boolean | null = $state(null)
+
+    // ! Noise Suppression
+    /** If noise suppression is enabled. */
     #noiseSuppression: boolean = $state(false)
 
-    // !! Volume Gate
+    // ! Volume Gate
     /** If a volume (in dB) is given, a volume gate will be applied on the (maybe noise suppressed) source. */
     #volumeGate: number | null = $state(null)
     /** If the volume gate is currently open. */
     #volumeGateOpen: boolean = $state(false)
 
-    // !! Output
+    // ! Output
     /** Gain multiplier, applied to the output. */
     #gain: number = $state(1)
     /** If should play the output audio on the local audio output (speakers/headphones). */
     #playback: boolean = $state(false)
 
-    /* ========================================================================================== */
-    /*                                           Volumes                                          */
-    /* ========================================================================================== */
+    // ! Volumes
 
-    /** Volume measured from the source, if debug is `true`. */
-    #volumeSource: number | null = $state(null)
-    /** Volume measured from the (maybe noise suppressed) source, if `#volumeGate !== null`. */
+    /** Voice volume measured by `volumeMeterGate` (after noise suppression, before volume gate). */
     #volumeVoice: number = $state(MIN_VOLUME)
-    /** Volume measured from the output. */
+    /** Output Volume calculated with scaled by gain. */
     #volume: number = $state(MIN_VOLUME)
 
-    /* ========================================================================================== */
+    /* ============================================================================================================== */
 
-    // !! Used for Volume measurement (loop)
+    /** Used for debug volume measurement loop. */
     #interval: ReturnType<typeof setInterval> | null = null
-    #volumeGateTimeout: ReturnType<typeof setTimeout> | null = null
 
-    /* ========================================================================================== */
+    /* ============================================================================================================== */
+    // MARK: Context + Nodes
 
     readonly #ctx = new AudioContext({
         latencyHint: "interactive",
@@ -109,18 +118,19 @@ export class AudioPipeline {
 
     readonly #nodes = {
         source: null as MediaStreamAudioSourceNode | null,
-        // NOTE: This combines both channels into one, and splits it back out to two when connected to the next node
-        sourceMerger: this.#ctx.createChannelMerger(1),
-        sourceAnalyser: this.#debug ? this.#ctx.createAnalyser() : null,
-        rnnoise: null as AudioWorkletNode | null,
-        voiceAnalyser: this.#ctx.createAnalyser(),
-        gate: this.#volumeGate ? this.#ctx.createBiquadFilter() : null,
-        gainNode: this.#ctx.createGain(),
-        analyser: this.#ctx.createAnalyser(),
+        mergeChannels: this.#ctx.createChannelMerger(1), // NOTE: This combines both channels into one, and splits it back out to two when connected to the next node
+        debugVolumeSource: this.#debug ? this.#ctx.createAnalyser() : null,
+
+        noiseSupression: null as AudioWorkletNode | null,
+        volumeMeterGate: null as AudioWorkletNode | null,
+
+        gain: this.#ctx.createGain(),
+        debugVolumeOutput: this.#debug ? this.#ctx.createAnalyser() : null,
         output: this.#ctx.createMediaStreamDestination(),
     }
 
-    /* ========================================================================================== */
+    /* ============================================================================================================== */
+    // MARK: Constructor
 
     constructor({
         noiseSuppression = false,
@@ -143,15 +153,19 @@ export class AudioPipeline {
     playback=${playback},
 })`)
 
-        // Set options
+        // ! Set sync options
         this.#set_debug(debug)
         this.#set_volumeGate(volumeGate)
         this.#set_gain(gain)
         this.#set_playback(playback)
-        // `_set_noiseSuppression` is the only async setter, so run it behind the lock
+
+        // ! Set async options
         this.#noiseSuppression = noiseSuppression
+        this.#volumeGate = volumeGate
+        // NOTE: as these are async, they have to be called behind a lock
         LOCK(async () => {
             await this.#set_noiseSuppression(noiseSuppression)
+            await this.#set_volumeGate(volumeGate)
         })
     }
 
@@ -161,16 +175,30 @@ export class AudioPipeline {
      * After calling this method, the instance should not be used anymore.
      */
     async destroy() {
-        this.#stopUpdate()
+        this.#reset()
         await this.#ctx.close()
     }
 
-    /* ========================================================================================== */
+    /** Called when no input track is set and state should reset to default. */
+    #reset() {
+        if (this.#interval !== null) {
+            clearInterval(this.#interval)
+            this.#interval = null
+        }
+        // Reset volume to `MIN_VOLUME`, otherwise this freezes the volume meter at the last value
+        this.#volumeVoice = MIN_VOLUME
+        this.#volume = MIN_VOLUME
+        this.#debugVolumeSource = this.#debug ? MIN_VOLUME : null
+        this.#debugVolumeOutput = this.#debug ? MIN_VOLUME : null
+    }
+
+    /* ============================================================================================================== */
+    // MARK: load_*()
 
     /**
      * Loads the noise suppression audio worklet.
      *
-     * - On successful load `_noiseSuppressionLoaded` is set to `true`.
+     * - On successful load `#noiseSuppressionLoaded` is set to `true`.
      * - If the worklet is already loaded, this function does nothing.
      */
     async #load_noise_suppression(): Promise<void> {
@@ -193,7 +221,120 @@ export class AudioPipeline {
         }
     }
 
-    /* ========================================================================================== */
+    /**
+     * Loads the volume meter gate audio worklet.
+     *
+     * - On successful load `#volumeMeterGateLoaded` is set to `true`.
+     * - If the worklet is already loaded, this function does nothing.
+     */
+    async #load_volume_meter_gate(): Promise<void> {
+        DEBUG("Load VolumeMeterGateWorklet")
+
+        if (this.#volumeMeterGateLoaded === true) {
+            DEBUG("VolumeMeterGateWorklet already loaded")
+            return
+        }
+
+        try {
+            const timeBefore = Date.now()
+            DEBUG("audioContext.audioWorklet.addModule()", VolumeMeterGateWorklet)
+            await this.#ctx.audioWorklet.addModule(VolumeMeterGateWorklet)
+            this.#volumeMeterGateLoaded = true
+            DEBUG(`VolumeMeterGateWorklet loaded successfully after ${Date.now() - timeBefore}ms`)
+        } catch (error) {
+            WARN("VolumeMeterGateWorklet load error:", error)
+            this.#volumeMeterGateLoaded = false
+        }
+    }
+
+    /* ============================================================================================================== */
+    // MARK: #set_*()
+
+    set_source(track: MediaStreamTrack | null) {
+        this.#nodes.source?.disconnect()
+        this.#nodes.source = track ? this.#ctx.createMediaStreamSource(new MediaStream([track])) : null
+
+        this.#reconnect()
+    }
+
+    #set_debug(_debug: boolean) {
+        this.#debug = _debug
+
+        this.#debugVolumeSource = this.#debug ? MIN_VOLUME : null
+        this.#debugVolumeOutput = this.#debug ? MIN_VOLUME : null
+
+        this.#nodes.debugVolumeSource?.disconnect()
+        this.#nodes.debugVolumeSource = this.#debug ? this.#ctx.createAnalyser() : null
+        this.#nodes.debugVolumeOutput?.disconnect()
+        this.#nodes.debugVolumeOutput = this.#debug ? this.#ctx.createAnalyser() : null
+
+        this.#reconnect()
+    }
+
+    async #set_noiseSuppression(_noiseSuppression: boolean) {
+        this.#noiseSuppression = _noiseSuppression
+
+        if (this.#noiseSuppression) {
+            // load if unloaded
+            if (this.#noiseSuppressionLoaded !== true) {
+                await this.#load_noise_suppression()
+            }
+            // if load was successful, instantiate node
+            if (this.#noiseSuppressionLoaded === true && !this.#nodes.noiseSupression) {
+                this.#nodes.noiseSupression = new AudioWorkletNode(this.#ctx, NoiseSuppressorWorklet_Name)
+            }
+        }
+
+        this.#reconnect()
+    }
+
+    async #set_volumeGate(_volumeGate: number | null) {
+        this.#volumeGate = _volumeGate
+
+        // load if unloaded
+        if (this.volumeMeterGateLoaded !== true) {
+            await this.#load_volume_meter_gate()
+        }
+        // if load was successful, instantiate node
+        if (this.#volumeMeterGateLoaded === true && !this.#nodes.volumeMeterGate) {
+            this.#nodes.volumeMeterGate = new AudioWorkletNode(this.#ctx, VolumeMeterGateWorklet_Name)
+            // listen for messages from the worklet
+            this.#nodes.volumeMeterGate.port.onmessage = ({ data }: { data: VolumeMeterGateMessage }) => {
+                // DEBUG(Date.now(), "data received from VolumeMeterGateWorklet", data)
+                this.#volumeVoice = data.volumeInput
+                this.#volume = scaleVolume(data.volumeOutput, this.#gain)
+                this.#volumeGateOpen = data.factor >= 0.75
+                this.#debugGateFactor = data.factor
+            }
+        }
+
+        if (this.#nodes.volumeMeterGate) {
+            this.#nodes.volumeMeterGate.parameters.get(GATE_THRESHOLD_PARAM)!.value = this.#volumeGate ?? MIN_VOLUME
+        }
+
+        this.#reconnect()
+    }
+
+    #set_gain(_gain: number) {
+        this.#gain = _gain
+
+        this.#nodes.gain.gain.value = this.#gain
+    }
+
+    #set_playback(_playback: boolean) {
+        if (_playback !== this.#playback) {
+            this.#playback = _playback
+
+            if (this.#playback) {
+                this.#nodes.gain.connect(this.#ctx.destination)
+            } else {
+                this.#nodes.gain.disconnect(this.#ctx.destination)
+            }
+        }
+    }
+
+    /* ============================================================================================================== */
+    // MARK: reconnect()
 
     /**
      * Reconfigure the pipeline with the current track and settings.
@@ -207,231 +348,114 @@ export class AudioPipeline {
         DEBUG("reconnect()")
         const Nodes = this.#nodes
 
-        // !! Config
-        Nodes.sourceAnalyser && (Nodes.sourceAnalyser.fftSize = 2048)
-        Nodes.voiceAnalyser.fftSize = 2048
-        Nodes.gate && (Nodes.gate.type = "lowpass")
-        // TODO: is this right? - seems so... works well
-        Nodes.gate && (Nodes.gate.frequency.value = 0) // Initially disable the audio
-        Nodes.analyser.fftSize = 2048
-        Nodes.gainNode.gain.value = this.#gain
+        // ! Config
+        {
+            Nodes.debugVolumeSource && (Nodes.debugVolumeSource.fftSize = 2048)
+            Nodes.gain.gain.value = this.#gain
+        }
 
-        // !! Disconnect all
-        Nodes.source?.disconnect()
-        Nodes.sourceMerger.disconnect()
-        Nodes.sourceAnalyser?.disconnect()
-        Nodes.rnnoise?.disconnect()
-        Nodes.voiceAnalyser.disconnect()
-        Nodes.gate?.disconnect()
-        Nodes.gainNode.disconnect()
-        Nodes.analyser.disconnect()
-        Nodes.output.disconnect()
+        // ! Disconnect all
+        {
+            Nodes.source?.disconnect()
+            Nodes.mergeChannels.disconnect()
+            Nodes.debugVolumeSource?.disconnect()
 
-        // !! If not input has been set, no need to do anything
+            Nodes.noiseSupression?.disconnect()
+            Nodes.volumeMeterGate?.disconnect()
+
+            Nodes.gain.disconnect()
+            Nodes.debugVolumeOutput?.disconnect()
+            Nodes.output.disconnect()
+        }
+
+        // ! If not input has been set, no need to do anything
         if (!Nodes.source) {
-            this.#stopUpdate()
+            this.#reset()
             return
         }
 
-        // !! Connect all nodes
-        let node: AudioNode = Nodes.source
-
-        node = node.connect(Nodes.sourceMerger)
-        if (Nodes.sourceAnalyser) {
-            // DEBUG("connect sourceAnalyser")
-            node = node.connect(Nodes.sourceAnalyser)
-        }
-        // NOTE: this `if` is different, because we keep the `rnnoise` node when `noiseSuppression` gets disabled
-        if (this.#noiseSuppression && Nodes.rnnoise) {
-            // DEBUG("connect rnnoise")
-            node = node.connect(Nodes.rnnoise)
-        }
-        // DEBUG("connect voiceAnalyser")
-        node = node.connect(Nodes.voiceAnalyser)
-        if (Nodes.gate) {
-            // DEBUG("connect gate")
-            node = node.connect(Nodes.gate)
-        }
-        node = node.connect(Nodes.gainNode)
-        node = node.connect(Nodes.analyser)
-
-        // output
-        node.connect(Nodes.output)
-        // playback
-        if (this.#playback) node.connect(this.#ctx.destination)
-
-        // !! Detect Volume
-        const sourcePcmData = Nodes.sourceAnalyser
-            ? new Float32Array(Nodes.sourceAnalyser.fftSize)
-            : null
-        const voicePcmData = new Float32Array(Nodes.voiceAnalyser.fftSize)
-        const pcmData = new Float32Array(Nodes.analyser.fftSize)
-
-        const update = () => {
-            // !! Measure Source Volume
-            if (sourcePcmData) {
-                Nodes.sourceAnalyser?.getFloatTimeDomainData(sourcePcmData)
-                let sumSquares = sourcePcmData.reduce(
-                    (sum, amplitude) => sum + amplitude * amplitude,
-                    0,
-                )
-                const instantSourceVolume = Math.sqrt(sumSquares / sourcePcmData.length)
-                const sourceVolumeDb = 20 * Math.log10(instantSourceVolume + epsilon) // Convert to dB
-                this.#volumeSource =
-                    smoothingFactor * sourceVolumeDb +
-                    (1 - smoothingFactor) * (this.#volumeSource ?? MIN_VOLUME)
-            } else if (this.#volumeSource !== null) {
-                this.#volumeSource = null
-            }
-            // !! Measure Voice Volume
-            if (voicePcmData) {
-                Nodes.voiceAnalyser.getFloatTimeDomainData(voicePcmData)
-                let sumSquares = voicePcmData.reduce(
-                    (sum, amplitude) => sum + amplitude * amplitude,
-                    0,
-                )
-                const instantVoiceVolume = Math.sqrt(sumSquares / voicePcmData.length)
-                const voiceVolumeDb = 20 * Math.log10(instantVoiceVolume + epsilon) // Convert to dB
-                this.#volumeVoice =
-                    smoothingFactor * voiceVolumeDb +
-                    (1 - smoothingFactor) * (this.#volumeVoice ?? MIN_VOLUME)
-            }
-            // !! Measure Output Volume
-            {
-                Nodes.analyser.getFloatTimeDomainData(pcmData)
-                let sumSquares = pcmData.reduce((sum, amplitude) => sum + amplitude * amplitude, 0)
-                const instantVolume = Math.sqrt(sumSquares / pcmData.length)
-                const volumeDb = 20 * Math.log10(instantVolume + epsilon) // Convert to dB
-                this.#volume =
-                    smoothingFactorOutput * volumeDb + (1 - smoothingFactorOutput) * this.#volume
+        // MARK: > connections
+        // ! Connect all nodes
+        {
+            let node: AudioNode = Nodes.source
+            node = node.connect(Nodes.mergeChannels)
+            if (Nodes.debugVolumeSource) {
+                // DEBUG("connect volumeSource")
+                node.connect(Nodes.debugVolumeSource)
             }
 
-            // !! Open/Close Volume Gate
-            if (
-                this.#volumeGate === null ||
-                (this.#volumeVoice !== null && this.#volumeVoice > this.#volumeGate)
-            ) {
-                // should be open if volumeGate is null or voiceVolume is above the threshold
-                this.#volumeGateOpen = true
-                Nodes.gate?.frequency.setTargetAtTime(20000, this.#ctx.currentTime, attackTime)
-                if (this.#volumeGateTimeout) {
-                    clearTimeout(this.#volumeGateTimeout)
-                    this.#volumeGateTimeout = null
+            // NOTE: this `if` is different, because we keep the `rnnoise` node when `noiseSuppression` gets disabled
+            if (this.#noiseSuppression && Nodes.noiseSupression) {
+                // DEBUG("connect noiseSupression")
+                node = node.connect(Nodes.noiseSupression)
+            }
+            if (Nodes.volumeMeterGate) {
+                // DEBUG("connect volumeMeterGate")
+                node = node.connect(Nodes.volumeMeterGate)
+            }
+
+            node = node.connect(Nodes.gain)
+            if (Nodes.debugVolumeOutput) {
+                // DEBUG("connect volumeOutput")
+                node.connect(Nodes.debugVolumeOutput)
+            }
+            if (this.#playback) node.connect(this.#ctx.destination)
+            // this is the last connection
+            node.connect(Nodes.output)
+        }
+
+        // MARK: > debug volume
+        // ! Detect Volume
+        if (this.#debug) {
+            const sourceData = Nodes.debugVolumeSource ? new Float32Array(Nodes.debugVolumeSource.fftSize) : null
+            const outputData = Nodes.debugVolumeOutput ? new Float32Array(Nodes.debugVolumeOutput.fftSize) : null
+
+            const update = () => {
+                // NOTE: calculated, because we run this every 7ms, and the worklet runs at 375Hz (48kHz/128frames)
+                // NOTE: (48000/128) / (1000/7) = 2.625
+                const smoothingFactor = SMOOTHING_FACTOR * 2.625
+
+                if (sourceData) {
+                    Nodes.debugVolumeSource?.getFloatTimeDomainData(sourceData)
+                    const volume = calculateVolume(sourceData)
+                    this.#debugVolumeSource =
+                        smoothingFactor * volume + (1 - smoothingFactor) * (this.#debugVolumeSource ?? MIN_VOLUME)
+                } else if (this.#debugVolumeSource !== null) {
+                    this.#debugVolumeSource = null
                 }
-            } else if (this.#volumeGateTimeout === null) {
-                this.#volumeGateTimeout = setTimeout(() => {
-                    this.#volumeGateOpen = false
-                    Nodes.gate?.frequency.setTargetAtTime(0, this.#ctx.currentTime, releaseTime)
-                    this.#volumeGateTimeout = null
-                }, gateReleaseTime)
+
+                if (outputData) {
+                    Nodes.debugVolumeOutput?.getFloatTimeDomainData(outputData)
+                    const volume = calculateVolume(outputData)
+                    this.#debugVolumeOutput =
+                        smoothingFactor * volume + (1 - smoothingFactor) * (this.#debugVolumeOutput ?? MIN_VOLUME)
+                } else if (this.#debugVolumeOutput !== null) {
+                    this.#debugVolumeOutput = null
+                }
             }
-        }
 
-        // !! Start Loop
-        if (this.#interval !== null) clearInterval(this.#interval)
-        this.#interval = setInterval(update, 7)
-    }
-
-    /** Stop the volume measurement and volume gate loop. */
-    #stopUpdate() {
-        if (this.#interval !== null) {
-            clearInterval(this.#interval)
-            this.#interval = null
-        }
-        // Reset volume to `MIN_VOLUME`, otherwise this freezes the volume meter at the last value
-        this.#volumeSource = this.#debug ? MIN_VOLUME : null
-        this.#volumeVoice = MIN_VOLUME
-        this.#volume = MIN_VOLUME
-        this.#volumeGateOpen = false
-    }
-
-    /* ========================================================================================== */
-    /*                                        set functions                                       */
-    /* ========================================================================================== */
-
-    #set_track(track: MediaStreamTrack | null) {
-        this.#nodes.source?.disconnect()
-        this.#nodes.source = track
-            ? this.#ctx.createMediaStreamSource(new MediaStream([track]))
-            : null
-
-        this.#reconnect()
-    }
-
-    #set_debug(_debug: boolean) {
-        this.#debug = _debug
-
-        this.#volumeSource = this.#debug ? MIN_VOLUME : null
-        this.#nodes.sourceAnalyser = this.#debug ? this.#ctx.createAnalyser() : null
-        this.#reconnect()
-    }
-
-    async #set_noiseSuppression(_noiseSuppression: boolean) {
-        this.#noiseSuppression = _noiseSuppression
-
-        if (this.#noiseSuppression && !this.#nodes.rnnoise) {
-            await this.#load_noise_suppression()
-            // if load was successful, instantiate node
-            if (this.#noiseSuppressionLoaded === true) {
-                this.#nodes.rnnoise = new AudioWorkletNode(this.#ctx, NoiseSuppressorWorklet_Name)
-            }
-        }
-        this.#reconnect()
-    }
-
-    #set_volumeGate(_volumeGate: number | null) {
-        const gatedBefore = this.#volumeGate !== null
-        this.#volumeGate = _volumeGate
-        const gatedNow = this.#volumeGate !== null
-
-        if (gatedNow !== gatedBefore) {
-            if (gatedNow) {
-                this.#nodes.gate = this.#ctx.createBiquadFilter()
-            } else {
-                this.#nodes.gate?.disconnect()
-                this.#nodes.gate = null
-            }
-            this.#reconnect()
-            this.#volumeGateOpen = this.#volumeGate === null ? true : false
-            this.#volumeVoice = MIN_VOLUME
+            // (Re-)Start Loop
+            if (this.#interval !== null) clearInterval(this.#interval)
+            this.#interval = setInterval(update, 7)
         }
     }
 
-    #set_gain(_gain: number) {
-        this.#gain = _gain
-
-        this.#nodes.gainNode.gain.value = this.#gain
-    }
-
-    #set_playback(_playback: boolean) {
-        if (_playback !== this.#playback) {
-            this.#playback = _playback
-
-            if (this.#playback) {
-                this.#nodes.analyser.connect(this.#ctx.destination)
-            } else {
-                this.#nodes.analyser.disconnect(this.#ctx.destination)
-            }
-        }
-    }
-
-    /* ========================================================================================== */
-    /*                                           Exports                                          */
-    /* ========================================================================================== */
+    /* ============================================================================================================== */
+    // MARK: === Exports ===
 
     /**
      * Set the source track for the pipeline.
      *
      * This is usually the direct input from the microphone, or the received audio track from a voice call.
      */
-    async setTrack(track: MediaStreamTrack | null) {
+    async setInput(track: MediaStreamTrack | null) {
         await LOCK(async () => {
             // NOTE: In Chrome, an AudioContext is not allowed to start before a user interaction,
             // NOTE: therefore it is sensible to try to resume it every time a new track is set, just to make sure
             await this.#ctx.resume()
 
             DEBUG("setTrack", track)
-            this.#set_track(track)
+            this.set_source(track)
             DEBUG("setTrack", "end")
         })
     }
@@ -461,16 +485,6 @@ export class AudioPipeline {
             DEBUG(`noiseSuppression = ${_noiseSuppression} end`)
         })
     }
-    /**
-     * If the noise suppression worket has been added successfully (`audioContext.audioWorklet.addModule(NoiseSuppressorWorklet)`).
-     *
-     * - `true`: success
-     * - `false`: error
-     * - `null`: not loaded yet
-     */
-    get noiseSuppressionLoaded() {
-        return this.#noiseSuppressionLoaded
-    }
 
     /* ======================================= Volume Gate ====================================== */
 
@@ -499,11 +513,7 @@ export class AudioPipeline {
 
     /* ========================================= Volume ========================================= */
 
-    /** The volume of the input source (only measured when `debug = true`). */
-    get volumeSource() {
-        return this.#volumeSource
-    }
-    /** The volume of the voice signal (after `noiseSuppression`, only measured when `volumeGate !== null`). */
+    /** The volume of the voice signal (after `noiseSuppression`). */
     get volumeVoice() {
         return this.#volumeVoice
     }
@@ -544,5 +554,44 @@ export class AudioPipeline {
             throw "_mic_pipeline.output is undefined"
         }
         return track
+    }
+
+    /* ===================================== Modules Loaded ===================================== */
+
+    /**
+     * If the noise suppression worket has been added successfully (`audioContext.audioWorklet.addModule(NoiseSuppressorWorklet)`).
+     *
+     * - `true`: success
+     * - `false`: error
+     * - `null`: not loaded yet
+     */
+    get noiseSuppressionLoaded() {
+        return this.#noiseSuppressionLoaded
+    }
+    /**
+     * If the volume meter gate worket has been added successfully (`audioContext.audioWorklet.addModule(VolumeMeterGateWorklet)`).
+     *
+     * - `true`: success
+     * - `false`: error
+     * - `null`: not loaded yet
+     */
+    get volumeMeterGateLoaded() {
+        return this.#volumeMeterGateLoaded
+    }
+
+    /* ========================================== Debug ========================================= */
+
+    /** The volume of the input (only measured when `debug = true`). */
+    get debugVolumeSource() {
+        return this.#debugVolumeSource
+    }
+    /** The volume of the output (only measured when `debug = true`). */
+    get debugVolumeOutput() {
+        return this.#debugVolumeOutput
+    }
+
+    /** The factor of the volume gate. */
+    get debugGateFactor() {
+        return this.#debugGateFactor
     }
 }

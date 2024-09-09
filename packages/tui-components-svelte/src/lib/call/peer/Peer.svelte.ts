@@ -39,9 +39,7 @@ export class Peer extends PeerConnection implements PeerDisplay {
             debug: false,
             noiseSuppression: false,
             volumeGate: null,
-            gain: this.options.storageId
-                ? (LS_PEER_GAINS.value.get(this.options.storageId) ?? 1)
-                : 1,
+            gain: this.options.storageId ? (LS_PEER_GAINS.value.get(this.options.storageId) ?? 1) : 1,
             playback: true,
         })
 
@@ -123,7 +121,7 @@ export class Peer extends PeerConnection implements PeerDisplay {
         // NOTE: This does not seem to be required but might be sensible
         audio.muted = true
 
-        this._audioPipeline.setTrack(track)
+        this._audioPipeline.setInput(track)
     }
 
     /* ========================================================================================== */

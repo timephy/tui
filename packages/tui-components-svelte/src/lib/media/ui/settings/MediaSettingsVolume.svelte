@@ -4,15 +4,21 @@
 -->
 
 <script lang="ts">
-    import Slider from "$lib/ui/Slider.svelte"
-    import SwitchLabel from "$lib/ui/SwitchLabel.svelte"
-    import { DEFAULT_MIC_VOLUME_GATE, Media } from "$lib/media"
+    import { Media } from "$lib/media"
     import VolumeMeter, * as Volume from "$lib/media/ui/settings/volume/VolumeMeter.svelte"
     import VolumeSlider from "$lib/media/ui/settings/volume/VolumeSlider.svelte"
+    import { MIN_VOLUME } from "$lib/media/volume"
+    import Slider from "$lib/ui/Slider.svelte"
+    import SwitchLabel from "$lib/ui/SwitchLabel.svelte"
     import filter_left from "@timephy/tui-icons-svelte/filter_left"
     import soundwave from "@timephy/tui-icons-svelte/soundwave"
     import volume_mute_fill from "@timephy/tui-icons-svelte/volume_mute_fill"
     import volume_up_fill from "@timephy/tui-icons-svelte/volume_up_fill"
+    import type { ComponentProps } from "svelte"
+
+    /* ============================================================================================================== */
+    /*                                                      Props                                                     */
+    /* ============================================================================================================== */
 
     let {
         media,
@@ -21,24 +27,33 @@
         media: Media
         debug?: boolean
     } = $props()
+
+    /* ============================================================================================================== */
+
+    const volumeSliderProps = {
+        min: Volume.min,
+        max: Volume.max,
+        step: 1,
+        leftColor: "gray",
+        rightColor: "green",
+    } satisfies Partial<ComponentProps<Slider>>
+
+    /** Special padding to align the VolumeMeter perfectly with the Slider thumb. */
+    const volumeMeterClass = "w-full px-[0.625rem]"
 </script>
 
 <div class="section">
     {#if debug}
         <!-- <p>Source input volume (direct from mic).</p> -->
         <div class="px-section">
-            <VolumeMeter volume={media.mic_volumeSource} class="w-full px-[0.625rem]" />
+            <VolumeMeter color="gray" volume={media._mic_pipeline.debugVolumeSource} class={volumeMeterClass} />
         </div>
 
         <hr />
     {/if}
 
     <!-- NOTE: Padding is 1/2 of Slider Thumb width -->
-    <SwitchLabel
-        icon={soundwave}
-        label="Noise Suppression"
-        bind:value={media.mic_noiseSuppression}
-    />
+    <SwitchLabel icon={soundwave} label="Noise Suppression" bind:value={media.mic_noiseSuppression} />
     {#if media.mic_noiseSuppressionLoaded === false}
         <p class="!text-orange">Could not load, noise suppression is disabled.</p>
     {:else}
@@ -47,50 +62,39 @@
 
     <div class="h-1"></div>
 
-    <SwitchLabel
-        icon={filter_left}
-        label="Volume Gate"
-        value={media.mic_volumeGate !== null}
-        onChange={(value) => (media.mic_volumeGate = value ? DEFAULT_MIC_VOLUME_GATE : null)}
-        class="grow"
-    />
-    <p>Only pass audio above this volume ({media.mic_volumeGate}dB).</p>
+    <SwitchLabel icon={filter_left} label="Volume Gate" bind:value={media.mic_volumeGate} class="grow" />
+    <p>Only pass audio above this volume{media.mic_volumeGate ? ` (${media.mic_volumeGateThreshold}dB)` : ""}.</p>
 
-    {#if media.mic_volumeGate !== null}
-        <Slider
-            bind:value={media.mic_volumeGate}
-            min={Volume.min}
-            max={Volume.max}
-            step={1}
-            leftColor="gray"
-            rightColor="green"
-        />
+    {#if media.mic_volumeGate}
+        <Slider bind:value={media.mic_volumeGateThreshold} {...volumeSliderProps} />
+    {:else}
+        <Slider disabled value={MIN_VOLUME} {...volumeSliderProps} />
     {/if}
 
     <div class="h-1"></div>
 
     <div class="px-section">
-        {#if media.mic_volumeVoice !== null && media.mic_volumeGate !== null}
+        {#if media.mic_volumeGate === true}
             <VolumeMeter
                 volume={media.mic_volumeVoice}
-                color={media.mic_volumeVoice > media.mic_volumeGate
+                color={media.mic_volumeVoice > media.mic_volumeGateThreshold
                     ? "green"
                     : media.mic_volumeGateOpen
                       ? "orange"
                       : "red"}
-                barClass={media.mic_volumeVoice > media.mic_volumeGate
+                barClass={media.mic_volumeVoice > media.mic_volumeGateThreshold
                     ? ""
                     : media.mic_volumeGateOpen
                       ? "bg-opacity-75"
                       : "bg-opacity-25"}
-                class="w-full px-[0.625rem]"
+                class={volumeMeterClass}
             />
         {:else}
-            <VolumeMeter
-                volume={media.mic_volumeVoice}
-                color="green"
-                class="w-full px-[0.625rem]"
-            />
+            <VolumeMeter volume={media.mic_volumeVoice} color="green" class={volumeMeterClass} />
+        {/if}
+
+        {#if debug}
+            <Slider disabled value={media._mic_pipeline.debugGateFactor} min={0} max={1} step={0.01} />
         {/if}
     </div>
 
@@ -110,7 +114,7 @@
         <hr />
 
         <div class="px-section">
-            <VolumeMeter volume={media.mic_volumeOutput} class="w-full px-[0.625rem]" />
+            <VolumeMeter color="gray" volume={media._mic_pipeline.debugVolumeOutput} class={volumeMeterClass} />
         </div>
     {/if}
 </div>
