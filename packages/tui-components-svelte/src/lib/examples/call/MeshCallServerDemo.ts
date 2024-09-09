@@ -144,9 +144,7 @@ export function setupSocketIoServer(httpServer: HttpServer | Http2Server) {
         socket.on("disconnect", (reason) => {
             console.log("[WS] (disconnect)", clientId, reason)
             if (!room.clients.has(clientId)) {
-                console.error(
-                    `[Room] Client ${clientId} disconnected, but was not connected to the room`,
-                )
+                console.error(`[Room] Client ${clientId} disconnected, but was not connected to the room`)
                 return
             }
 
@@ -165,13 +163,9 @@ export function setupSocketIoServer(httpServer: HttpServer | Http2Server) {
         /* ====================================================================================== */
 
         socket.on(MSG.CALL.JOIN, (mediaState: MediaState) => {
-            console.log(
-                `reveiced ${MSG.CALL.JOIN} from ${clientId} with mediaState ${JSON.stringify(mediaState)}`,
-            )
+            console.log(`reveiced ${MSG.CALL.JOIN} from ${clientId} with mediaState ${JSON.stringify(mediaState)}`)
             if (room.call.has(clientId)) {
-                console.warn(
-                    `[Call] Client ${clientId} wanted to join the call, but is already joined`,
-                )
+                console.warn(`[Call] Client ${clientId} wanted to join the call, but is already joined`)
             }
 
             add_client_to_call(room, clientId, mediaState)
@@ -179,9 +173,7 @@ export function setupSocketIoServer(httpServer: HttpServer | Http2Server) {
         socket.on(MSG.CALL.LEAVE, () => {
             console.log(`reveiced ${MSG.CALL.LEAVE} from ${clientId}`)
             if (!room.call.has(clientId)) {
-                console.warn(
-                    `[Call] Client ${clientId} wanted to leave the call, but is not joined`,
-                )
+                console.warn(`[Call] Client ${clientId} wanted to leave the call, but is not joined`)
             }
 
             remove_client_from_call(room, clientId)
@@ -191,56 +183,44 @@ export function setupSocketIoServer(httpServer: HttpServer | Http2Server) {
         /*                                         Signals                                        */
         /* ====================================================================================== */
 
-        socket.on(
-            MSG.CALL.SIGNAL.DESCRIPTION,
-            ({ toPeerId, content }: SendSignal<RTCSessionDescriptionInit>) => {
-                if (!room.call.has(clientId)) {
-                    console.warn(
-                        `[Call] Client ${clientId} sent a signal (description), but is not connected to the call`,
-                    )
-                    return
-                }
-                if (!room.call.has(toPeerId)) {
-                    console.warn(
-                        `[Call] Client ${toPeerId} should receive a signal (description), but is not connected to the call`,
-                    )
-                    return
-                }
+        socket.on(MSG.CALL.SIGNAL.DESCRIPTION, ({ toPeerId, content }: SendSignal<RTCSessionDescriptionInit>) => {
+            if (!room.call.has(clientId)) {
+                console.warn(`[Call] Client ${clientId} sent a signal (description), but is not connected to the call`)
+                return
+            }
+            if (!room.call.has(toPeerId)) {
+                console.warn(
+                    `[Call] Client ${toPeerId} should receive a signal (description), but is not connected to the call`,
+                )
+                return
+            }
 
-                // signaling
-                io.to(toPeerId).emit(MSG.CALL.SIGNAL.DESCRIPTION, {
-                    fromPeerId: clientId,
-                    content,
-                } satisfies RecvSignal<RTCSessionDescriptionInit>)
-            },
-        )
-        socket.on(
-            MSG.CALL.SIGNAL.CANDIDATE,
-            ({ toPeerId, content }: SendSignal<RTCIceCandidate>) => {
-                if (!room.call.has(clientId)) {
-                    console.warn(
-                        `[Call] Client ${clientId} sent a signal (candidate), but is not connected to the call`,
-                    )
-                    return
-                }
-                if (!room.call.has(toPeerId)) {
-                    console.warn(
-                        `[Call] Client ${toPeerId} should receive a signal (candidate), but is not connected to the call`,
-                    )
-                }
+            // signaling
+            io.to(toPeerId).emit(MSG.CALL.SIGNAL.DESCRIPTION, {
+                fromPeerId: clientId,
+                content,
+            } satisfies RecvSignal<RTCSessionDescriptionInit>)
+        })
+        socket.on(MSG.CALL.SIGNAL.CANDIDATE, ({ toPeerId, content }: SendSignal<RTCIceCandidate>) => {
+            if (!room.call.has(clientId)) {
+                console.warn(`[Call] Client ${clientId} sent a signal (candidate), but is not connected to the call`)
+                return
+            }
+            if (!room.call.has(toPeerId)) {
+                console.warn(
+                    `[Call] Client ${toPeerId} should receive a signal (candidate), but is not connected to the call`,
+                )
+            }
 
-                // signaling
-                io.to(toPeerId).emit(MSG.CALL.SIGNAL.CANDIDATE, {
-                    fromPeerId: clientId,
-                    content,
-                } satisfies RecvSignal<RTCIceCandidate>)
-            },
-        )
+            // signaling
+            io.to(toPeerId).emit(MSG.CALL.SIGNAL.CANDIDATE, {
+                fromPeerId: clientId,
+                content,
+            } satisfies RecvSignal<RTCIceCandidate>)
+        })
         socket.on(MSG.CALL.SIGNAL.MEDIA_STATE, (mediaState: MediaState) => {
             if (!room.call.has(clientId)) {
-                console.warn(
-                    `[Call] Client ${clientId} sent a signal (mediaState), but is not connected to the call`,
-                )
+                console.warn(`[Call] Client ${clientId} sent a signal (mediaState), but is not connected to the call`)
                 return
             }
 

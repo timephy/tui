@@ -86,18 +86,12 @@ export class MeshCallClientDemo extends MeshCall {
                 this.receiveSessionDescription(fromPeerId, content)
             },
         )
-        this.socket.on(
-            MSG.CALL.SIGNAL.CANDIDATE,
-            ({ fromPeerId, content }: RecvSignal<RTCIceCandidateInit>) => {
-                this.receiveIceCandidate(fromPeerId, content)
-            },
-        )
-        this.socket.on(
-            MSG.CALL.SIGNAL.MEDIA_STATE,
-            ({ fromPeerId, content }: RecvSignal<MediaState>) => {
-                this.receiveMediaState(fromPeerId, content)
-            },
-        )
+        this.socket.on(MSG.CALL.SIGNAL.CANDIDATE, ({ fromPeerId, content }: RecvSignal<RTCIceCandidateInit>) => {
+            this.receiveIceCandidate(fromPeerId, content)
+        })
+        this.socket.on(MSG.CALL.SIGNAL.MEDIA_STATE, ({ fromPeerId, content }: RecvSignal<MediaState>) => {
+            this.receiveMediaState(fromPeerId, content)
+        })
 
         /* ====================================================================================== */
         /*                                      Other Events                                      */
@@ -139,10 +133,7 @@ export class MeshCallClientDemo extends MeshCall {
     protected override signalMediaState(mediaState: MediaState): void {
         this.socket.emit(MSG.CALL.SIGNAL.MEDIA_STATE, mediaState)
     }
-    protected override signalSessionDescription(
-        toPeerId: PeerId,
-        sessionDescription: RTCSessionDescription,
-    ): void {
+    protected override signalSessionDescription(toPeerId: PeerId, sessionDescription: RTCSessionDescription): void {
         this.socket.emit(MSG.CALL.SIGNAL.DESCRIPTION, {
             toPeerId,
             content: sessionDescription,

@@ -83,18 +83,10 @@
                     </div>
 
                     {#if p.mediaState.cam}
-                        <Video
-                            stream={p.micCamStream}
-                            muted={true}
-                            class="item box-content bg-step-base"
-                        />
+                        <Video stream={p.micCamStream} muted={true} class="item box-content bg-step-base" />
                     {/if}
                     {#if p.mediaState.screen}
-                        <Video
-                            stream={p.screenStream}
-                            muted={false}
-                            class="item box-content bg-step-base"
-                        />
+                        <Video stream={p.screenStream} muted={false} class="item box-content bg-step-base" />
                     {/if}
 
                     <hr />
@@ -125,18 +117,11 @@
                 />
             {/if}
             <div></div>
-            <CallControls
-                {call}
-                layout="normal"
-                showMediaSettings={() => {}}
-                joinCallText="Join Call"
-            />
+            <CallControls {call} layout="normal" showMediaSettings={() => {}} joinCallText="Join Call" />
             {#if debug}
                 <div></div>
                 {#key key}
-                    <div
-                        class="note grid grid-cols-2 px-1.5 [&>*:nth-child(even)]:text-right [&>*]:truncate"
-                    >
+                    <div class="note grid grid-cols-2 px-1.5 [&>*:nth-child(even)]:text-right [&>*]:truncate">
                         <div>mic</div>
                         <div>
                             {JSON.stringify(call.media.mic_audioSource?.label) ?? "undefined"}

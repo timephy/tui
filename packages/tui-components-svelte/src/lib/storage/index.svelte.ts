@@ -113,8 +113,7 @@ export default class Storage<V extends Value> {
         if (localStorage) {
             if (
                 value === null ||
-                (this.serialize(value) === this._default_serialized &&
-                    this._options.setNullOnDefault)
+                (this.serialize(value) === this._default_serialized && this._options.setNullOnDefault)
             ) {
                 localStorage.removeItem(this.key)
             } else {
@@ -153,11 +152,7 @@ export default class Storage<V extends Value> {
         return new Storage<V | D>(key, _default, parse_string as any, JSON.stringify, options)
     }
 
-    static boolean = <D extends boolean | null>(
-        key: Key,
-        _default: D,
-        options?: Partial<Options>,
-    ) => {
+    static boolean = <D extends boolean | null>(key: Key, _default: D, options?: Partial<Options>) => {
         return new Storage<boolean | D>(key, _default, parse_boolean, JSON.stringify, options)
     }
 

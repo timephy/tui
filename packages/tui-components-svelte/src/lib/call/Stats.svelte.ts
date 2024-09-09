@@ -210,45 +210,37 @@ export class Stats {
             if (stat.type === "inbound-rtp") {
                 if (stat.mid === TRANSCEIVER_MID_MIC_AUDIO) {
                     this._mic_audio_recv_list.push(parseRecvAudio(stat))
-                    if (this._mic_audio_recv_list.length > this.average)
-                        this._mic_audio_recv_list.shift()
+                    if (this._mic_audio_recv_list.length > this.average) this._mic_audio_recv_list.shift()
                     this._mic_audio_recv = difference(this._mic_audio_recv_list, KEYS_TO_DIFF)
                 } else if (stat.mid === TRANSCEIVER_MID_CAM_VIDEO) {
                     this._cam_video_recv_list.push(parseRecvVideo(stat))
-                    if (this._cam_video_recv_list.length > this.average)
-                        this._cam_video_recv_list.shift()
+                    if (this._cam_video_recv_list.length > this.average) this._cam_video_recv_list.shift()
                     this._cam_video_recv = difference(this._cam_video_recv_list, KEYS_TO_DIFF)
                 } else if (stat.mid === TRANSCEIVER_MID_SCREEN_VIDEO) {
                     this._screen_video_recv_list.push(parseRecvVideo(stat))
-                    if (this._screen_video_recv_list.length > this.average)
-                        this._screen_video_recv_list.shift()
+                    if (this._screen_video_recv_list.length > this.average) this._screen_video_recv_list.shift()
                     this._screen_video_recv = difference(this._screen_video_recv_list, KEYS_TO_DIFF)
                 } else if (stat.mid === TRANSCEIVER_MID_SCREEN_AUDIO) {
                     this._screen_audio_recv_list.push(parseRecvAudio(stat))
-                    if (this._screen_audio_recv_list.length > this.average)
-                        this._screen_audio_recv_list.shift()
+                    if (this._screen_audio_recv_list.length > this.average) this._screen_audio_recv_list.shift()
                     this._screen_audio_recv = difference(this._screen_audio_recv_list, KEYS_TO_DIFF)
                 }
             } else if (stat.type === "outbound-rtp") {
                 if (stat.mid === TRANSCEIVER_MID_MIC_AUDIO) {
                     this._mic_audio_sent_list.push(parseSentAudio(stat))
-                    if (this._mic_audio_sent_list.length > this.average)
-                        this._mic_audio_sent_list.shift()
+                    if (this._mic_audio_sent_list.length > this.average) this._mic_audio_sent_list.shift()
                     this._mic_audio_sent = difference(this._mic_audio_sent_list, KEYS_TO_DIFF)
                 } else if (stat.mid === TRANSCEIVER_MID_CAM_VIDEO) {
                     this._cam_video_sent_list.push(parseSentVideo(stat))
-                    if (this._cam_video_sent_list.length > this.average)
-                        this._cam_video_sent_list.shift()
+                    if (this._cam_video_sent_list.length > this.average) this._cam_video_sent_list.shift()
                     this._cam_video_sent = difference(this._cam_video_sent_list, KEYS_TO_DIFF)
                 } else if (stat.mid === TRANSCEIVER_MID_SCREEN_VIDEO) {
                     this._screen_video_sent_list.push(parseSentVideo(stat))
-                    if (this._screen_video_sent_list.length > this.average)
-                        this._screen_video_sent_list.shift()
+                    if (this._screen_video_sent_list.length > this.average) this._screen_video_sent_list.shift()
                     this._screen_video_sent = difference(this._screen_video_sent_list, KEYS_TO_DIFF)
                 } else if (stat.mid === TRANSCEIVER_MID_SCREEN_AUDIO) {
                     this._screen_audio_sent_list.push(parseSentAudio(stat))
-                    if (this._screen_audio_sent_list.length > this.average)
-                        this._screen_audio_sent_list.shift()
+                    if (this._screen_audio_sent_list.length > this.average) this._screen_audio_sent_list.shift()
                     this._screen_audio_sent = difference(this._screen_audio_sent_list, KEYS_TO_DIFF)
                 }
             }
@@ -256,21 +248,15 @@ export class Stats {
 
         // NOTE: using "x is not null" because svelte-check does not understand it, although it is using typescript>5
         this._general_recv = sum(
-            [
-                this._mic_audio_recv,
-                this._cam_video_recv,
-                this._screen_video_recv,
-                this._screen_audio_recv,
-            ].filter((x): x is Recv => x !== null),
+            [this._mic_audio_recv, this._cam_video_recv, this._screen_video_recv, this._screen_audio_recv].filter(
+                (x): x is Recv => x !== null,
+            ),
             KEYS_TO_SUM,
         ) as Recv
         this._general_sent = sum(
-            [
-                this._mic_audio_sent,
-                this._cam_video_sent,
-                this._screen_video_sent,
-                this._screen_audio_sent,
-            ].filter((x): x is Sent => x !== null),
+            [this._mic_audio_sent, this._cam_video_sent, this._screen_video_sent, this._screen_audio_sent].filter(
+                (x): x is Sent => x !== null,
+            ),
             KEYS_TO_SUM,
         ) as Sent
     }

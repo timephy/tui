@@ -67,8 +67,7 @@ export abstract class MeshCall extends Call {
                 polite: !offer,
                 signalSessionDescription: (sessionDescription: RTCSessionDescription) =>
                     this.signalSessionDescription(peerId, sessionDescription),
-                signalIceCandidate: (iceCandidate: RTCIceCandidate) =>
-                    this.signalIceCandidate(peerId, iceCandidate),
+                signalIceCandidate: (iceCandidate: RTCIceCandidate) => this.signalIceCandidate(peerId, iceCandidate),
                 storageId,
             },
             peerId,
@@ -89,10 +88,7 @@ export abstract class MeshCall extends Call {
             this.media.screen_tracks$.subscribe(async (tracks) => {
                 const trackVideo = tracks?.[0] ?? null
                 const trackAudio = tracks?.[1] ?? null
-                await Promise.all([
-                    peer.setTrackScreenVideo(trackVideo),
-                    peer.setTrackScreenAudio(trackAudio),
-                ])
+                await Promise.all([peer.setTrackScreenVideo(trackVideo), peer.setTrackScreenAudio(trackAudio)])
             }),
         ])
 

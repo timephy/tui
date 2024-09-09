@@ -71,12 +71,8 @@
         }
     },
     disabled: media.deaf || !navigator.mediaDevices?.getUserMedia,
-    class:
-        media.mic_error || !media.mic_active || media.mute || media.deaf
-            ? "!outline-red"
-            : "!outline-blue",
-    icon:
-        media.mic_error || !media.mic_active || media.mute || media.deaf ? mic_mute_fill : mic_fill,
+    class: media.mic_error || !media.mic_active || media.mute || media.deaf ? "!outline-red" : "!outline-blue",
+    icon: media.mic_error || !media.mic_active || media.mute || media.deaf ? mic_mute_fill : mic_fill,
 })}
 
 {@render btn({
@@ -99,11 +95,7 @@
         disabled: false,
         class:
             // NOTE: disabled error outline, because screen sharing is often cancelled by the user
-            false && media.screen_error
-                ? "!outline-red"
-                : media.screen_active
-                  ? "!outline-blue"
-                  : "!outline-0",
+            false && media.screen_error ? "!outline-red" : media.screen_active ? "!outline-blue" : "!outline-0",
         icon: media.screen_active ? display_fill : display,
     })}
 {/if}

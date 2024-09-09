@@ -33,10 +33,7 @@
         {#if general_recv && general_sent}
             {@const packetLoss =
                 Math.round(
-                    (general_recv.packetsLost /
-                        (general_recv.packetsLost + general_recv.packetsReceived)) *
-                        100 *
-                        100,
+                    (general_recv.packetsLost / (general_recv.packetsLost + general_recv.packetsReceived)) * 100 * 100,
                 ) / 100}
             {packetLoss === 0 ? "0.00" : packetLoss} <span class="unit">%</span>
         {:else}

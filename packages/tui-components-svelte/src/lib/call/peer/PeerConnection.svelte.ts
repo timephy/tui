@@ -33,9 +33,7 @@ const sortedCodecsAudio = (() => {
 
     const supportedCodecsAudio = RTCRtpReceiver.getCapabilities("audio")?.codecs ?? null
     const preferredCodecsAudio = ["audio/opus"]
-    return supportedCodecsAudio !== null
-        ? sortByMimeTypes(supportedCodecsAudio, preferredCodecsAudio)
-        : null
+    return supportedCodecsAudio !== null ? sortByMimeTypes(supportedCodecsAudio, preferredCodecsAudio) : null
 })()
 const sortedCodecsVideo = (() => {
     // NOTE: Cannot access RTCRtpReceiver on the server
@@ -43,9 +41,7 @@ const sortedCodecsVideo = (() => {
 
     const supportedCodecsVideo = RTCRtpReceiver.getCapabilities("video")?.codecs ?? null
     const preferredCodecsVideo = ["video/AV1", "video/H264", "video/VP8", "video/VP9"]
-    return supportedCodecsVideo !== null
-        ? sortByMimeTypes(supportedCodecsVideo, preferredCodecsVideo)
-        : null
+    return supportedCodecsVideo !== null ? sortByMimeTypes(supportedCodecsVideo, preferredCodecsVideo) : null
 })()
 
 console.log("[PeerConnection] sortedCodecsAudio", sortedCodecsAudio)
@@ -58,10 +54,7 @@ console.log("[PeerConnection] sortedCodecsVideo", sortedCodecsVideo)
  * @param description The description to modify
  */
 function mangleSessionDescription(description: RTCSessionDescriptionInit) {
-    description.sdp = description.sdp?.replaceAll(
-        "useinbandfec=1",
-        "useinbandfec=1;stereo=1;maxaveragebitrate=510000",
-    )
+    description.sdp = description.sdp?.replaceAll("useinbandfec=1", "useinbandfec=1;stereo=1;maxaveragebitrate=510000")
 }
 
 /* ============================================================================================== */
@@ -326,8 +319,7 @@ export class PeerConnection {
 
         // NOTE: For "perfect negotiation" pattern (https://w3c.github.io/webrtc-pc/#perfect-negotiation-example)
         const readyForOffer =
-            !this.__makingOffer &&
-            (this._pc.signalingState === "stable" || this.__isSettingRemoteAnswerPending)
+            !this.__makingOffer && (this._pc.signalingState === "stable" || this.__isSettingRemoteAnswerPending)
         const offerCollision = description.type === "offer" && !readyForOffer
 
         this.__ignoreOffer = !this.options.polite && offerCollision

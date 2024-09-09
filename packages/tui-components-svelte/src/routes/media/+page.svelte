@@ -67,9 +67,7 @@
             {#if debug}
                 <div></div>
                 {#key key}
-                    <div
-                        class="note grid grid-cols-2 px-1.5 [&>*:nth-child(even)]:text-right [&>*]:truncate"
-                    >
+                    <div class="note grid grid-cols-2 px-1.5 [&>*:nth-child(even)]:text-right [&>*]:truncate">
                         <div>mic</div>
                         <div>
                             {JSON.stringify(media.mic_audioSource?.label) ?? "undefined"}

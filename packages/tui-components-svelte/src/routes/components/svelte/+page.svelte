@@ -12,10 +12,7 @@
 <div class="flex gap-6 p-6">
     <div class="card card-p section w-full max-w-sm">
         {@render title("Select")}
-        <Select
-            options={[{ value: "Option A" }, { value: "Option B" }, { value: "Option C" }]}
-            value="Option A"
-        />
+        <Select options={[{ value: "Option A" }, { value: "Option B" }, { value: "Option C" }]} value="Option A" />
         <Select
             options={[{ value: "Option A" }, { value: "Option B" }, { value: "Option C" }]}
             value="Option A"

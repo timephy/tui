@@ -35,23 +35,13 @@
     )
 
     let buttonClass = $derived(
-        layout === "normal"
-            ? media.screen_available
-                ? "col-span-2"
-                : ""
-            : media.screen_available
-              ? ""
-              : "",
+        layout === "normal" ? (media.screen_available ? "col-span-2" : "") : media.screen_available ? "" : "",
     )
 </script>
 
 {#if !call.isConnected}
     <div class="grid grid-cols-1">
-        <button
-            tabindex={-1}
-            onclick={async () => await call.join()}
-            class="btn btn-tall btn-green gap-2"
-        >
+        <button tabindex={-1} onclick={async () => await call.join()} class="btn btn-tall btn-green gap-2">
             <Icon data={telephone_fill} class="size-[18px]" />
             <p>{joinCallText}</p>
         </button>
@@ -64,11 +54,7 @@
             <Icon data={gear_wide_connected} class="size-[18px]" />
         </button>
 
-        <button
-            tabindex={-1}
-            onclick={async () => await call.leave()}
-            class="btn btn-tall btn-red gap-2 {buttonClass}"
-        >
+        <button tabindex={-1} onclick={async () => await call.leave()} class="btn btn-tall btn-red gap-2 {buttonClass}">
             <Icon data={telephone_fill} class="size-[18px]" />
         </button>
     </div>

@@ -46,10 +46,7 @@
                 class="absolute top-0 h-[calc(100%-1rem)] w-px -translate-x-1/2 bg-step-200"
                 style:left={fraction(step) + "%"}
             ></div>
-            <p
-                class="absolute bottom-0 -translate-x-1/2 text-[0.5rem] text-step-500"
-                style:left={fraction(step) + "%"}
-            >
+            <p class="absolute bottom-0 -translate-x-1/2 text-[0.5rem] text-step-500" style:left={fraction(step) + "%"}>
                 {step}
             </p>
         {/each}

@@ -117,14 +117,10 @@ export abstract class Call {
                 return self._mediaState
             },
             get micCamStream() {
-                return self.media.cam_video
-                    ? new MediaStream([self.media.cam_video])
-                    : new MediaStream()
+                return self.media.cam_video ? new MediaStream([self.media.cam_video]) : new MediaStream()
             },
             get screenStream() {
-                return self.media.screen_video
-                    ? new MediaStream([self.media.screen_video])
-                    : new MediaStream()
+                return self.media.screen_video ? new MediaStream([self.media.screen_video]) : new MediaStream()
             },
             get volumeGateOpen() {
                 return self.media.mic_volumeGateOpen
