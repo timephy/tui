@@ -30,11 +30,15 @@ export type Display = {
 }
 
 export type LocalDisplay = Display & {
+    readonly type: "local"
+
     /** Whether we are sending audio. */
-    volumeGateOpen: boolean
+    outputIsSending: boolean
 }
 
 export type PeerDisplay = Display & {
+    readonly type: "peer"
+
     signalingState: RTCSignalingState
     iceGatheringState: RTCIceGathererState
     iceConnectionState: RTCIceConnectionState
@@ -113,6 +117,9 @@ export abstract class Call {
 
     public readonly local: LocalDisplay = ((self: Call) => {
         return {
+            get type(): "local" {
+                return "local"
+            },
             get mediaState() {
                 return self._mediaState
             },
@@ -122,8 +129,8 @@ export abstract class Call {
             get screenStream() {
                 return self.media.screen_video ? new MediaStream([self.media.screen_video]) : new MediaStream()
             },
-            get volumeGateOpen() {
-                return self.media.mic_volumeGateOpen
+            get outputIsSending() {
+                return self.media.mic_outputIsSending
             },
             get connectionState() {
                 return null

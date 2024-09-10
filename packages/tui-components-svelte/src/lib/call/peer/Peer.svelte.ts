@@ -26,6 +26,8 @@ export type PeerConnectionError = (typeof peerConnectionError)[number]
  * - Manages the {@link MediaState} of the peer, for help with displaying the received media (whether to show <video> elements, etc.)
  */
 export class Peer extends PeerConnection implements PeerDisplay {
+    readonly type = "peer"
+
     readonly stats: Stats
 
     constructor(

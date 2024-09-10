@@ -565,8 +565,10 @@ export class Media {
         return this._mic_pipeline.noiseSuppression
     }
     set mic_noiseSuppression(_noiseSuppression) {
+        DEBUG(`mic_noiseSuppression = ${_noiseSuppression}`)
         LS_MIC_NOISE_SUPPRESSION.value = _noiseSuppression
         this._mic_pipeline.noiseSuppression = _noiseSuppression
+        DEBUG(`mic_noiseSuppression = ${_noiseSuppression} end`)
     }
     get mic_noiseSuppressionLoaded() {
         return this._mic_pipeline.noiseSuppressionLoaded
@@ -594,9 +596,9 @@ export class Media {
         DEBUG(`mic_volumeGateThreshold = ${_volumeGateThreshold} end`)
     }
 
-    /** Whether the volume gate is open. */
-    get mic_volumeGateOpen() {
-        return this._mic_pipeline.volumeGateOpen
+    /** Whether the volume gate is open and the mic is not muted. */
+    get mic_outputIsSending() {
+        return this._mic_pipeline.volumeGateOpen && !this.#mute
     }
 
     // ! Gain

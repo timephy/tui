@@ -79,12 +79,12 @@
                 volume={media.mic_volumeVoice}
                 color={media.mic_volumeVoice > media.mic_volumeGateThreshold
                     ? "green"
-                    : media.mic_volumeGateOpen
+                    : media.mic_outputIsSending
                       ? "orange"
                       : "red"}
                 barClass={media.mic_volumeVoice > media.mic_volumeGateThreshold
                     ? ""
-                    : media.mic_volumeGateOpen
+                    : media.mic_outputIsSending
                       ? "bg-opacity-75"
                       : "bg-opacity-25"}
                 class={volumeMeterClass}
