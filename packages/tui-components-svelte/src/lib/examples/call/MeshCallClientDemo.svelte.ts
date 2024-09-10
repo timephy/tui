@@ -117,6 +117,12 @@ export class MeshCallClientDemo extends MeshCall {
         })
     }
 
+    public override async destroy() {
+        super.destroy()
+
+        this.socket.disconnect()
+    }
+
     public override get isConnected(): boolean {
         // return false
         if (this._id === null || this._callState === null) return false
