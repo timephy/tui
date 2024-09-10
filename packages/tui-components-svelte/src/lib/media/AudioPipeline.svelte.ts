@@ -155,7 +155,6 @@ export class AudioPipeline {
 
         // ! Set sync options
         this.#set_debug(debug)
-        this.#set_volumeGate(volumeGate)
         this.#set_gain(gain)
         this.#set_playback(playback)
 
@@ -164,8 +163,9 @@ export class AudioPipeline {
         this.#volumeGate = volumeGate
         // NOTE: as these are async, they have to be called behind a lock
         LOCK(async () => {
-            await this.#set_noiseSuppression(noiseSuppression)
+            // NOTE: Set+Load volume gate before noise suppression, because it is more important
             await this.#set_volumeGate(volumeGate)
+            await this.#set_noiseSuppression(noiseSuppression)
         })
     }
 
@@ -250,7 +250,8 @@ export class AudioPipeline {
     /* ============================================================================================================== */
     // MARK: #set_*()
 
-    set_source(track: MediaStreamTrack | null) {
+    #set_source(track: MediaStreamTrack | null) {
+        DEBUG("#set_source()")
         this.#nodes.source?.disconnect()
         this.#nodes.source = track ? this.#ctx.createMediaStreamSource(new MediaStream([track])) : null
 
@@ -258,6 +259,7 @@ export class AudioPipeline {
     }
 
     #set_debug(_debug: boolean) {
+        DEBUG("#set_debug()", _debug)
         this.#debug = _debug
 
         this.#debugVolumeSource = this.#debug ? MIN_VOLUME : null
@@ -272,6 +274,7 @@ export class AudioPipeline {
     }
 
     async #set_noiseSuppression(_noiseSuppression: boolean) {
+        DEBUG("#set_noiseSuppression()", _noiseSuppression)
         this.#noiseSuppression = _noiseSuppression
 
         if (this.#noiseSuppression) {
@@ -289,6 +292,7 @@ export class AudioPipeline {
     }
 
     async #set_volumeGate(_volumeGate: number | null) {
+        DEBUG("#set_volumeGate()", _volumeGate)
         this.#volumeGate = _volumeGate
 
         // load if unloaded
@@ -316,12 +320,14 @@ export class AudioPipeline {
     }
 
     #set_gain(_gain: number) {
+        DEBUG("#set_gain()", _gain)
         this.#gain = _gain
 
         this.#nodes.gain.gain.value = this.#gain
     }
 
     #set_playback(_playback: boolean) {
+        DEBUG("#set_playback()", _playback)
         if (_playback !== this.#playback) {
             this.#playback = _playback
 
@@ -455,7 +461,7 @@ export class AudioPipeline {
             await this.#ctx.resume()
 
             DEBUG("setTrack", track)
-            this.set_source(track)
+            this.#set_source(track)
             DEBUG("setTrack", "end")
         })
     }
