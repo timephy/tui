@@ -1,4 +1,4 @@
-<script lang="ts" module>
+<script lang="ts" context="module">
     export type Option<T> = {
         value: T
         /** The label to show instead of the value. */

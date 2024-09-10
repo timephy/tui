@@ -3,7 +3,7 @@
     A volume meter (bar chart) for displaying the volume of an audio stream.
 -->
 
-<script lang="ts" module>
+<script lang="ts" context="module">
     export const steps = [-80, -70, -60, -50, -40, -30, -20, -10, 0, 10, 20]
     export const min = Math.min(...steps)
     export const max = Math.max(...steps)

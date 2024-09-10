@@ -1,4 +1,4 @@
-<script lang="ts" module>
+<script lang="ts" context="module">
     const BG_COLOR = {
         gray: "--step-100",
         blue: "--blue",

@@ -4,7 +4,7 @@
     Shows the status of the microphone, camera, screen and screen audio devices, as well as the mute and deaf state.
 -->
 
-<script lang="ts" module>
+<script lang="ts" context="module">
     type MicState = "enabled" | "disabled" | "muted"
     type DeafState = "enabled" | "disabled"
     type CamState = "enabled" | "disabled"

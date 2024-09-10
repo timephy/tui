@@ -1,4 +1,4 @@
-<script lang="ts" module>
+<script lang="ts" context="module">
     export type { IconType } from "svelte-awesome/components/Icon.svelte"
 </script>
 
