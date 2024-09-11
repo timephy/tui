@@ -17,7 +17,7 @@ export const TRANSCEIVER_MID_SCREEN_AUDIO = "3"
 /* ============================================================================================== */
 
 /** Sort (inplace) and also returns the given array `codecs` in order of `prefferedOrder`. */
-function sortByMimeTypes(codecs: RTCRtpCodecCapability[], preferredOrder: string[]) {
+function sortByMimeTypes(codecs: RTCRtpCodec[], preferredOrder: string[]) {
     return codecs.sort((a, b) => {
         const indexA = preferredOrder.indexOf(a.mimeType)
         const indexB = preferredOrder.indexOf(b.mimeType)
