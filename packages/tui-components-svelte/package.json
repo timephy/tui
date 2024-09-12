@@ -1,6 +1,6 @@
 {
     "name": "@timephy/tui-components-svelte",
-    "version": "0.0.16",
+    "version": "0.0.17",
     "description": "",
     "homepage": "https://github.com/timephy/tui/tree/main/tui-components-svelte#readme",
     "scripts": {
@@ -83,6 +83,10 @@
         "./media/VolumeSlider.svelte": {
             "types": "./dist/media/ui/settings/volume/VolumeSlider.svelte.d.ts",
             "svelte": "./dist/media/ui/settings/volume/VolumeSlider.svelte"
+        },
+        "./media/volume/VolumeMeterGateWorklet": {
+            "types": "./dist/media/volume/VolumeMeterGateWorklet.d.ts",
+            "default": "./dist/media/volume/VolumeMeterGateWorklet.js"
         },
         "./Select.svelte": {
             "types": "./dist/ui/Select.svelte.d.ts",
