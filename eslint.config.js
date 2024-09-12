@@ -2,7 +2,7 @@ import js from "@eslint/js"
 import ts from "typescript-eslint"
 import svelte from "eslint-plugin-svelte"
 import prettier from "eslint-config-prettier"
-import globals from "globals/index.js"
+import globals from "globals"
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
@@ -16,7 +16,7 @@ export default [
             globals: {
                 ...globals.browser,
                 ...globals.node,
-                // these two RTC types are missing from "globals", but are present in TypeScript lib "dom"
+                // these types are missing from "globals", but are present in TypeScript lib "dom"
                 RTCIceCandidateInit: false,
                 RTCSessionDescriptionInit: false,
             },
