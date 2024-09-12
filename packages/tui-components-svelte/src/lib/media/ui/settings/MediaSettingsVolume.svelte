@@ -4,7 +4,7 @@
 -->
 
 <script lang="ts">
-    import { Media } from "$lib/media"
+    import { type Media } from "$lib/media"
     import VolumeMeter, * as Volume from "$lib/media/ui/settings/volume/VolumeMeter.svelte"
     import VolumeSlider from "$lib/media/ui/settings/volume/VolumeSlider.svelte"
     import { MIN_VOLUME } from "$lib/media/volume"
