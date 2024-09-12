@@ -5,7 +5,7 @@
     "homepage": "https://github.com/timephy/tui/tree/main/tui-components-svelte#readme",
     "scripts": {
         "clean": "rm -rf .svelte-kit/ build/ dist/",
-        "lint": "pnpm run check && prettier --check .",
+        "lint": "pnpm run check && prettier --check . && eslint .",
         "build": "vite build && svelte-package",
         "package": "publint",
         "dev": "vite dev",
