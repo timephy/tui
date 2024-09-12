@@ -15,10 +15,6 @@ const config = {
             precompress: true,
         }),
     },
-    compilerOptions: {
-        // TODO: svelte-awesome does not yet support runes mode
-        // runes: true,
-    },
 }
 
 export default config
