@@ -257,8 +257,12 @@ function test() {
     const literalString12 = Storage.string<null>("literalString", null)
     const literalString2 = Storage.string<"A" | "B">("literalString", "B")
     const literalString3 = Storage.string<"A" | "B" | null>("literalString", null)
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     literalString1.value
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     literalString12.value
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     literalString2.value
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     literalString3.value
 }

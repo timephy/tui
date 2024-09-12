@@ -209,8 +209,8 @@ export class Media {
     async destroy() {
         // Remove listeners
         navigator.mediaDevices.removeEventListener("devicechange", this._loadDevices)
-        this.#mic_permission && (this.#mic_permission.onchange = null)
-        this.#cam_permission && (this.#cam_permission.onchange = null)
+        if (this.#mic_permission) this.#mic_permission.onchange = null
+        if (this.#cam_permission) this.#cam_permission.onchange = null
 
         // Stop mic
         this.#mic_audio?.stop()

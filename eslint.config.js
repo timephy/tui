@@ -16,6 +16,9 @@ export default [
             globals: {
                 ...globals.browser,
                 ...globals.node,
+                // these two RTC types are missing from "globals", but are present in TypeScript lib "dom"
+                RTCIceCandidateInit: false,
+                RTCSessionDescriptionInit: false,
             },
         },
     },
@@ -28,6 +31,25 @@ export default [
                     experimentalGenerics: true,
                 },
             },
+        },
+    },
+    {
+        rules: {
+            "@typescript-eslint/no-unused-vars": [
+                "warn",
+                {
+                    argsIgnorePattern: "^_",
+                    varsIgnorePattern: "^_",
+                    caughtErrorsIgnorePattern: "^_",
+                },
+            ],
+            "@typescript-eslint/no-unused-expressions": "warn",
+            "svelte/valid-compile": [
+                "error",
+                {
+                    ignoreWarnings: true,
+                },
+            ],
         },
     },
     {

@@ -1,25 +1,14 @@
 <script lang="ts">
-    import { onMount } from "svelte"
-    import VolumeMeter from "../../../media/ui/settings/volume/VolumeMeter.svelte"
-    import type { Peer } from "../../peer/Peer.svelte"
     import MediaState from "../../../media/ui/MediaState.svelte"
+    import VolumeMeter from "../../../media/ui/settings/volume/VolumeMeter.svelte"
     import VolumeSlider from "../../../media/ui/settings/volume/VolumeSlider.svelte"
-    import Video from "../Video.svelte"
+    import type { Peer } from "../../peer/Peer.svelte"
     import Stats from "../Stats.svelte"
+    import Video from "../Video.svelte"
 
     /* ========================================================================================== */
 
     let { peer }: { peer: Peer } = $props()
-
-    /* ========================================================================================== */
-
-    let key = $state({})
-    onMount(() => {
-        const interval = setInterval(() => {
-            key = {}
-        }, 100)
-        return () => clearInterval(interval)
-    })
 </script>
 
 <div class="section">

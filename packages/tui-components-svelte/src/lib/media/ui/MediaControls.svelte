@@ -6,7 +6,7 @@
 -->
 
 <script lang="ts">
-    import Icon from "$lib/ui/Icon.svelte"
+    import Icon, { type IconType } from "$lib/ui/Icon.svelte"
     import camera_video_fill from "@timephy/tui-icons-svelte/camera_video_fill"
     import display from "@timephy/tui-icons-svelte/display"
     import display_fill from "@timephy/tui-icons-svelte/display_fill"
@@ -44,7 +44,7 @@
 }: {
     class: string
     disabled: boolean
-    icon: any
+    icon: IconType
     text?: string | null
     onclick: OnClick
 })}
@@ -95,7 +95,8 @@
         disabled: false,
         class:
             // NOTE: disabled error outline, because screen sharing is often cancelled by the user
-            false && media.screen_error ? "!outline-red" : media.screen_active ? "!outline-blue" : "!outline-0",
+            // media.screen_error ? "!outline-red" : media.screen_active ? "!outline-blue" : "!outline-0"
+            media.screen_active ? "!outline-blue" : "!outline-0",
         icon: media.screen_active ? display_fill : display,
     })}
 {/if}

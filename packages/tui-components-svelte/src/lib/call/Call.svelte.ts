@@ -68,8 +68,8 @@ export abstract class Call {
             // TODO: This try catch block is a temporary fix for the face that the super constructor can not call (not yet) initialized methods on the child
             try {
                 this.signalMediaState(mediaState)
-            } catch (e) {
-                // console.info(e)
+            } catch (_error) {
+                // console.info(error)
             }
         })
     }

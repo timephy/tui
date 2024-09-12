@@ -8,7 +8,7 @@ export const MIN_VOLUME = 20 * Math.log10(EPSILON) // -200 dB
 
 /** Calculate the volume in dB of the input channel data. */
 export function calculateVolume(inputChannelData: Float32Array) {
-    let sumSquares = inputChannelData.reduce((sum, amplitude) => sum + amplitude * amplitude, 0)
+    const sumSquares = inputChannelData.reduce((sum, amplitude) => sum + amplitude * amplitude, 0)
     const instantVolume = Math.sqrt(sumSquares / inputChannelData.length)
     return 20 * Math.log10(instantVolume + EPSILON) // Convert to dB
 }

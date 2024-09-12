@@ -356,7 +356,7 @@ export class AudioPipeline {
 
         // ! Config
         {
-            Nodes.debugVolumeSource && (Nodes.debugVolumeSource.fftSize = 2048)
+            if (Nodes.debugVolumeSource) Nodes.debugVolumeSource.fftSize = 2048
             Nodes.gain.gain.value = this.#gain
         }
 
