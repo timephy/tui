@@ -1,6 +1,6 @@
 {
     "name": "@timephy/tui-components-svelte",
-    "version": "0.0.17",
+    "version": "0.0.18",
     "description": "",
     "homepage": "https://github.com/timephy/tui/tree/main/tui-components-svelte#readme",
     "scripts": {
@@ -111,6 +111,9 @@
     },
     "author": "",
     "license": "MIT",
+    "peerDependencies": {
+        "svelte": "^5.0.0-next.1"
+    },
     "devDependencies": {
         "@sveltejs/adapter-node": "^5.2.0",
         "@sveltejs/adapter-static": "^3.0.1",
