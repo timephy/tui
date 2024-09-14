@@ -16,7 +16,7 @@ export default [
             globals: {
                 ...globals.browser,
                 ...globals.node,
-                // these types are missing from "globals", but are present in TypeScript lib "dom"
+                // TODO: these types are missing from "globals", but are present in TypeScript lib "dom"
                 RTCIceCandidateInit: false,
                 RTCSessionDescriptionInit: false,
             },
