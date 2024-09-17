@@ -596,9 +596,9 @@ export class Media {
         DEBUG(`mic_volumeGateThreshold = ${_volumeGateThreshold} end`)
     }
 
-    /** Whether the volume gate is open and the mic is not muted. */
+    /** Whether the volume gate is open and the mic is not muted and is not deaf. */
     get mic_outputIsSending() {
-        return this._mic_pipeline.volumeGateOpen && !this.#mute
+        return this._mic_pipeline.volumeGateOpen && !this.#mute && !this.#deaf
     }
 
     // ! Gain
