@@ -2,7 +2,7 @@ import express from "express"
 import { createServer } from "http"
 
 import { handler } from "../build/handler.js"
-import { setupSocketIoServer } from "../dist/rtc/server/server.js"
+import { setupSocketIoServer } from "../dist/examples/call/MeshCallServerDemo.js"
 
 const port = 5173
 const app = express()
