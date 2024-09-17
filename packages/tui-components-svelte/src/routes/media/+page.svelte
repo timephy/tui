@@ -6,7 +6,7 @@
     import MediaState from "$lib/media/ui/MediaState.svelte"
     import MediaSelect from "$lib/media/ui/settings/MediaSettingsSelect.svelte"
     import MediaVolume from "$lib/media/ui/settings/MediaSettingsVolume.svelte"
-    import { onDestroy, onMount } from "svelte"
+    import { onDestroy, onMount, untrack } from "svelte"
 
     /* ========================================================================================== */
 
@@ -14,13 +14,13 @@
 
     /* ========================================================================================== */
 
-    const media = new Media()
+    const media = $derived(untrack(() => new Media()))
 
     onDestroy(async () => {
         await media.destroy()
     })
 
-    const mediaState$ = _mediaState$(media)
+    const mediaState$ = $derived(_mediaState$(media))
 
     /* ========================================================================================== */
 
