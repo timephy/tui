@@ -119,7 +119,7 @@ class VolumeMeterGateWorklet extends AudioWorkletProcessor {
     // NOTE: process() is called `sampleRate/length` times per seconds (e.g. 48000/128 = 375 times per second)
     process(inputs: Float32Array[][], outputs: Float32Array[][], parameters: Record<string, Float32Array>) {
         // This example only handles mono channel.
-        const inputChannelData = inputs[0][0]
+        const inputChannelData = inputs[0]![0]!
 
         // Exit out early if there is no input data (input node not connected/disconnected)
         // as rest of worklet will crash otherwise
@@ -139,11 +139,11 @@ class VolumeMeterGateWorklet extends AudioWorkletProcessor {
 
         /* ================================= Resolve Parameters ================================= */
 
-        const smoothingFactor = parameters[SMOOTHING_FACTOR_PARAM][0]
-        const gateThreshold = parameters[GATE_THRESHOLD_PARAM][0]
-        const gateReleaseTime = parameters[GATE_RELEASE_TIME_PARAM][0]
-        const gateOpenTime = parameters[GATE_OPEN_TIME_PARAM][0]
-        const gateCloseTime = parameters[GATE_CLOSE_TIME_PARAM][0]
+        const smoothingFactor = parameters[SMOOTHING_FACTOR_PARAM]![0]!
+        const gateThreshold = parameters[GATE_THRESHOLD_PARAM]![0]!
+        const gateReleaseTime = parameters[GATE_RELEASE_TIME_PARAM]![0]!
+        const gateOpenTime = parameters[GATE_OPEN_TIME_PARAM]![0]!
+        const gateCloseTime = parameters[GATE_CLOSE_TIME_PARAM]![0]!
 
         /* =================================== Measure Volume =================================== */
 
@@ -195,11 +195,11 @@ class VolumeMeterGateWorklet extends AudioWorkletProcessor {
         // NOTE: However this simplification is not noticable to the user
         const factor = factorOfGate(this._gate, currentTime)
 
-        const input = inputs[0]
-        const output = outputs[0]
+        const input = inputs[0]!
+        const output = outputs[0]!
 
         for (let channel = 0; channel < output.length; channel++) {
-            output[channel].set(input[channel].map((value) => value * factor))
+            output[channel]!.set(input[channel]!.map((value) => value * factor))
         }
 
         /* ============================= Send Updates to Main Thread ============================ */

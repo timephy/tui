@@ -37,7 +37,7 @@ const CAMERA_CONSTRAINTS = {
 }
 
 const SCREEN_VIDEO_CONSTRAINTS = {
-    frameRate: { ideal: 30, max: 60 },
+    frameRate: { ideal: 60, max: 60 },
 }
 
 const SCREEN_AUDIO_CONSTRAINTS = {
@@ -63,7 +63,7 @@ export async function getMic(deviceId: string | null): Promise<MediaStream> {
             ...MICROPHONE_CONSTRAINTS,
         },
     })
-    DEBUG(`getMic ${deviceId} -> ${stream.getTracks()[0].getCapabilities().deviceId}`)
+    DEBUG(`getMic ${deviceId} -> ${stream.getTracks()[0]?.getCapabilities().deviceId}`)
     return stream
 }
 
@@ -75,7 +75,7 @@ export async function getCam(deviceId: string | null): Promise<MediaStream> {
             ...CAMERA_CONSTRAINTS,
         },
     })
-    DEBUG(`getCam ${deviceId} -> ${stream.getTracks()[0].getCapabilities().deviceId}`)
+    DEBUG(`getCam ${deviceId} -> ${stream.getTracks()[0]?.getCapabilities().deviceId}`)
     return stream
 }
 
@@ -89,6 +89,6 @@ export async function getScreen(): Promise<MediaStream> {
             ...SCREEN_AUDIO_CONSTRAINTS,
         },
     })
-    DEBUG(`getScreen -> ${stream.getTracks()[0].getCapabilities().deviceId}`)
+    DEBUG(`getScreen -> ${stream.getTracks()[0]?.getCapabilities().deviceId}`)
     return stream
 }
