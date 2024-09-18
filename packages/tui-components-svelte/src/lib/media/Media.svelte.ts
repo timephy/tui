@@ -1,4 +1,3 @@
-import { browser } from "$app/environment"
 import Storage from "$lib/storage/index.svelte"
 import { BehaviorSubject } from "rxjs"
 import { AudioPipeline } from "./AudioPipeline.svelte"
@@ -72,6 +71,15 @@ export class Media {
     /** A reference to the {@link PermissionStatus} object for removing the event listener on {@link destroy()}. */
     #mic_permission: PermissionStatus | null = null
 
+    /** The list of available mics. */
+    get mic_devices() {
+        return this.#mic_devices
+    }
+    /** The list of available cams. */
+    get cam_devices() {
+        return this.#cam_devices
+    }
+
     // ! Cam
     /** A list of all available cams, updated by {@link _loadDevices} on "devicechange" and "permission.change" events. */
     #cam_devices: DeviceInfo[] = $state([])
@@ -79,6 +87,15 @@ export class Media {
     #cam_permission_state: PermissionState = $state("prompt")
     /** A reference to the {@link PermissionStatus} object for removing the event listener on {@link destroy()}. */
     #cam_permission: PermissionStatus | null = null
+
+    /** The state of the mic permission. */
+    get mic_permission() {
+        return this.#mic_permission_state
+    }
+    /** The state of the cam permission. */
+    get cam_permission() {
+        return this.#cam_permission_state
+    }
 
     /* ============================================================================================================== */
     // MARK: DeviceIds + Tracks + Errors
@@ -142,63 +159,67 @@ export class Media {
     #screen_maxHeight = $state(LS_SCREEN_MAX_HEIGHT_ID.value)
 
     // ! Audio Pipeline
+    // NOTE: public only for debugging
     readonly _mic_pipeline = new AudioPipeline({
+        debug: false,
         noiseSuppression: LS_MIC_NOISE_SUPPRESSION.value,
         volumeGate: LS_MIC_VOLUME_GATE.value ? LS_MIC_VOLUME_GATE_THRESHOLD.value : null,
         gain: LS_MIC_GAIN.value,
-        debug: true,
+        playback: false,
     })
 
     /* ============================================================================================================== */
     // MARK: init + destroy
 
-    constructor() {
+    constructor(options?: { debug?: boolean }) {
         DEBUG("new Media()")
 
-        if (browser) {
-            // initial load device list
-            this._loadDevices()
-
-            // reload device list on "devicechange"
-            // NOTE: `devicechange` not detected in Chrome
-            navigator.mediaDevices.addEventListener("devicechange", async () => {
-                DEBUG("event navigator.mediaDevices devicechange")
-                await this._loadDevices()
-            })
-
-            // reload device list on "permission.change"
-            // NOTE: `permission.change` not detected in Safari
-            navigator.permissions
-                .query({
-                    name: "microphone" as PermissionName,
-                })
-                .then((status) => {
-                    this.#mic_permission = status
-                    this.#mic_permission_state = status.state
-
-                    status.onchange = async () => {
-                        DEBUG("event navigator.permissions microphone onchange")
-                        this.#mic_permission_state = status.state
-                        // NOTE: Update device list, fixes for Chrome
-                        await this._loadDevices()
-                    }
-                })
-            navigator.permissions
-                .query({
-                    name: "camera" as PermissionName,
-                })
-                .then((status) => {
-                    this.#cam_permission = status
-                    this.#cam_permission_state = status.state
-
-                    status.onchange = async () => {
-                        DEBUG("event navigator.permissions camera onchange")
-                        this.#cam_permission_state = status.state
-                        // NOTE: Update device list, fixes for Chrome
-                        await this._loadDevices()
-                    }
-                })
+        if (options?.debug === true) {
+            this._mic_pipeline.debug = options.debug
         }
+
+        // initial load device list
+        this._loadDevices()
+
+        // reload device list on "devicechange"
+        // NOTE: `devicechange` not detected in Chrome
+        navigator.mediaDevices.addEventListener("devicechange", async () => {
+            DEBUG("event navigator.mediaDevices devicechange")
+            await this._loadDevices()
+        })
+
+        // reload device list on "permission.change"
+        // NOTE: `permission.change` not detected in Safari
+        navigator.permissions
+            .query({
+                name: "microphone" as PermissionName,
+            })
+            .then((status) => {
+                this.#mic_permission = status
+                this.#mic_permission_state = status.state
+
+                status.onchange = async () => {
+                    DEBUG("event navigator.permissions microphone onchange")
+                    this.#mic_permission_state = status.state
+                    // NOTE: Update device list, fixes for Chrome
+                    await this._loadDevices()
+                }
+            })
+        navigator.permissions
+            .query({
+                name: "camera" as PermissionName,
+            })
+            .then((status) => {
+                this.#cam_permission = status
+                this.#cam_permission_state = status.state
+
+                status.onchange = async () => {
+                    DEBUG("event navigator.permissions camera onchange")
+                    this.#cam_permission_state = status.state
+                    // NOTE: Update device list, fixes for Chrome
+                    await this._loadDevices()
+                }
+            })
     }
 
     /**
@@ -234,16 +255,12 @@ export class Media {
 
     /** Deactivate all media devices. */
     async deactivateAll() {
-        await Promise.all([
-            this._setMic(this.#mic_id, false),
-            this._setCam(this.#cam_id, false),
-            this._setScreen(false),
-        ])
+        await Promise.all([this._setMic(this.#mic_id, false), this._setCam(this.#cam_id, false), this._setScreen(null)])
     }
 
     /* ============================================================================================================== */
-    // MARK: loadDevices()
 
+    // MARK: _loadDevices()
     /**
      * Load the list of available devices.
      * And change the currently active devices if needed (selected one is now available).
@@ -280,9 +297,7 @@ export class Media {
     /*                                     `setMic()` + `setCam()` + `setScreen()`                                    */
     /* ============================================================================================================== */
 
-    // TODO: Should we someday `stop()` the old track AFTER getting the new one in `_setMic` and `_setCam`, instead of before?
-
-    // MARK: setMic()
+    // MARK: _setMic()
     /**
      * Set the mic deviceId and maybe load or unload it.
      * @param setId The deviceId of the mic to use.
@@ -295,7 +310,7 @@ export class Media {
         const track = async () => {
             try {
                 const stream = await getMic(this.#mic_id)
-                const track = stream.getAudioTracks().at(0)
+                const track = stream.getAudioTracks()[0]
                 if (track === undefined) {
                     throw "No audio track"
                 }
@@ -319,8 +334,9 @@ export class Media {
         if (load === null) {
             // id changed, reload track if it was loaded before
             if (this.#mic_audio !== null && this.#mic_audio.getSettings().deviceId !== this.#mic_id) {
+                const _track = await track()
                 this.#mic_audio?.stop()
-                this.#mic_audio = await track()
+                this.#mic_audio = _track
                 this.#mic_audioSource$.next(this.#mic_audio)
                 this.#mic_audioOutput$.next(this.mic_audioOutput)
                 await this._mic_pipeline.setInput(this.#mic_audio)
@@ -328,8 +344,9 @@ export class Media {
         } else if (load === true) {
             // should load track if it's not loaded or the id changed
             if (this.#mic_audio === null || this.#mic_audio.getSettings().deviceId !== this.#mic_id) {
+                const _track = await track()
                 this.#mic_audio?.stop()
-                this.#mic_audio = await track()
+                this.#mic_audio = _track
                 this.#mic_audioSource$.next(this.#mic_audio)
                 this.#mic_audioOutput$.next(this.mic_audioOutput)
                 await this._mic_pipeline.setInput(this.#mic_audio)
@@ -348,7 +365,7 @@ export class Media {
         }
     }
 
-    // MARK: setCam()
+    // MARK: _setCam()
     /**
      * Set the cam deviceId and maybe load or unload it.
      * @param setId The deviceId of the cam to use.
@@ -361,7 +378,7 @@ export class Media {
         const track = async () => {
             try {
                 const stream = await getCam(this.#cam_id)
-                const track = stream.getVideoTracks().at(0)
+                const track = stream.getVideoTracks()[0]
                 if (track === undefined) {
                     throw "No video track"
                 }
@@ -387,15 +404,17 @@ export class Media {
         if (load === null) {
             // id changed, reload track if it was loaded before
             if (this.#cam_video !== null && this.#cam_video.getSettings().deviceId !== this.#cam_id) {
+                const _track = await track()
                 this.#cam_video?.stop()
-                this.#cam_video = await track()
+                this.#cam_video = _track
                 this.#cam_video$.next(this.#cam_video)
             }
         } else if (load === true) {
             // should load track if it's not loaded or the id changed
             if (this.#cam_video === null || this.#cam_video.getSettings().deviceId !== this.#cam_id) {
+                const _track = await track()
                 this.#cam_video?.stop()
-                this.#cam_video = await track()
+                this.#cam_video = _track
                 this.#cam_video$.next(this.#cam_video)
             }
         } else if (load === false) {
@@ -410,55 +429,19 @@ export class Media {
         }
     }
 
-    // MARK: setScreen()
+    // MARK: _setScreen()
     /**
      * Load or unload the screen.
      * @param load Whether to load the screen (`true`), or unload the screen (`false`).
      */
-    private async _setScreen(load: boolean) {
-        DEBUG(`_setScreen(${load})`)
-        const tracks = async (): Promise<[MediaStreamTrack, MediaStreamTrack | null] | null> => {
-            try {
-                const stream = await getScreen()
-                const videoTrack = stream.getVideoTracks().at(0)
-                const audioTrack = stream.getAudioTracks().at(0) ?? null
-                if (videoTrack === undefined) {
-                    throw "No video track"
-                }
-                videoTrack.onended = () => {
-                    LOCK_SCREEN(async () => {
-                        DEBUG("screen_video.onended()")
-                        await this._setScreen(false)
-                    })
-                }
-                if (audioTrack) {
-                    audioTrack.onended = () => {
-                        LOCK_SCREEN(async () => {
-                            DEBUG("screen_audio.onended()")
-                            await this._setScreen(false)
-                        })
-                    }
-                }
-                this.#screen_error = null
-                this.#screen_error$.next(this.#screen_error)
-                // NOTE: Constrain screen video to `screen_maxHeight`
-                await this.#setVideoTrackMaxHeight(videoTrack, this.#screen_maxHeight)
-                return [videoTrack, audioTrack]
-            } catch (error) {
-                WARN(`Screen Error: ${error}`)
-                this.#screen_error = "error"
-                this.#screen_error$.next(this.#screen_error)
-                return null
-            }
-        }
-
-        if (load) {
+    private async _setScreen(_tracks: [MediaStreamTrack, MediaStreamTrack | null] | null) {
+        DEBUG(`_setScreen(${_tracks})`)
+        if (_tracks) {
             // should load track
             this.#screen_video?.stop()
             this.#screen_audio?.stop()
-            const _tracks = await tracks()
-            this.#screen_video = _tracks?.[0] ?? null
-            this.#screen_audio = _tracks?.[1] ?? null
+            this.#screen_video = _tracks[0] ?? null
+            this.#screen_audio = _tracks[1] ?? null
             this.#screen_tracks$.next(this.#screen_video !== null ? [this.#screen_video, this.#screen_audio] : null)
         } else {
             // should unload track
@@ -474,90 +457,39 @@ export class Media {
         }
     }
 
-    /* ============================================================================================================== */
-    // MARK: === Exports ===
-
-    /** The list of available mics. */
-    get mic_devices() {
-        return this.#mic_devices
-    }
-    /** The list of available cams. */
-    get cam_devices() {
-        return this.#cam_devices
-    }
-
-    /** The state of the mic permission. */
-    get mic_permission() {
-        return this.#mic_permission_state
-    }
-    /** The state of the cam permission. */
-    get cam_permission() {
-        return this.#cam_permission_state
-    }
-
-    /* ============================================================================================================== */
-    // MARK: > mic
-
-    /**
-     * The device id of the mic.
-     *
-     * If the mic is active, changing this will reload the mic.
-     */
-    get mic_id() {
-        return this.#mic_id
-    }
-    set mic_id(_mic_id: DeviceId) {
-        LOCK_MIC(async () => {
-            DEBUG(`mic_id = ${_mic_id}`)
-            LS_MIC_ID.value = this.#mic_id
-            await this._setMic(_mic_id)
-            DEBUG(`mic_id = ${_mic_id} end`)
-        })
-    }
-    /**
-     * If the mic is active.
-     *
-     * If set to `true` the mic will be loaded, if set to `false` the mic will be unloaded.
-     */
-    get mic_active() {
-        return this.#mic_audio !== null
-    }
-    set mic_active(load: boolean) {
-        LOCK_MIC(async () => {
-            DEBUG(`mic_active = ${load}`)
-            await this._setMic(this.#mic_id, load)
-            DEBUG(`mic_active = ${load} end`)
-        })
-    }
-
-    // ! Track + Error
-    /** The mic source track, straight from the mic, before the {@link AudioPipeline}. */
-    get mic_audioSource() {
-        return this.#mic_audio
-    }
-    /** The mic output track, after being modified by the {@link AudioPipeline}. */
-    get mic_audioOutput() {
-        return this._mic_pipeline.output
-    }
-    /** An Observable of {@link mic_audioSource}. */
-    get mic_audioSource$() {
-        return this.#mic_audioSource$.asObservable()
-    }
-    /** An Observable of {@link mic_audioOutput}. */
-    get mic_audioOutput$() {
-        return this.#mic_audioOutput$.asObservable()
-    }
-    /** The error state of the mic. */
-    get mic_error() {
-        return this.#mic_error
-    }
-    /** An Observable of {@link mic_error}. */
-    get mic_error$() {
-        return this.#mic_error$
+    private async _getScreenTracks(): Promise<[MediaStreamTrack, MediaStreamTrack | null] | null> {
+        try {
+            const stream = await getScreen()
+            const videoTrack = stream.getVideoTracks()[0]
+            const audioTrack = stream.getAudioTracks()[0] ?? null
+            if (videoTrack === undefined) {
+                throw "No video track"
+            }
+            videoTrack.onended = () => {}
+            if (audioTrack) {
+                audioTrack.onended = () => {
+                    LOCK_SCREEN(async () => {
+                        DEBUG("screen_audio.onended()")
+                        await this._setScreen(null)
+                    })
+                }
+            }
+            this.#screen_error = null
+            this.#screen_error$.next(this.#screen_error)
+            // NOTE: Constrain screen video to `screen_maxHeight`
+            await this.#setVideoTrackMaxHeight(videoTrack, this.#screen_maxHeight)
+            return [videoTrack, audioTrack]
+        } catch (error) {
+            WARN(`Screen Error: ${error}`)
+            this.#screen_error = "error"
+            this.#screen_error$.next(this.#screen_error)
+            return null
+        }
     }
 
     /* ============================================================================================================== */
     // MARK: > mic_pipeline
+    /* ============================================================================================================== */
 
     // ! Noise Suppression
     /** If noise suppression is enabled. */
@@ -632,7 +564,70 @@ export class Media {
     }
 
     /* ============================================================================================================== */
+    // MARK: > mic
+    /* ============================================================================================================== */
+
+    /**
+     * The device id of the mic.
+     *
+     * If the mic is active, changing this will reload the mic.
+     */
+    get mic_id() {
+        return this.#mic_id
+    }
+    set mic_id(_mic_id: DeviceId) {
+        LOCK_MIC(async () => {
+            DEBUG(`mic_id = ${_mic_id}`)
+            LS_MIC_ID.value = this.#mic_id
+            await this._setMic(_mic_id)
+            DEBUG(`mic_id = ${_mic_id} end`)
+        })
+    }
+    /**
+     * If the mic is active.
+     *
+     * If set to `true` the mic will be loaded, if set to `false` the mic will be unloaded.
+     */
+    get mic_active() {
+        return this.#mic_audio !== null
+    }
+    set mic_active(load: boolean) {
+        LOCK_MIC(async () => {
+            DEBUG(`mic_active = ${load}`)
+            await this._setMic(this.#mic_id, load)
+            DEBUG(`mic_active = ${load} end`)
+        })
+    }
+
+    // ! Track + Error
+    /** The mic source track, straight from the mic, before the {@link AudioPipeline}. */
+    get mic_audioSource() {
+        return this.#mic_audio
+    }
+    /** The mic output track, after being modified by the {@link AudioPipeline}. */
+    get mic_audioOutput() {
+        return this._mic_pipeline.output
+    }
+    /** An Observable of {@link mic_audioSource}. */
+    get mic_audioSource$() {
+        return this.#mic_audioSource$.asObservable()
+    }
+    /** An Observable of {@link mic_audioOutput}. */
+    get mic_audioOutput$() {
+        return this.#mic_audioOutput$.asObservable()
+    }
+    /** The error state of the mic. */
+    get mic_error() {
+        return this.#mic_error
+    }
+    /** An Observable of {@link mic_error}. */
+    get mic_error$() {
+        return this.#mic_error$
+    }
+
+    /* ============================================================================================================== */
     // MARK: > cam
+    /* ============================================================================================================== */
 
     /**
      * The device id of the cam.
@@ -686,6 +681,7 @@ export class Media {
 
     /* ============================================================================================================== */
     // MARK: > screen
+    /* ============================================================================================================== */
 
     /**
      * If the screen is active.
@@ -696,13 +692,14 @@ export class Media {
         return this.#screen_video !== null || this.#screen_audio !== null
     }
     set screen_active(load: boolean) {
-        // TODO: Move actual `getScreen()` call to the outside of the lock
-        // TODO: To fix "InvalidAccessError: getDisplayMedia must be called from a user gesture handler." in Safari
-        // navigator.locks.request(LOCK_SCREEN, async () => {
-        //     await setScreen(load)
-        // })
-        // NOTE: This is a fix for Safari (see the TODO above)
-        this._setScreen(load)
+        DEBUG(`screen_active = ${load}`)
+        // NOTE: `_getScreenTracks()` is called outside of the lock
+        // NOTE: to fix "InvalidAccessError: getDisplayMedia must be called from a user gesture handler." (Safari)
+        const tracks = load ? this._getScreenTracks() : null
+        LOCK_SCREEN(async () => {
+            await this._setScreen(await tracks)
+            DEBUG(`screen_active = ${load} end`)
+        })
     }
 
     // ! Track + Error
@@ -759,8 +756,8 @@ export class Media {
 
     /* ============================================================================================================== */
     // MARK: > mute + deaf
+    /* ============================================================================================================== */
 
-    // ! Mute
     /**
      * If the mic is muted.
      *
@@ -784,7 +781,6 @@ export class Media {
         return this.#mute$.asObservable()
     }
 
-    // ! Deaf
     /**
      * If the audio is deafened.
      *
@@ -810,23 +806,24 @@ export class Media {
     }
 
     /* ============================================================================================================== */
-    /*                                                     Helpers                                                    */
-    /* ============================================================================================================== */
     // MARK: Utils
+    /* ============================================================================================================== */
 
+    /** Resolve the given id to an available one (sometimes, the id in storage is not available). */
     #fixMicId(micId: DeviceId): DeviceId {
         if (micId === null || (micId !== null && !this.#mic_devices.some((device) => device.deviceId === micId))) {
             if (this.#mic_devices.some((device) => device.deviceId === "default")) {
                 return "default"
             } else {
-                return this.#mic_devices.at(0)?.deviceId ?? null
+                return this.#mic_devices[0]?.deviceId ?? null
             }
         }
         return micId
     }
+    /** Resolve the given id to an available one (sometimes, the id in storage is not available). */
     #fixCamId(camId: DeviceId): DeviceId {
         if (camId === null || (camId !== null && !this.#cam_devices.some((device) => device.deviceId === camId))) {
-            return this.#cam_devices.at(0)?.deviceId ?? null
+            return this.#cam_devices[0]?.deviceId ?? null
         }
         return camId
     }
