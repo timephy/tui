@@ -133,17 +133,17 @@ export class AudioPipeline {
     // MARK: Constructor
 
     constructor({
+        debug = false,
         noiseSuppression = false,
         volumeGate = null,
         gain = 1,
-        debug = false,
         playback = false,
     }: {
-        noiseSuppression?: boolean
-        volumeGate?: number | null
-        gain?: number
         debug?: boolean
-        playback?: boolean
+        noiseSuppression: boolean
+        volumeGate: number | null
+        gain: number
+        playback: boolean
     }) {
         DEBUG(`new AudioPipeline({
     noiseSuppression=${noiseSuppression},
