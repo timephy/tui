@@ -19,7 +19,7 @@
     } = $derived(stats)
 </script>
 
-<div class="item grid grid-cols-3 items-center gap-y-0.5 px-4 py-3 text-sm">
+<div class="item grid grid-cols-3 items-center gap-x-2 gap-y-0.5 px-4 py-3 text-sm">
     <p class="subtitle">over last {averaged_seconds}s</p>
     <p class="title">In</p>
     <p class="title">Out</p>
@@ -73,7 +73,7 @@
     {@render videoDetails(screen_video_sent)}
 
     {#snippet videoDetails(video: Video | null)}
-        <div class="value">
+        <div class="value flex h-[2lh] flex-col justify-center">
             {#if video?.framesPerSecond}
                 <div class="flex gap-1">
                     {video.frameWidth}
