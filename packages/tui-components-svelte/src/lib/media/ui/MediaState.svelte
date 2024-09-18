@@ -105,7 +105,7 @@
         mediaState: IMediaState
         debug?: boolean
         config?: DisplayConfig
-        extraIcons?: IconType[]
+        extraIcons?: State[]
         class?: string
     } = $props()
 
@@ -157,8 +157,8 @@
             <Icon {...SCREEN_AUDIO[screenAudioState]} />
         {/if}
 
-        {#each extraIcons as icon}
-            <Icon data={icon} />
+        {#each extraIcons as extraIcon}
+            <Icon {...extraIcon} />
         {/each}
     </div>
 {/if}
