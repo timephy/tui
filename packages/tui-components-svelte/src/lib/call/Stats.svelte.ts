@@ -6,7 +6,8 @@ import {
     TRANSCEIVER_MID_SCREEN_AUDIO,
 } from "./peer/PeerConnection.svelte"
 
-/* ============================================================================================== */
+/* ================================================================================================================== */
+// MARK: Constrants
 
 const KEYS_TO_DIFF = [
     "bytesSent",
@@ -26,6 +27,9 @@ const KEYS_TO_SUM = [
     "bytesReceived",
     "headerBytesReceived",
 ]
+
+/* ================================================================================================================== */
+// MARK: Types
 
 export type Recv = {
     timestamp: number
@@ -86,7 +90,8 @@ function parse_video(stats: RawStats): Video {
     }
 }
 
-/* ============================================================================================== */
+/* ================================================================================================================== */
+// MARK: Parsing
 
 type RawStats = Record<string, any>
 function parseRecvAudio(stat: RawStats): Recv & Audio {
@@ -114,11 +119,12 @@ function parseSentVideo(stat: RawStats): Sent & Video {
     }
 }
 
-/* ============================================================================================== */
+/* ================================================================================================================== */
+// MARK: Calculations
 
 function difference<T>(list: T[], selected: string[]): T {
     if (list.length === 0) return {} as T
-    if (list.length === 1) return list[0]
+    if (list.length === 1) return list[0]!
 
     const first = list[0] as Record<string, number> // T extends Record<string, number>
     const last = list[list.length - 1] as Record<string, number> // T extends Record<string, number>
@@ -126,9 +132,9 @@ function difference<T>(list: T[], selected: string[]): T {
     const result: Record<string, number> = {}
     for (const key of Object.keys(last)) {
         if (selected.includes(key)) {
-            result[key] = last[key] - (first[key] ?? 0)
+            result[key] = last[key]! - (first[key] ?? 0)
         } else {
-            result[key] = last[key]
+            result[key] = last[key]!
         }
     }
     return result as T
@@ -136,74 +142,136 @@ function difference<T>(list: T[], selected: string[]): T {
 
 function sum(list: Record<string, number>[], selected: string[]): Record<string, number> {
     if (list.length === 0) return {}
-    if (list.length === 1) return list[0]
+    if (list.length === 1) return list[0]!
 
     const result: Record<string, number> = Object.fromEntries(selected.map((key) => [key, 0]))
     for (const item of list) {
         for (const key of selected) {
-            result[key] += item[key]
+            result[key]! += item[key]!
         }
     }
 
     return result
 }
 
-/* ============================================================================================== */
+/* ================================================================================================================== */
+// MARK: class Stats
 
 export class Stats {
+    // INFO: The lists are used to calculate the value difference
     private _mic_audio_recv_list: (Recv & Audio)[] = []
     private _cam_video_recv_list: (Recv & Video)[] = []
     private _screen_video_recv_list: (Recv & Video)[] = []
     private _screen_audio_recv_list: (Recv & Audio)[] = []
-
     private _mic_audio_sent_list: (Sent & Audio)[] = []
     private _cam_video_sent_list: (Sent & Video)[] = []
     private _screen_video_sent_list: (Sent & Video)[] = []
     private _screen_audio_sent_list: (Sent & Audio)[] = []
 
+    /* ============================================================================================================== */
+
+    // INFO: The value difference
     private _mic_audio_recv: (Recv & Audio) | null = $state(null)
     private _cam_video_recv: (Recv & Video) | null = $state(null)
     private _screen_video_recv: (Recv & Video) | null = $state(null)
     private _screen_audio_recv: (Recv & Audio) | null = $state(null)
-
     private _mic_audio_sent: (Sent & Audio) | null = $state(null)
     private _cam_video_sent: (Sent & Video) | null = $state(null)
     private _screen_video_sent: (Sent & Video) | null = $state(null)
     private _screen_audio_sent: (Sent & Audio) | null = $state(null)
 
+    // INFO: The sum of all the value difference
     private _general_recv: Recv | null = $state(null)
     private _general_sent: Sent | null = $state(null)
 
-    readonly averaged_seconds: number
+    public get mic_audio_recv() {
+        return this._mic_audio_recv
+    }
+    public get cam_video_recv() {
+        return this._cam_video_recv
+    }
+    public get screen_video_recv() {
+        return this._screen_video_recv
+    }
+    public get screen_audio_recv() {
+        return this._screen_audio_recv
+    }
 
-    /* ========================================================================================== */
+    public get mic_audio_sent() {
+        return this._mic_audio_sent
+    }
+    public get cam_video_sent() {
+        return this._cam_video_sent
+    }
+    public get screen_video_sent() {
+        return this._screen_video_sent
+    }
+    public get screen_audio_sent() {
+        return this._screen_audio_sent
+    }
 
-    private _interval: ReturnType<typeof setInterval>
+    public get general_sent() {
+        return this._general_sent
+    }
+    public get general_recv() {
+        return this._general_recv
+    }
+
+    /* ============================================================================================================== */
+
+    /** The average should be calculated over this many seconds. */
+    public readonly averaged_seconds: number
+
+    /* ============================================================================================================== */
+    // MARK: Constructor
 
     constructor(
         /** The {@link RTCPeerConnection} of which to monitor the stats. */
-        private peerConnection: RTCPeerConnection,
+        private readonly peerConnection: RTCPeerConnection,
         /** Every how many milliseconds the stats should be inspected and updated. */
-        private interval: number = 1000,
-        /** The average is calculated over this many iterations. */
-        private average: number = 5,
+        private readonly interval: number = 1000,
+        /** The average is calculated over this many iterations (has to be `>=2` to make sense). */
+        private readonly average: number = 5,
     ) {
+        // NOTE: `this.average - 1`, because when we average over `2` iterations, we have a `1s` timespan
+        this.averaged_seconds = (this.average - 1) * (this.interval / 1000)
+    }
+
+    /* ============================================================================================================== */
+
+    private _interval: ReturnType<typeof setInterval> | null = null
+
+    /**
+     * Start the data fetching loop from the `RTCPeerConnection` (uses `setInterval`).
+     *
+     * Does nothing if already started.
+     */
+    public start() {
+        if (this._interval) return
+
         this._interval = setInterval(async () => {
             const report = await this.peerConnection.getStats()
             this.update(report)
         }, this.interval)
-
-        this.averaged_seconds = this.average * (this.interval / 1000)
     }
 
-    destroy() {
-        clearInterval(this._interval)
+    /**
+     * Stop the data fetching loop from the `RTCPeerConnection` (uses `clearInterval`).
+     *
+     * Does nothing if already stopped.
+     */
+    public stop() {
+        if (this._interval) {
+            clearInterval(this._interval)
+            this._interval = null
+        }
     }
 
-    /* ========================================================================================== */
+    /* ============================================================================================================== */
+    // MARK: update()
 
     /** Should be called in an interval */
-    update(report: RTCStatsReport) {
+    private update(report: RTCStatsReport) {
         // console.log(Array.from(report.values()))
 
         for (const stat of report.values()) {
@@ -259,40 +327,5 @@ export class Stats {
             ),
             KEYS_TO_SUM,
         ) as Sent
-    }
-
-    /* ========================================================================================== */
-
-    get mic_audio_recv() {
-        return this._mic_audio_recv
-    }
-    get cam_video_recv() {
-        return this._cam_video_recv
-    }
-    get screen_video_recv() {
-        return this._screen_video_recv
-    }
-    get screen_audio_recv() {
-        return this._screen_audio_recv
-    }
-
-    get mic_audio_sent() {
-        return this._mic_audio_sent
-    }
-    get cam_video_sent() {
-        return this._cam_video_sent
-    }
-    get screen_video_sent() {
-        return this._screen_video_sent
-    }
-    get screen_audio_sent() {
-        return this._screen_audio_sent
-    }
-
-    get general_sent() {
-        return this._general_sent
-    }
-    get general_recv() {
-        return this._general_recv
     }
 }
