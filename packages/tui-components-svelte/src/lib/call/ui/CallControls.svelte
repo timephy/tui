@@ -18,7 +18,7 @@
         call: Call
         muteMic?: boolean
         //
-        showMediaSettings: () => void
+        showMediaSettings: (() => void) | null
         joinCallText: string
     } = $props()
 
@@ -50,7 +50,12 @@
     <div class="grid gap-2 {containerClass}">
         <MediaControls {media} {muteMic} />
 
-        <button tabindex={-1} onclick={showMediaSettings} class="btn btn-tall gap-2 {buttonClass}">
+        <button
+            tabindex={-1}
+            onclick={showMediaSettings}
+            class="btn btn-tall gap-2 {buttonClass}"
+            disabled={showMediaSettings === null}
+        >
             <Icon data={gear_wide_connected} class="size-[18px]" />
         </button>
 
