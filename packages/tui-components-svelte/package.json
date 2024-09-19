@@ -42,6 +42,7 @@
     ],
     "exports": {
         "./storage": "./dist/storage/index.svelte.js",
+        "./runes": "./dist/runes/index.svelte.js",
         "./call": "./dist/call/index.js",
         "./call/CallControls.svelte": {
             "types": "./dist/call/ui/CallControls.svelte.d.ts",
