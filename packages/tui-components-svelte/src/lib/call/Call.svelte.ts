@@ -1,9 +1,11 @@
-import type { Subscription } from "rxjs"
+import { Observable, skip, type Subscription } from "rxjs"
+import type { SvelteMap } from "svelte/reactivity"
 import type { Media } from "../media"
 import { DEFAULT_MEDIA_STATE, mediaState$, type MediaState } from "../media/MediaState"
 import type { Stats } from "./Stats.svelte"
 
-/* ============================================================================================== */
+/* ================================================================================================================== */
+// MARK: Peer
 
 export type PeerId = string
 
@@ -15,7 +17,8 @@ export type RemovePeer = {
     peerId: PeerId
 }
 
-/* ============================================================================================== */
+/* ================================================================================================================== */
+// MARK: Display
 
 /**
  * A type that should be used for any user interface for displaying a call user.
@@ -48,36 +51,32 @@ export type PeerDisplay = Display & {
     volume: number
     gain: number
     stats: Stats
-
-    storageId: string | null
 }
 
-/* ============================================================================================== */
+/* ================================================================================================================== */
+
+export type CallEvents = "peer-connected" | "peer-disconnected" | "peer-error"
+
+/* ================================================================================================================== */
+// MARK: Call
 
 export abstract class Call {
     private _mediaState: MediaState = $state(DEFAULT_MEDIA_STATE)
     private _mediaStateSubscription: Subscription
+    private _mediaStateSubscriptionSignal: Subscription | null = null
 
-    get mediaState() {
-        return this._mediaState
-    }
+    /* ============================================================================================================== */
 
+    // MARK: Constructor
     constructor(readonly media: Media) {
         this._mediaStateSubscription = mediaState$(media).subscribe((mediaState) => {
             this._mediaState = mediaState
-            // TODO: This try catch block is a temporary fix for the face that the super constructor can not call (not yet) initialized methods on the child
-            try {
-                this.signalMediaState(mediaState)
-            } catch (_error) {
-                // console.info(error)
-            }
         })
     }
 
-    /* ========================================================================================== */
-    /*                                   General Call Functions                                   */
-    /* ========================================================================================== */
+    /* ============================================================================================================== */
 
+    // MARK: destroy()
     /**
      * Destroys the call by unsubscribing from media state changes and deactivating all media devices.
      *
@@ -87,20 +86,31 @@ export abstract class Call {
     public async destroy() {
         this._mediaStateSubscription.unsubscribe()
 
-        await this.media.deactivateAll()
+        await this.media.deactivateAllAndReset()
     }
 
+    // MARK: join()
     /**
      * Start default media devices (mic) and signals the server that we want to join the call.
-     *
-     * 1. Activate microphone
-     * 2. Signal "Join"
      */
     public async join() {
-        this.media.mic_active = true
+        try {
+            this.signalJoin(this._mediaState)
 
-        this.signalJoin(this._mediaState)
+            this._mediaStateSubscriptionSignal?.unsubscribe()
+            this._mediaStateSubscriptionSignal = mediaState$(this.media)
+                .pipe(skip(1))
+                .subscribe((mediaState) => {
+                    this.signalMediaState(mediaState)
+                })
+
+            this.media.mic_active = true
+        } catch (error) {
+            console.error("[Call] Could not signal join", error)
+        }
     }
+
+    // MARK: leave()
     /**
      * Signals the server that we want to leave the call and deactivates all media devices.
      *
@@ -108,12 +118,76 @@ export abstract class Call {
      * 2. Deactivate all media devices
      */
     public async leave() {
-        this.signalLeave()
+        try {
+            this._mediaStateSubscriptionSignal?.unsubscribe()
 
-        await this.media.deactivateAll()
+            this.signalLeave()
+        } catch (error) {
+            console.error("[Call] Could not signal leave", error)
+        } finally {
+            await this.media.deactivateAllAndReset()
+        }
     }
 
-    /* ========================================================================================== */
+    /* ============================================================================================================== */
+    // MARK: PeerDisplay
+
+    public abstract readonly peers: SvelteMap<PeerId, PeerDisplay>
+
+    /* ============================================================================================================== */
+
+    /** Should be derived from the known server-state. */
+    public abstract get isConnected(): boolean
+    public abstract get events$(): Observable<CallEvents>
+
+    /* ============================================================================================================== */
+    // MARK: receive
+
+    // Add/Remove Peers
+    protected abstract receiveAddPeer(
+        { peerId, offer }: AddPeer, //
+    ): Promise<void>
+    protected abstract receiveRemovePeer(
+        { peerId }: RemovePeer, //
+    ): Promise<void>
+
+    // Signals
+    protected abstract receiveMediaState(
+        fromPeerId: PeerId, //
+        mediaState: MediaState,
+    ): Promise<void>
+    protected abstract receiveSessionDescription(
+        fromPeerId: PeerId, //
+        sessionDescription: RTCSessionDescriptionInit,
+    ): Promise<void>
+    protected abstract receiveIceCandidate(
+        fromPeerId: PeerId, //
+        iceCandidate: RTCIceCandidateInit,
+    ): Promise<void>
+
+    /* ============================================================================================================== */
+    // MARK: signal
+
+    protected abstract signalJoin(mediaState: MediaState): void
+    protected abstract signalLeave(): void
+
+    protected abstract signalMediaState(mediaState: MediaState): void
+
+    protected abstract signalSessionDescription(
+        toPeerId: PeerId, //
+        sessionDescription: RTCSessionDescription,
+    ): void
+    protected abstract signalIceCandidate(
+        toPeerId: PeerId, //
+        iceCandidate: RTCIceCandidate,
+    ): void
+
+    /* ============================================================================================================== */
+    // MARK: MediaState + LocalDisplay
+
+    public get mediaState() {
+        return this._mediaState
+    }
 
     public readonly local: LocalDisplay = ((self: Call) => {
         return {
@@ -132,58 +206,6 @@ export abstract class Call {
             get outputIsSending() {
                 return self.media.mic_outputIsSending
             },
-            get connectionState() {
-                return null
-            },
         }
     })(this)
-
-    public abstract readonly peers: Map<PeerId, PeerDisplay>
-
-    /** Should be derived from the known server-state. */
-    public abstract get isConnected(): boolean
-
-    /* ========================================================================================== */
-    /*                                       Receiving Layer                                      */
-    /* ========================================================================================== */
-
-    // !! Add/Remove Peers
-    protected abstract receiveAddPeer(
-        { peerId, offer }: AddPeer, //
-    ): Promise<void>
-    protected abstract receiveRemovePeer(
-        { peerId }: RemovePeer, //
-    ): Promise<void>
-
-    // !! Receive Signals
-    protected abstract receiveMediaState(
-        fromPeerId: PeerId, //
-        mediaState: MediaState,
-    ): Promise<void>
-    protected abstract receiveSessionDescription(
-        fromPeerId: PeerId, //
-        sessionDescription: RTCSessionDescriptionInit,
-    ): Promise<void>
-    protected abstract receiveIceCandidate(
-        fromPeerId: PeerId, //
-        iceCandidate: RTCIceCandidateInit,
-    ): Promise<void>
-
-    /* ========================================================================================== */
-    /*                                       Signaling Layer                                      */
-    /* ========================================================================================== */
-
-    protected abstract signalJoin(mediaState: MediaState): void
-    protected abstract signalLeave(): void
-
-    protected abstract signalMediaState(mediaState: MediaState): void
-
-    protected abstract signalSessionDescription(
-        toPeerId: PeerId, //
-        sessionDescription: RTCSessionDescription,
-    ): void
-    protected abstract signalIceCandidate(
-        toPeerId: PeerId, //
-        iceCandidate: RTCIceCandidate,
-    ): void
 }

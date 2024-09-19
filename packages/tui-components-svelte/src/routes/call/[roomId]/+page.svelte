@@ -1,18 +1,19 @@
 <script lang="ts">
     import { page } from "$app/stores"
     import CallControls from "$lib/call/ui/CallControls.svelte"
-    import MediaState from "$lib/media/ui/MediaState.svelte"
-    import MediaSelect from "$lib/media/ui/settings/MediaSettingsSelect.svelte"
-    import MediaVolume from "$lib/media/ui/settings/MediaSettingsVolume.svelte"
+    import PeerOptions from "$lib/call/ui/PeerOptions.svelte"
     import Video from "$lib/call/ui/Video.svelte"
     import DebugPeer from "$lib/call/ui/debug/DebugPeer.svelte"
     import { MeshCallClientDemo } from "$lib/examples/call/MeshCallClientDemo.svelte"
+    import MediaState from "$lib/media/ui/MediaState.svelte"
+    import MediaSelect from "$lib/media/ui/settings/MediaSettingsSelect.svelte"
+    import MediaVolume from "$lib/media/ui/settings/MediaSettingsVolume.svelte"
+    import volume_mute_fill from "@timephy/tui-icons-svelte/volume_mute_fill"
     import { onDestroy, onMount } from "svelte"
-    import PeerOptions from "$lib/call/ui/PeerOptions.svelte"
 
     /* ========================================================================================== */
 
-    const roomId = $page.params["roomId"]
+    const roomId = $page.params["roomId"] ?? ""
     // const userId = $page.url.searchParams.get("userId") ?? Math.random().toString(36).slice(2)
     const debug = $page.url.searchParams.get("debug") !== null
 
@@ -54,11 +55,10 @@
             <h1>List Clients in Call</h1>
             {#if call.callState?.size}
                 {#each [...call.callState] as [peerId, mediaState]}
-                    {@const _mediaState = mediaState}
                     <div class="item item-p flex items-center justify-between gap-4">
                         <p class="note truncate">{peerId}</p>
                         {#if mediaState}
-                            <MediaState mediaState={_mediaState} {debug} />
+                            <MediaState {mediaState} {debug} />
                         {/if}
                     </div>
                 {/each}
@@ -79,7 +79,10 @@
                 {:else}
                     <div class="section flex flex-row items-center justify-between gap-4">
                         <h1 class="truncate">{p._debug_id}</h1>
-                        <MediaState mediaState={p.mediaState} />
+                        <MediaState
+                            mediaState={p.mediaState}
+                            extraIcons={p.gain === 0 ? [{ data: volume_mute_fill, class: "text-orange" }] : []}
+                        />
                     </div>
 
                     {#if p.mediaState.cam}
@@ -117,7 +120,7 @@
                 />
             {/if}
             <div></div>
-            <CallControls {call} layout="normal" showMediaSettings={() => {}} joinCallText="Join Call" />
+            <CallControls {call} layout="normal" joinCallText="Join Call" showMediaSettings={null} />
             {#if debug}
                 <div></div>
                 {#key key}

@@ -21,7 +21,7 @@ export type CallState = Map<ClientId, MediaState>
 
 export function setupSocketIoServer(httpServer: HttpServer | Http2Server) {
     const io = new Server(httpServer, {
-        pingTimeout: 2500,
+        pingTimeout: 60000,
     })
 
     /* ========================================================================================== */

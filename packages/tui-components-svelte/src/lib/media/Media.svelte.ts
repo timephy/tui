@@ -254,7 +254,12 @@ export class Media {
     }
 
     /** Deactivate all media devices. */
-    async deactivateAll() {
+    async deactivateAllAndReset() {
+        this.mute = false
+        this.deaf = false
+
+        this._mic_pipeline.playback = false
+
         await Promise.all([this._setMic(this.#mic_id, false), this._setCam(this.#cam_id, false), this._setScreen(null)])
     }
 
@@ -443,10 +448,10 @@ export class Media {
             this.#screen_video = _tracks[0] ?? null
             this.#screen_audio = _tracks[1] ?? null
             this.#screen_tracks$.next(this.#screen_video !== null ? [this.#screen_video, this.#screen_audio] : null)
-        } else {
-            // should unload track
             this.#screen_error = null
             this.#screen_error$.next(this.#screen_error)
+        } else {
+            // should unload track
             if (this.#screen_video !== null || this.#screen_audio !== null) {
                 this.#screen_video?.stop()
                 this.#screen_video = null
@@ -474,8 +479,6 @@ export class Media {
                     })
                 }
             }
-            this.#screen_error = null
-            this.#screen_error$.next(this.#screen_error)
             // NOTE: Constrain screen video to `screen_maxHeight`
             await this.#setVideoTrackMaxHeight(videoTrack, this.#screen_maxHeight)
             return [videoTrack, audioTrack]

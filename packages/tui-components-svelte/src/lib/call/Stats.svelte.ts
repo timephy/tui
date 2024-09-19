@@ -229,9 +229,9 @@ export class Stats {
         /** The {@link RTCPeerConnection} of which to monitor the stats. */
         private readonly peerConnection: RTCPeerConnection,
         /** Every how many milliseconds the stats should be inspected and updated. */
-        private readonly interval: number = 1000,
+        private readonly interval: number = 500,
         /** The average is calculated over this many iterations (has to be `>=2` to make sense). */
-        private readonly average: number = 5,
+        private readonly average: number = 11,
     ) {
         // NOTE: `this.average - 1`, because when we average over `2` iterations, we have a `1s` timespan
         this.averaged_seconds = (this.average - 1) * (this.interval / 1000)

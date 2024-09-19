@@ -8,16 +8,20 @@ import type { PeerDisplay } from "../Call.svelte"
 import { SvelteMap } from "svelte/reactivity"
 import Storage from "$lib/storage/index.svelte"
 
-/* ============================================================================================== */
+/* ================================================================================================================== */
 
 export const LS_PEER_GAINS = Storage.Map<string, number>("tui-rtc.peer_gains", new SvelteMap())
 
-/* ============================================================================================== */
+/* ================================================================================================================== */
 
 export const peerIceError = ["disconnected", "failed"] as const
 export type PeerIceError = (typeof peerIceError)[number]
 export const peerConnectionError = ["closed", "disconnected", "failed"] as const
 export type PeerConnectionError = (typeof peerConnectionError)[number]
+
+/* ================================================================================================================== */
+// MARK: Peer
+/* ================================================================================================================== */
 
 /**
  * This class extends {@link PeerConnection}, helps to manage the audio pipeline and media info.
@@ -28,7 +32,10 @@ export type PeerConnectionError = (typeof peerConnectionError)[number]
 export class Peer extends PeerConnection implements PeerDisplay {
     readonly type = "peer"
 
+    /** Monitors the RTCPeerConnection and create statistics to show the user. */
     readonly stats: Stats
+
+    /* ============================================================================================================== */
 
     constructor(
         config: RTCConfiguration,
@@ -37,7 +44,7 @@ export class Peer extends PeerConnection implements PeerDisplay {
     ) {
         super(config, options, _debug_id)
 
-        this._audioPipeline = new AudioPipeline({
+        this.#audioPipeline = new AudioPipeline({
             debug: false,
             noiseSuppression: false,
             volumeGate: null,
@@ -46,25 +53,103 @@ export class Peer extends PeerConnection implements PeerDisplay {
         })
 
         this.stats = new Stats(this._pc)
+        this.stats.start()
     }
-
-    /* ========================================================================================== */
 
     override closeConnection() {
         super.closeConnection()
 
-        // TODO: Close Stats Interval, but cannot restart... therefore leaving on for now
+        this.stats.stop()
     }
 
-    /* ========================================================================================== */
-    /*                                            Error                                           */
-    /* ========================================================================================== */
+    /* ============================================================================================================== */
+    // MARK: AudioPipeline
+    // INFO: Put the received mic audio through an AudioPipeline to manage and detect volume, etc.
+    /* ============================================================================================================== */
+
+    readonly #audioPipeline: AudioPipeline
+
+    // NOTE: Override this function to set the track on the audio pipeline
+    protected override async onRemoteTrackMic(track: MediaStreamTrack) {
+        console.log("[Peer] onRemoteTrackMic", track)
+        super.onRemoteTrackMic(track)
+
+        // NOTE: Fix for Chrome: WebRTC audio not playing when not connected to a media element
+        // https://stackoverflow.com/questions/71861568/webrtc-with-web-audio-api
+        // https://issues.chromium.org/issues/40094084#comment5
+        const audio = new Audio()
+        // await audio.play()
+        audio.srcObject = new MediaStream([track])
+        // NOTE: This does not seem to be required but might be sensible
+        audio.muted = true
+
+        this.#audioPipeline.setInput(track)
+    }
+
+    /* ============================================================================================================== */
+    // MARK: MediaState
+    /* ============================================================================================================== */
+
+    private _mediaState: MediaState = $state(DEFAULT_MEDIA_STATE)
+
+    // NOTE: This is only `async` to match the `receive*()` of `PeerConnection`
+    public async receiveMediaState(mediaState: MediaState) {
+        this.DEBUG("receiveMediaState", mediaState)
+        this._mediaState = mediaState
+    }
+
+    /* ============================================================================================================== */
+    // MARK: PeerDisplay
+    /* ============================================================================================================== */
+
+    public get mediaState() {
+        return this._mediaState
+    }
+
+    public get playback() {
+        return this.#audioPipeline.playback
+    }
+    public set playback(value: boolean) {
+        this.#audioPipeline.playback = value
+    }
+    public get gain() {
+        return this.#audioPipeline.gain
+    }
+    public set gain(value: number) {
+        this.#audioPipeline.gain = value
+
+        if (this.options.storageId !== null) {
+            LS_PEER_GAINS.value = LS_PEER_GAINS.value.set(this.options.storageId, value)
+        }
+    }
+    public get volume() {
+        return this.#audioPipeline.volume
+    }
+
+    /* ============================================================================================================== */
+    // MARK: State + Errors
+    // INFO: Expose state and error observables of the underlying `PeerConnection`
+    /* ============================================================================================================== */
 
     private readonly _errorIceConnection$ = new Subject<PeerIceError>()
     private readonly _errorConnection$ = new Subject<PeerConnectionError>()
 
     private readonly _iceConnectionState$ = new Subject<RTCIceConnectionState>()
     private readonly _connectionState$ = new Subject<RTCPeerConnectionState>()
+
+    get errorIceConnection$() {
+        return this._errorIceConnection$
+    }
+    get errorConnection$() {
+        return this._errorConnection$
+    }
+
+    get iceConnectionState$() {
+        return this._iceConnectionState$
+    }
+    get connectionState$() {
+        return this._connectionState$
+    }
 
     protected override oniceconnectionstatechange(iceConnectionState: RTCIceConnectionState) {
         super.oniceconnectionstatechange(iceConnectionState)
@@ -87,110 +172,21 @@ export class Peer extends PeerConnection implements PeerDisplay {
         }
     }
 
-    /* ========================================================================================== */
+    /* ============================================================================================================== */
+    // MARK: Debug Signals
+    // INFO: Grab all sent and received signals for debugging purposes
+    /* ============================================================================================================== */
 
-    get errorIceConnection$() {
-        return this._errorIceConnection$
+    readonly #debugSignals: Signal[] = $state([])
+
+    get debugSignals() {
+        return this.#debugSignals
     }
-    get errorConnection$() {
-        return this._errorConnection$
-    }
-
-    get iceConnectionState$() {
-        return this._iceConnectionState$
-    }
-    get connectionState$() {
-        return this._connectionState$
-    }
-
-    /* ========================================================================================== */
-    /*                                        AudioPipeline                                       */
-    /* ========================================================================================== */
-
-    private readonly _audioPipeline: AudioPipeline
-
-    // NOTE: Override this function to set the track on the audio pipeline
-    protected override async onRemoteTrackMic(track: MediaStreamTrack) {
-        console.log("[Peer] receiveTrackMic", track)
-        super.onRemoteTrackMic(track)
-
-        // NOTE: Fix for Chrome: WebRTC audio not playing when not connected to a media element
-        // https://stackoverflow.com/questions/71861568/webrtc-with-web-audio-api
-        // https://issues.chromium.org/issues/40094084#comment5
-        const audio = new Audio()
-        // await audio.play()
-        audio.srcObject = new MediaStream([track])
-        // NOTE: This does not seem to be required but might be sensible
-        audio.muted = true
-
-        this._audioPipeline.setInput(track)
-    }
-
-    /* ========================================================================================== */
-
-    get playback() {
-        return this._audioPipeline.playback
-    }
-    set playback(value: boolean) {
-        this._audioPipeline.playback = value
-    }
-    get gain() {
-        return this._audioPipeline.gain
-    }
-    set gain(value: number) {
-        this._audioPipeline.gain = value
-
-        if (this.options.storageId !== null) {
-            LS_PEER_GAINS.value = LS_PEER_GAINS.value.set(this.options.storageId, value)
-        }
-    }
-    get volume() {
-        return this._audioPipeline.volume
-    }
-
-    get storageId() {
-        return this.options.storageId
-    }
-
-    /* ========================================================================================== */
-    /*                                          MediaState                                         */
-    /* ========================================================================================== */
-
-    private _mediaState: MediaState = $state(DEFAULT_MEDIA_STATE)
-
-    // NOTE: This is only `async` to match the `receive*()` of `PeerConnection`
-    async receiveMediaState(mediaState: MediaState) {
-        this.DEBUG("receiveMediaState", mediaState)
-        this._mediaState = mediaState
-    }
-
-    /* ========================================================================================== */
-
-    get mediaState() {
-        return this._mediaState
-    }
-
-    /* ========================================================================================== */
-    /*                                     ClientMediaDisplay                                     */
-    /* ========================================================================================== */
-
-    get micCamStream() {
-        return this._remoteStreamMicCam
-    }
-    get screenStream() {
-        return this._remoteStreamScreen
-    }
-
-    /* ========================================================================================== */
-    /*                                       Debug Signaling                                      */
-    /* ========================================================================================== */
-
-    private readonly _signals: Signal[] = $state([])
 
     protected override signalIceCandidate(iceCandidate: RTCIceCandidate) {
         super.signalIceCandidate(iceCandidate)
 
-        this._signals.push({
+        this.#debugSignals.push({
             from: "local",
             content: iceCandidate,
         })
@@ -198,7 +194,7 @@ export class Peer extends PeerConnection implements PeerDisplay {
     protected override signalSessionDescription(sessionDescription: RTCSessionDescription) {
         super.signalSessionDescription(sessionDescription)
 
-        this._signals.push({
+        this.#debugSignals.push({
             from: "local",
             content: sessionDescription,
         })
@@ -207,7 +203,7 @@ export class Peer extends PeerConnection implements PeerDisplay {
     override async receiveIceCandidate(iceCandidate: RTCIceCandidateInit) {
         super.receiveIceCandidate(iceCandidate)
 
-        this._signals.push({
+        this.#debugSignals.push({
             from: "remote",
             content: iceCandidate,
         })
@@ -215,15 +211,9 @@ export class Peer extends PeerConnection implements PeerDisplay {
     override async receiveSessionDescription(sessionDescription: RTCSessionDescriptionInit) {
         super.receiveSessionDescription(sessionDescription)
 
-        this._signals.push({
+        this.#debugSignals.push({
             from: "remote",
             content: sessionDescription,
         })
-    }
-
-    /* ========================================================================================== */
-
-    get signals() {
-        return this._signals
     }
 }

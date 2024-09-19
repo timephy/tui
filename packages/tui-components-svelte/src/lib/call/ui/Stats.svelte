@@ -35,7 +35,7 @@
                 Math.round(
                     (general_recv.packetsLost / (general_recv.packetsLost + general_recv.packetsReceived)) * 100 * 100,
                 ) / 100}
-            {packetLoss === 0 ? "0.00" : packetLoss} <span class="unit">%</span>
+            {isNaN(packetLoss) ? "100" : packetLoss === 0 ? "0.00" : packetLoss} <span class="unit">%</span>
         {:else}
             <span class="unit">–</span>
         {/if}

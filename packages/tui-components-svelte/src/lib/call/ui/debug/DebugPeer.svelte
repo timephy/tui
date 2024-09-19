@@ -1,4 +1,5 @@
 <script lang="ts">
+    import volume_mute_fill from "@timephy/tui-icons-svelte/volume_mute_fill"
     import MediaState from "../../../media/ui/MediaState.svelte"
     import VolumeMeter from "../../../media/ui/settings/volume/VolumeMeter.svelte"
     import VolumeSlider from "../../../media/ui/settings/volume/VolumeSlider.svelte"
@@ -14,7 +15,11 @@
 <div class="section">
     <div class="section flex flex-row items-center justify-between gap-4">
         <h1 class="truncate">{peer._debug_id}</h1>
-        <MediaState mediaState={peer.mediaState} />
+        <MediaState
+            debug
+            mediaState={peer.mediaState}
+            extraIcons={peer.gain === 0 ? [{ data: volume_mute_fill, class: "text-orange" }] : []}
+        />
     </div>
 
     {#if peer.mediaState.cam}

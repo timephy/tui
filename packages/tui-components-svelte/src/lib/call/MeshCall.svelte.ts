@@ -1,9 +1,9 @@
-import type { Subscription } from "rxjs"
+import { distinctUntilChanged, filter, map, Subject, type Subscription } from "rxjs"
 import { SvelteMap } from "svelte/reactivity"
 import type { Media } from "../media"
-import { Peer } from "./peer/Peer.svelte"
 import type { MediaState } from "../media/MediaState"
-import { Call, type AddPeer, type PeerId, type RemovePeer } from "./Call.svelte"
+import { Call, type AddPeer, type CallEvents, type PeerId, type RemovePeer } from "./Call.svelte"
+import { Peer } from "./peer/Peer.svelte"
 
 /* ============================================================================================== */
 
@@ -44,8 +44,14 @@ export abstract class MeshCall extends Call {
     /*                                     Mesh Implementation                                    */
     /* ========================================================================================== */
 
-    public override readonly peers: Map<PeerId, Peer> = new SvelteMap()
+    public override readonly peers: SvelteMap<PeerId, Peer> = new SvelteMap()
     private readonly peerSubscriptions: Map<PeerId, Subscription[]> = new Map()
+
+    private readonly _events$ = new Subject<CallEvents>()
+
+    public override get events$() {
+        return this._events$.asObservable()
+    }
 
     protected override async receiveAddPeer({
         peerId,
@@ -76,20 +82,42 @@ export abstract class MeshCall extends Call {
 
         // !! Subscribe Peer to Media
         this.peerSubscriptions.set(peerId, [
+            // ! Media -> Peer
             this.media.deaf$.subscribe(async (deaf) => {
                 peer.playback = !deaf
             }),
             this.media.mic_audioOutput$.subscribe(async (track) => {
-                await peer.setTrackMic(track)
+                await peer.setLocalTrackMic(track)
             }),
             this.media.cam_video$.subscribe(async (track) => {
-                await peer.setTrackCam(track)
+                await peer.setLocalTrackCam(track)
             }),
             this.media.screen_tracks$.subscribe(async (tracks) => {
                 const trackVideo = tracks?.[0] ?? null
                 const trackAudio = tracks?.[1] ?? null
-                await Promise.all([peer.setTrackScreenVideo(trackVideo), peer.setTrackScreenAudio(trackAudio)])
+                await Promise.all([
+                    peer.setLocalTrackScreenVideo(trackVideo),
+                    peer.setLocalTrackScreenAudio(trackAudio),
+                ])
             }),
+            // ! Expose peer
+            peer.connectionState$
+                .pipe(
+                    map((state): CallEvents | null => {
+                        if (state === "connected") {
+                            return "peer-connected"
+                        } else if (state === "closed") {
+                            return "peer-disconnected"
+                        } else if (state === "connecting") {
+                            return null
+                        } else {
+                            return "peer-error"
+                        }
+                    }),
+                    filter((event) => event !== null),
+                    distinctUntilChanged(),
+                )
+                .subscribe(this._events$),
         ])
 
         if (offer) {
@@ -105,23 +133,27 @@ export abstract class MeshCall extends Call {
             return
         }
 
-        // !! Unsubscribe Peer from Media
-        this.peerSubscriptions.get(peerId)?.forEach((sub) => sub.unsubscribe())
-        this.peerSubscriptions.delete(peerId)
+        // NOTE: The order here is important, so that all events are still emitted
 
         // !! Close and Remove Peer Connection
         peer.closeConnection()
         this.peers.delete(peerId)
+
+        // !! Unsubscribe Peer from Media
+        this.peerSubscriptions.get(peerId)?.forEach((sub) => sub.unsubscribe())
+        this.peerSubscriptions.delete(peerId)
     }
 
     public removeAllPeerConnections() {
         this.DEBUG("removeAllPeerConnections")
 
-        this.peerSubscriptions.forEach((subs) => subs.forEach((sub) => sub.unsubscribe()))
-        this.peerSubscriptions.clear()
+        // NOTE: The order here is important, so that all events are still emitted
 
         this.peers.forEach((peer) => peer.closeConnection())
         this.peers.clear()
+
+        this.peerSubscriptions.forEach((subs) => subs.forEach((sub) => sub.unsubscribe()))
+        this.peerSubscriptions.clear()
     }
 
     /* ========================================================================================== */

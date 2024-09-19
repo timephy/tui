@@ -541,6 +541,13 @@ export class PeerConnection {
      * Close the connection and cleanup resources.
      */
     closeConnection() {
+        this.INFO("closeConnection()")
+
         this._pc.close()
+
+        this.onsignalingstatechange(this._pc.signalingState)
+        this.onicegatheringstatechange(this._pc.iceGatheringState)
+        this.oniceconnectionstatechange(this._pc.iceConnectionState)
+        this.onconnectionstatechange(this._pc.connectionState)
     }
 }

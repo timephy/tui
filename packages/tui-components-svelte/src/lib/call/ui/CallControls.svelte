@@ -22,9 +22,12 @@
         joinCallText: string
     } = $props()
 
-    let { media } = $derived(call)
+    /* ============================================================================================================== */
 
-    let containerClass = $derived(
+    const { media } = $derived(call)
+    const errorMicOrCam = $derived(media.mic_error || media.cam_error)
+
+    const containerClass = $derived(
         layout === "normal"
             ? media.screen_available
                 ? "grid-cols-4"
@@ -34,7 +37,7 @@
               : "grid-cols-5",
     )
 
-    let buttonClass = $derived(
+    const buttonClass = $derived(
         layout === "normal" ? (media.screen_available ? "col-span-2" : "") : media.screen_available ? "" : "",
     )
 </script>
@@ -53,7 +56,7 @@
         <button
             tabindex={-1}
             onclick={showMediaSettings}
-            class="btn btn-tall gap-2 {buttonClass}"
+            class="btn btn-tall gap-2 {errorMicOrCam ? 'btn-orange' : ''} {buttonClass}"
             disabled={showMediaSettings === null}
         >
             <Icon data={gear_wide_connected} class="size-[18px]" />
