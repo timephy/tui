@@ -100,5 +100,5 @@
 
     <VolumeMeter volume={peer.volume} class="w-full px-[0.625rem]" />
     <VolumeSlider bind:value={peer.gain} class="pl-section" />
-    <p>Change the volume of this peer ({JSON.stringify(peer.gain)}x).</p>
+    <p>Change the volume of this peer ({peer.gain}x).</p>
 </div>
