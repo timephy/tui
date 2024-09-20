@@ -108,7 +108,7 @@
     <p>Test your input and change the volume ({JSON.stringify(media.mic_gain)}x).</p>
 
     <!-- NOTE: Set min above 0 to not let you mute yourself permanently -->
-    <VolumeSlider bind:value={media.mic_gain} min={0.1} class="pl-section" />
+    <VolumeSlider bind:value={media.mic_gain} min={0.25} class="pl-section" />
 
     {#if debug}
         <hr />

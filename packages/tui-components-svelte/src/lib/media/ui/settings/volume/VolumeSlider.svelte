@@ -24,7 +24,7 @@
 </script>
 
 <div class="flex items-center gap-3 {CLASS}">
-    <Slider bind:value {min} {max} {step} />
+    <Slider bind:value {min} {max} {step} rightColor={value === 0 ? "orange" : undefined} />
 
     <button class="btn btn-thin btn-transparent aspect-square" onclick={() => (value = 1)} disabled={value === 1}>
         <Icon data={arrow_counterclockwise} class="size-5" />
