@@ -32,6 +32,9 @@ const DEBUG = (...msgs: unknown[]) => {
 const WARN = (...msgs: unknown[]) => {
     console.warn("[AudioPipeline]", ...msgs)
 }
+const ERROR = (...msgs: unknown[]) => {
+    console.error("[AudioPipeline]", ...msgs)
+}
 
 /* ================================================================================================================== */
 /*                                                    AudioPipeline                                                   */
@@ -217,7 +220,7 @@ export class AudioPipeline {
             this.#noiseSuppressionLoaded = true
             DEBUG(`NoiseSuppressorWorklet loaded successfully after ${Date.now() - timeBefore}ms`)
         } catch (error) {
-            WARN("NoiseSuppressorWorklet load error:", error)
+            ERROR("NoiseSuppressorWorklet load error:", error)
             this.#noiseSuppressionLoaded = false
         }
     }
@@ -243,7 +246,7 @@ export class AudioPipeline {
             this.#volumeMeterGateLoaded = true
             DEBUG(`VolumeMeterGateWorklet loaded successfully after ${Date.now() - timeBefore}ms`)
         } catch (error) {
-            WARN("VolumeMeterGateWorklet load error:", error)
+            ERROR("VolumeMeterGateWorklet load error:", error)
             this.#volumeMeterGateLoaded = false
         }
     }
