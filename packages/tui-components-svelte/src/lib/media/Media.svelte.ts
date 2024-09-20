@@ -470,7 +470,12 @@ export class Media {
             if (videoTrack === undefined) {
                 throw "No video track"
             }
-            videoTrack.onended = () => {}
+            videoTrack.onended = () => {
+                LOCK_SCREEN(async () => {
+                    DEBUG("screen_video.onended()")
+                    await this._setScreen(null)
+                })
+            }
             if (audioTrack) {
                 audioTrack.onended = () => {
                     LOCK_SCREEN(async () => {
