@@ -101,6 +101,7 @@ export abstract class MeshCall extends Call {
                 ])
             }),
             // ! Expose peer
+            // INFO: This creates the events that the client can use to show / play sounds for
             peer.connectionState$
                 .pipe(
                     map((state): CallEvents | null => {
@@ -108,10 +109,12 @@ export abstract class MeshCall extends Call {
                             return "peer-connected"
                         } else if (state === "closed") {
                             return "peer-disconnected"
-                        } else if (state === "connecting") {
-                            return null
-                        } else {
+                        } else if (state === "failed") {
                             return "peer-error"
+                        } else {
+                            // state: "connecting" | "disconnected" | "new"
+                            // NOTE: "disconnected" happens during renegotiation, this happens often for very quick moment during normal operation, therefore we ignore it
+                            return null
                         }
                     }),
                     filter((event) => event !== null),
