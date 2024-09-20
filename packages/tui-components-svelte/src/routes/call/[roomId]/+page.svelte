@@ -145,6 +145,8 @@
                         <div>&nbsp;</div>
                         <div>deaf: {JSON.stringify(call.media.deaf)}</div>
                         <div>&nbsp;</div>
+                        <div>outputIsSending: {JSON.stringify(call.media.mic_outputIsSending)}</div>
+                        <div>&nbsp;</div>
                         <div>&nbsp;</div>
                         <div>&nbsp;</div>
                         <div>mic_active: {JSON.stringify(call.media.mic_active)}</div>

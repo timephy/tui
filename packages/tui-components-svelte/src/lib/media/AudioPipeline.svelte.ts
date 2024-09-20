@@ -188,6 +188,7 @@ export class AudioPipeline {
         // Reset volume to `MIN_VOLUME`, otherwise this freezes the volume meter at the last value
         this.#volumeVoice = MIN_VOLUME
         this.#volume = MIN_VOLUME
+        this.#volumeGateOpen = false
         this.#debugVolumeSource = this.#debug ? MIN_VOLUME : null
         this.#debugVolumeOutput = this.#debug ? MIN_VOLUME : null
     }
