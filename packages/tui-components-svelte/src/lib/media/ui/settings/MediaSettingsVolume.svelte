@@ -8,13 +8,15 @@
     import VolumeMeter, * as Volume from "$lib/media/ui/settings/volume/VolumeMeter.svelte"
     import VolumeSlider from "$lib/media/ui/settings/volume/VolumeSlider.svelte"
     import { MIN_VOLUME } from "$lib/media/volume"
+    import Icon from "$lib/ui/Icon.svelte"
+    import IconWithLabel from "$lib/ui/IconWithLabel.svelte"
     import Slider from "$lib/ui/Slider.svelte"
     import SwitchLabel from "$lib/ui/SwitchLabel.svelte"
     import filter_left from "@timephy/tui-icons-svelte/filter_left"
+    import mic_fill from "@timephy/tui-icons-svelte/mic_fill"
     import soundwave from "@timephy/tui-icons-svelte/soundwave"
-    import volume_mute_fill from "@timephy/tui-icons-svelte/volume_mute_fill"
     import volume_up_fill from "@timephy/tui-icons-svelte/volume_up_fill"
-    import type { ComponentProps, Snippet } from "svelte"
+    import { onDestroy, type ComponentProps } from "svelte"
 
     /* ============================================================================================================== */
     /*                                                      Props                                                     */
@@ -26,10 +28,14 @@
     }: {
         media: Media
         debug?: boolean
-        micErrorSnippet?: Snippet
-        camErrorSnippet?: Snippet
-        screenErrorSnippet?: Snippet
     } = $props()
+
+    /* ============================================================================================================== */
+
+    onDestroy(() => {
+        // INFO: Stop the test playback when the component is destroyed.
+        media.mic_playback = false
+    })
 
     /* ============================================================================================================== */
 
@@ -55,18 +61,24 @@
         <hr />
     {/if}
 
-    <!-- NOTE: Padding is 1/2 of Slider Thumb width -->
+    <!-- MARK: Noise Supression -->
+    <!-- INFO: Padding is 1/2 of Slider Thumb width -->
     <SwitchLabel icon={soundwave} label="Noise Suppression" bind:value={media.mic_noiseSuppression} />
     {#if media.mic_noiseSuppressionLoaded === false}
         <p class="!text-orange">Could not load, noise suppression is disabled.</p>
     {:else}
-        <p>Suppress background noise and isolate voice.</p>
+        <p>Suppress background noise ({media.mic_noiseSuppression ? "active" : "recommended"}).</p>
     {/if}
 
     <div class="h-1"></div>
 
+    <!-- MARK: Volume Gate -->
     <SwitchLabel icon={filter_left} label="Volume Gate" bind:value={media.mic_volumeGate} class="grow" />
-    <p>Only pass audio above this volume{media.mic_volumeGate ? ` (${media.mic_volumeGateThreshold}dB)` : ""}.</p>
+    <p>
+        Only pass audio above this volume ({media.mic_volumeGate
+            ? ` ${media.mic_volumeGateThreshold}dB`
+            : "recommended"}).
+    </p>
 
     {#if media.mic_volumeGate}
         <Slider bind:value={media.mic_volumeGateThreshold} {...volumeSliderProps} />
@@ -74,7 +86,8 @@
         <Slider disabled value={MIN_VOLUME} {...volumeSliderProps} />
     {/if}
 
-    <div class="h-1"></div>
+    <!-- Space between Slider and VolumeMeter -->
+    <div></div>
 
     <div class="px-section">
         {#if media.mic_volumeGate === true}
@@ -102,16 +115,38 @@
     </div>
 
     <hr />
+    <!-- MARK: Volume -->
 
-    <SwitchLabel
+    <!-- NOTE: 28px is same height as SwitchLabel -->
+    <!-- <IconWithLabel icon={mic_fill} iconSize="sm" label="Change Volume" class="h-[28px]" /> -->
+    <IconWithLabel label="Change Volume" class="h-[28px]" />
+    <p>Adjust the output volume ({media.mic_gain}x).</p>
+
+    <!-- INFO: Set min above 0 to not let you mute yourself permanently -->
+    <VolumeSlider bind:value={media.mic_gain} min={0.2} class="pl-section" />
+
+    <!-- Space between Slider and Button -->
+    <div></div>
+
+    <button
+        class="btn btn-p btn-thin flex gap-[10px] {media.mic_playback ? 'btn-blue' : ''} "
+        onclick={() => (media.mic_playback = !media.mic_playback)}
+        disabled={!media.mic_active}
+    >
+        {#if !media.mic_playback}
+            <p>Test Microphone</p>
+        {:else}
+            <Icon data={volume_up_fill} />
+            <p>Stop Test</p>
+        {/if}
+    </button>
+    <!-- <SwitchLabel
+        disabled={!media.mic_active}
         icon={media.mic_playback ? volume_up_fill : volume_mute_fill}
-        label="Monitor Audio"
+        label="Test Microphone"
         bind:value={media.mic_playback}
     />
-    <p>Test your input and change the volume ({JSON.stringify(media.mic_gain)}x).</p>
-
-    <!-- NOTE: Set min above 0 to not let you mute yourself permanently -->
-    <VolumeSlider bind:value={media.mic_gain} min={0.25} class="pl-section" />
+    <p>Listen to your microphone input and settings.</p> -->
 
     {#if debug}
         <hr />
