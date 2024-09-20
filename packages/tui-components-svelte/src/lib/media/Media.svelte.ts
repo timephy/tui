@@ -14,7 +14,7 @@ const LS_SCREEN_MAX_HEIGHT_ID = Storage.int("tui-rtc.screen_maxHeight", null)
 
 const LS_MIC_NOISE_SUPPRESSION = Storage.boolean("tui-rtc.mic_noiseSuppression", true)
 const LS_MIC_VOLUME_GATE = Storage.boolean("tui-rtc.mic_volumeGate", true)
-const LS_MIC_VOLUME_GATE_THRESHOLD = Storage.float<number>("tui-rtc.mic_volumeGateThreshold", -45)
+const LS_MIC_VOLUME_GATE_THRESHOLD = Storage.float<number>("tui-rtc.mic_volumeGateThreshold", -50)
 const LS_MIC_GAIN = Storage.float("tui-rtc.mic_gain", 1)
 
 /* ================================================================================================================== */
