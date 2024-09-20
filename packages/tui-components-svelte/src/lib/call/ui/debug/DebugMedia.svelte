@@ -26,7 +26,7 @@
         class="item box-content aspect-[4/3] bg-step-base"
     />
 
-    <div class="size-4 rounded-full {media.mic_outputIsSending ? 'bg-green' : 'bg-red'}"></div>
+    <div class="size-4 rounded-full {media.mic_volumeGateOpen ? 'bg-green' : 'bg-red'}"></div>
 
     <p class="note">
         <!-- mic_gain = {JSON.stringify(media.mic_gain) ?? "undefined"}

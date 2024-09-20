@@ -14,7 +14,7 @@
     import soundwave from "@timephy/tui-icons-svelte/soundwave"
     import volume_mute_fill from "@timephy/tui-icons-svelte/volume_mute_fill"
     import volume_up_fill from "@timephy/tui-icons-svelte/volume_up_fill"
-    import type { ComponentProps } from "svelte"
+    import type { ComponentProps, Snippet } from "svelte"
 
     /* ============================================================================================================== */
     /*                                                      Props                                                     */
@@ -26,6 +26,9 @@
     }: {
         media: Media
         debug?: boolean
+        micErrorSnippet?: Snippet
+        camErrorSnippet?: Snippet
+        screenErrorSnippet?: Snippet
     } = $props()
 
     /* ============================================================================================================== */
@@ -79,12 +82,12 @@
                 volume={media.mic_volumeVoice}
                 color={media.mic_volumeVoice > media.mic_volumeGateThreshold
                     ? "green"
-                    : media.mic_outputIsSending
+                    : media.mic_volumeGateOpen
                       ? "orange"
                       : "red"}
                 barClass={media.mic_volumeVoice > media.mic_volumeGateThreshold
                     ? ""
-                    : media.mic_outputIsSending
+                    : media.mic_volumeGateOpen
                       ? "bg-opacity-75"
                       : "bg-opacity-25"}
                 class={volumeMeterClass}
