@@ -594,7 +594,7 @@ export class Media {
     set mic_id(_mic_id: DeviceId) {
         LOCK_MIC(async () => {
             DEBUG(`mic_id = ${_mic_id}`)
-            LS_MIC_ID.value = this.#mic_id
+            LS_MIC_ID.value = _mic_id
             await this._setMic(_mic_id)
             DEBUG(`mic_id = ${_mic_id} end`)
         })
@@ -653,12 +653,12 @@ export class Media {
     get cam_id() {
         return this.#cam_id
     }
-    set cam_id(id: DeviceId) {
+    set cam_id(_cam_id: DeviceId) {
         LOCK_CAM(async () => {
-            DEBUG(`cam_id = ${id}`)
-            LS_CAM_ID.value = this.#cam_id
-            await this._setCam(id)
-            DEBUG(`cam_id = ${id} end`)
+            DEBUG(`cam_id = ${_cam_id}`)
+            LS_CAM_ID.value = _cam_id
+            await this._setCam(_cam_id)
+            DEBUG(`cam_id = ${_cam_id} end`)
         })
     }
     /**
