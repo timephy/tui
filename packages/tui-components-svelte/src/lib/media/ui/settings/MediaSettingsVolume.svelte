@@ -76,7 +76,7 @@
     <SwitchLabel icon={filter_left} label="Volume Gate" bind:value={media.mic_volumeGate} class="grow" />
     <p>
         Only pass audio above this volume ({media.mic_volumeGate
-            ? ` ${media.mic_volumeGateThreshold}dB`
+            ? `${media.mic_volumeGateThreshold}dB`
             : "recommended"}).
     </p>
 
