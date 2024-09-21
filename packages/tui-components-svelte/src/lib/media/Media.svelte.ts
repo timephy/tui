@@ -752,7 +752,7 @@ export class Media {
     set screen_maxHeight(_screen_maxHeight: number | null) {
         LOCK_SCREEN(async () => {
             DEBUG(`screen_maxHeight = ${_screen_maxHeight}`)
-            LS_SCREEN_MAX_HEIGHT_ID.value = this.#screen_maxHeight
+            LS_SCREEN_MAX_HEIGHT_ID.value = _screen_maxHeight
             this.#screen_maxHeight = _screen_maxHeight
             if (this.#screen_video) {
                 await this.#setVideoTrackMaxHeight(this.#screen_video, this.#screen_maxHeight)
