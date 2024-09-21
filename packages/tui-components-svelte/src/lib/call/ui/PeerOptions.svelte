@@ -9,8 +9,10 @@
 
     const {
         peer,
+        connectionStateSubtitle = null,
     }: {
         peer: PeerDisplay
+        connectionStateSubtitle?: string | null
     } = $props()
 </script>
 
@@ -22,9 +24,13 @@
     <hr />
 
     <h3>Connection Stats</h3>
+    {#if connectionStateSubtitle}
+        <p>{connectionStateSubtitle}</p>
+        <div></div>
+    {/if}
     <Stats stats={peer.stats} />
 
-    <hr />
+    <!-- <hr />
 
     <h3>Connection State</h3>
     <div class="note grid grid-cols-2 px-1.5 [&>*:nth-child(even)]:text-right">
@@ -72,5 +78,5 @@
         >
             {peer.connectionState}
         </div>
-    </div>
+    </div> -->
 </div>
