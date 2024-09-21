@@ -13,7 +13,6 @@
     import Slider from "$lib/ui/Slider.svelte"
     import SwitchLabel from "$lib/ui/SwitchLabel.svelte"
     import filter_left from "@timephy/tui-icons-svelte/filter_left"
-    import mic_fill from "@timephy/tui-icons-svelte/mic_fill"
     import soundwave from "@timephy/tui-icons-svelte/soundwave"
     import volume_up_fill from "@timephy/tui-icons-svelte/volume_up_fill"
     import { onDestroy, type ComponentProps } from "svelte"
