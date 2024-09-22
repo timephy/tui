@@ -481,9 +481,9 @@ export class PeerConnection {
             direction: "sendrecv",
             sendEncodings: [
                 {
-                    maxBitrate: 1_500_000, // 2_000_000 before
-                    networkPriority: "very-low",
-                    priority: "very-low",
+                    maxBitrate: 2_500_000, // 2_000_000 before, then 1_500_000
+                    networkPriority: "medium",
+                    priority: "medium",
                     maxFramerate: 30,
                 },
             ],
@@ -501,7 +501,7 @@ export class PeerConnection {
             direction: "sendrecv",
             sendEncodings: [
                 {
-                    maxBitrate: 12_000_000, // 10_000_000 before
+                    maxBitrate: 10_000_000, // 10_000_000 before, then 12_000_000
                     networkPriority: "medium",
                     priority: "medium",
                     maxFramerate: 60,
