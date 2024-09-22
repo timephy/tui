@@ -338,7 +338,12 @@ export class AudioPipeline {
             if (this.#playback) {
                 this.#nodes.gain.connect(this.#ctx.destination)
             } else {
-                this.#nodes.gain.disconnect(this.#ctx.destination)
+                try {
+                    this.#nodes.gain.disconnect(this.#ctx.destination)
+                } catch (_error) {
+                    // NOTE: This error can happen, when a AudioPipeline is created with `{ playback: true }` (= Peer)
+                    // NOTE: and if deaf, it is set to `false` immediately, and then it tries to disconnect the node
+                }
             }
         }
     }
