@@ -71,7 +71,6 @@ export class Peer extends PeerConnection implements PeerDisplay {
 
     // NOTE: Override this function to set the track on the audio pipeline
     protected override async onRemoteTrackMic(track: MediaStreamTrack) {
-        console.log("[Peer] onRemoteTrackMic", track)
         super.onRemoteTrackMic(track)
 
         // NOTE: Fix for Chrome: WebRTC audio not playing when not connected to a media element
