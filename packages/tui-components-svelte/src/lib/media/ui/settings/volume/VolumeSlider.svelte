@@ -12,7 +12,7 @@
         value = $bindable(),
         min = 0,
         max = 4,
-        step = 0.1,
+        step = 0.01,
         class: CLASS = "",
     }: {
         value: number

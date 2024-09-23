@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { volumeToPercent } from "$lib/media"
     import VolumeSlider from "$lib/media/ui/settings/volume/VolumeSlider.svelte"
     import type { PeerDisplay } from "../Call.svelte"
     import Stats from "./Stats.svelte"
@@ -19,7 +20,7 @@
 <div class="section">
     <h3>Volume</h3>
     <VolumeSlider bind:value={peer.gain} class="pl-section" />
-    <p>Adjust the local volume of this user ({peer.gain}x).</p>
+    <p>Adjust the local volume of this user. <span class="text-step-450">({volumeToPercent(peer.gain)}%)</span></p>
 
     <hr />
 

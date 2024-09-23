@@ -12,3 +12,7 @@ export const RESOLUTIONS = [
     { value: 540, label: "540p" },
     { value: 360, label: "360p" },
 ] as const
+
+export function volumeToPercent(volume: number): number {
+    return Math.round(volume * 100)
+}
