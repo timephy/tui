@@ -69,13 +69,13 @@
             "types": "./dist/media/ui/MediaState.svelte.d.ts",
             "svelte": "./dist/media/ui/MediaState.svelte"
         },
-        "./media/MediaSettingsSelect.svelte": {
-            "types": "./dist/media/ui/settings/MediaSettingsSelect.svelte.d.ts",
-            "svelte": "./dist/media/ui/settings/MediaSettingsSelect.svelte"
+        "./media/MediaSettingsDevices.svelte": {
+            "types": "./dist/media/ui/settings/MediaSettingsDevices.svelte.d.ts",
+            "svelte": "./dist/media/ui/settings/MediaSettingsDevices.svelte"
         },
-        "./media/MediaSettingsVolume.svelte": {
-            "types": "./dist/media/ui/settings/MediaSettingsVolume.svelte.d.ts",
-            "svelte": "./dist/media/ui/settings/MediaSettingsVolume.svelte"
+        "./media/MediaSettingsMicrophone.svelte": {
+            "types": "./dist/media/ui/settings/MediaSettingsMicrophone.svelte.d.ts",
+            "svelte": "./dist/media/ui/settings/MediaSettingsMicrophone.svelte"
         },
         "./media/VolumeMeter.svelte": {
             "types": "./dist/media/ui/settings/volume/VolumeMeter.svelte.d.ts",

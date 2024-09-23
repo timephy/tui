@@ -4,7 +4,7 @@
 -->
 
 <script lang="ts">
-    import { type Media } from "$lib/media"
+    import { volumeToPercent, type Media } from "$lib/media"
     import VolumeMeter, * as Volume from "$lib/media/ui/settings/volume/VolumeMeter.svelte"
     import VolumeSlider from "$lib/media/ui/settings/volume/VolumeSlider.svelte"
     import { MIN_VOLUME } from "$lib/media/volume"
@@ -66,7 +66,11 @@
     {#if media.mic_noiseSuppressionLoaded === false}
         <p class="!text-orange">Could not load, noise suppression is disabled.</p>
     {:else}
-        <p>Suppress background noise ({media.mic_noiseSuppression ? "active" : "recommended"}).</p>
+        <p>
+            Suppress background noise. <span>
+                ({media.mic_noiseSuppression ? "active" : "recommended"})
+            </span>
+        </p>
     {/if}
 
     <div class="h-1"></div>
@@ -74,9 +78,9 @@
     <!-- MARK: Volume Gate -->
     <SwitchLabel icon={filter_left} label="Volume Gate" bind:value={media.mic_volumeGate} class="grow" />
     <p>
-        Only pass audio above this volume ({media.mic_volumeGate
-            ? `${media.mic_volumeGateThreshold}dB`
-            : "recommended"}).
+        Only pass audio above this volume. <span>
+            ({media.mic_volumeGate ? `${media.mic_volumeGateThreshold}dB` : "recommended"})
+        </span>
     </p>
 
     {#if media.mic_volumeGate}
@@ -119,7 +123,7 @@
     <!-- NOTE: 28px is same height as SwitchLabel -->
     <!-- <IconWithLabel icon={mic_fill} iconSize="sm" label="Change Volume" class="h-[28px]" /> -->
     <IconWithLabel label="Change Volume" class="h-[28px]" />
-    <p>Adjust the output volume ({media.mic_gain}x).</p>
+    <p>Adjust the output volume. <span>({volumeToPercent(media.mic_gain)}%)</span></p>
 
     <!-- INFO: Set min above 0 to not let you mute yourself permanently -->
     <VolumeSlider bind:value={media.mic_gain} min={0.2} class="pl-section" />
@@ -155,3 +159,9 @@
         </div>
     {/if}
 </div>
+
+<style lang="postcss">
+    span {
+        @apply text-step-450;
+    }
+</style>
