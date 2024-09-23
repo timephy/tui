@@ -192,6 +192,7 @@ export class AudioPipeline {
         this.#volumeVoice = MIN_VOLUME
         this.#volume = MIN_VOLUME
         this.#volumeGateOpen = false
+        this.#debugGateFactor = 0
         this.#debugVolumeSource = this.#debug ? MIN_VOLUME : null
         this.#debugVolumeOutput = this.#debug ? MIN_VOLUME : null
     }
