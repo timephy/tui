@@ -95,7 +95,7 @@ export abstract class Call {
      */
     public async join() {
         try {
-            this.signalJoin(this._mediaState)
+            this.signalJoin($state.snapshot(this._mediaState))
 
             this._mediaStateSubscriptionSignal?.unsubscribe()
             this._mediaStateSubscriptionSignal = mediaState$(this.media)
