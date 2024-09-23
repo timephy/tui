@@ -6,8 +6,8 @@
     import DebugPeer from "$lib/call/ui/debug/DebugPeer.svelte"
     import { MeshCallClientDemo } from "$lib/examples/call/MeshCallClientDemo.svelte"
     import MediaState from "$lib/media/ui/MediaState.svelte"
-    import MediaSelect from "$lib/media/ui/settings/MediaSettingsSelect.svelte"
-    import MediaVolume from "$lib/media/ui/settings/MediaSettingsVolume.svelte"
+    import MediaSettingsDevices from "$lib/media/ui/settings/MediaSettingsDevices.svelte"
+    import MediaSettingsMicrophone from "$lib/media/ui/settings/MediaSettingsMicrophone.svelte"
     import volume_mute_fill from "@timephy/tui-icons-svelte/volume_mute_fill"
     import { onDestroy, onMount } from "svelte"
 
@@ -171,10 +171,10 @@
     <!-- !! Right Column -->
     <div class="flex w-full max-w-sm flex-col gap-6">
         <div class="card card-p w-full">
-            <MediaSelect media={call.media} {debug} />
+            <MediaSettingsDevices media={call.media} {debug} />
         </div>
         <div class="card card-p w-full">
-            <MediaVolume media={call.media} {debug} />
+            <MediaSettingsMicrophone media={call.media} {debug} />
         </div>
     </div>
 </div>

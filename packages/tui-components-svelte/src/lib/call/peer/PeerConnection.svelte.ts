@@ -131,7 +131,7 @@ export class PeerConnection {
     /* ============================================================================================================== */
 
     // MARK: Connection
-    protected readonly _pc: RTCPeerConnection
+    readonly _pc: RTCPeerConnection
 
     // NOTE: Variables for "perfect negotiation" pattern (https://w3c.github.io/webrtc-pc/#perfect-negotiation-example)
     private __makingOffer = false
@@ -203,6 +203,7 @@ export class PeerConnection {
         this._pc.ontrack = (event) => {
             const { track, transceiver } = event
             this.DEBUG("ontrack", transceiver.mid, track.kind, track)
+            // INFO: onRemoteTrack is async
             this.onRemoteTrack(track, transceiver)
         }
 
@@ -371,7 +372,7 @@ export class PeerConnection {
     // MARK: onRemoteTrack
     /* ============================================================================================================== */
 
-    private onRemoteTrack(track: MediaStreamTrack, transceiver: RTCRtpTransceiver) {
+    private async onRemoteTrack(track: MediaStreamTrack, transceiver: RTCRtpTransceiver) {
         // NOTE: detecting transceivers by order of addition (`startConnection()`) on the "impolite" side
         // NOTE: direction has to be set to enable sending on the receiving ("polite") side
         if (transceiver.mid === TRANSCEIVER_MID_MIC_AUDIO) {
@@ -381,7 +382,9 @@ export class PeerConnection {
                 this.DEBUG("ontrack", transceiver.mid, "- initialized on impolite side")
                 this._transceiverMicAudio = transceiver
                 this._transceiverMicAudio.direction = "sendrecv"
-                this._transceiverMicAudio.sender.replaceTrack(this._localTrackMic)
+
+                await this._transceiverMicAudio.sender.replaceTrack(this._localTrackMic)
+                await this._configure_transceiverMicAudio(transceiver)
             }
         } else if (transceiver.mid === TRANSCEIVER_MID_CAM_VIDEO) {
             this.onRemoteTrackCam(track)
@@ -390,30 +393,38 @@ export class PeerConnection {
                 this.DEBUG("ontrack", transceiver.mid, "- initialized on impolite side")
                 this._transceiverCamVideo = transceiver
                 this._transceiverCamVideo.direction = "sendrecv"
-                this._transceiverCamVideo.sender.replaceTrack(this._localTrackCam)
+
+                await this._transceiverCamVideo.sender.replaceTrack(this._localTrackCam)
+                await this._configure_transceiverCamVideo(transceiver)
             }
         } else if (transceiver.mid === TRANSCEIVER_MID_SCREEN_VIDEO) {
             this.onRemoteTrackScreenVideo(track)
 
             if (this._transceiverScreenVideo === null) {
                 this.DEBUG("ontrack", transceiver.mid, "- initialized on impolite side")
+
                 this._transceiverScreenVideo = transceiver
                 this._transceiverScreenVideo.direction = "sendrecv"
-                this._transceiverScreenVideo.sender.replaceTrack(this._localTrackScreenVideo)
+
+                await this._transceiverScreenVideo.sender.replaceTrack(this._localTrackScreenVideo)
+                await this._configure_transceiverScreenVideo(transceiver)
             }
         } else if (transceiver.mid === TRANSCEIVER_MID_SCREEN_AUDIO) {
             this.onRemoteTrackScreenAudio(track)
 
             if (this._transceiverScreenAudio === null) {
                 this.DEBUG("ontrack", transceiver.mid, "- initialized on impolite side")
+
                 this._transceiverScreenAudio = transceiver
                 this._transceiverScreenAudio.direction = "sendrecv"
-                this._transceiverScreenAudio.sender.replaceTrack(this._localTrackScreenAudio)
+
+                await this._transceiverScreenAudio.sender.replaceTrack(this._localTrackScreenAudio)
+                await this._configure_transceiverScreenAudio(transceiver)
             }
         } else if (transceiver.mid === null) {
             this.ERROR("ontrack transceiver.mid is null")
         } else {
-            this.WARN("ontrack unknown transceiver.mid", transceiver.mid)
+            this.ERROR("ontrack unknown transceiver.mid = ", transceiver.mid, typeof transceiver.mid)
         }
     }
 
@@ -455,85 +466,44 @@ export class PeerConnection {
      *
      * This should be called on the offering ("impolite") side to start the connection.
      */
-    startConnection() {
+    async startConnection() {
         // NOTE: Adding transceivers will create an offer by triggering `onnegotiationneeded`
 
+        // NOTE: Adding `await` in front of all functions, will result in an error
+        // NOTE: When using `await` the `transceiver.mid`s are `[0,2,3,4]` instead of `[0,1,2,3]`
+        // NOTE: This results in an error when setting the codec preferences, because the track type does not match the codcs
+        // NOTE: Error: transceiverScreenAudio.setCodecPreferences() error: InvalidModificationError: Failed to execute 'setCodecPreferences' on 'RTCRtpTransceiver': Invalid codec preferences: Missing codec from recv codec capabilities.
+
+        // NOTE: Adding this now will result in `mid === 0`
         this._transceiverMicAudio = this._pc.addTransceiver("audio", {
             direction: "sendrecv",
-            sendEncodings: [
-                {
-                    // maxBitrate?: number;
-                    networkPriority: "high",
-                    priority: "high",
-                },
-            ],
+            sendEncodings: [this._transceiverMicAudioParameters],
         })
-        if (sortedCodecsAudio !== null) {
-            try {
-                this._transceiverMicAudio.setCodecPreferences(sortedCodecsAudio)
-            } catch (error) {
-                this.ERROR("transceiverMicAudio.setCodecPreferences() error:", error)
-            }
-        }
+        this._configure_transceiverMicAudio(this._transceiverMicAudio)
         this._transceiverMicAudio.sender.replaceTrack(this._localTrackMic)
 
+        // NOTE: Adding this now will result in `mid === 1`
         this._transceiverCamVideo = this._pc.addTransceiver("video", {
             direction: "sendrecv",
-            sendEncodings: [
-                {
-                    maxBitrate: 2_500_000, // 2_000_000 before, then 1_500_000
-                    networkPriority: "medium",
-                    priority: "medium",
-                    maxFramerate: 30,
-                },
-            ],
+            sendEncodings: [this._transceiverCamVideoParameters],
         })
-        if (sortedCodecsVideo !== null) {
-            try {
-                this._transceiverCamVideo.setCodecPreferences(sortedCodecsVideo)
-            } catch (error) {
-                this.ERROR("transceiverCamVideo.setCodecPreferences() error:", error)
-            }
-        }
+        this._configure_transceiverCamVideo(this._transceiverCamVideo)
         this._transceiverCamVideo.sender.replaceTrack(this._localTrackCam)
 
+        // NOTE: Adding this now will result in `mid === 2`
         this._transceiverScreenVideo = this._pc.addTransceiver("video", {
             direction: "sendrecv",
-            sendEncodings: [
-                {
-                    maxBitrate: 10_000_000, // 10_000_000 before, then 12_000_000
-                    networkPriority: "medium",
-                    priority: "medium",
-                    maxFramerate: 60,
-                },
-            ],
+            sendEncodings: [this._transceiverScreenVideoParameters],
         })
-        if (sortedCodecsVideo !== null) {
-            try {
-                this._transceiverScreenVideo.setCodecPreferences(sortedCodecsVideo)
-            } catch (error) {
-                this.ERROR("transceiverScreenVideo.setCodecPreferences() error:", error)
-            }
-        }
+        this._configure_transceiverScreenVideo(this._transceiverScreenVideo)
         this._transceiverScreenVideo.sender.replaceTrack(this._localTrackScreenVideo)
 
+        // NOTE: Adding this now will result in `mid === 3`
         this._transceiverScreenAudio = this._pc.addTransceiver("audio", {
             direction: "sendrecv",
-            sendEncodings: [
-                {
-                    // maxBitrate?: number;
-                    networkPriority: "low",
-                    priority: "low",
-                },
-            ],
+            sendEncodings: [this._transceiverScreenAudioParameters],
         })
-        if (sortedCodecsAudio !== null) {
-            try {
-                this._transceiverScreenAudio.setCodecPreferences(sortedCodecsAudio)
-            } catch (error) {
-                this.ERROR("transceiverScreenAudio.setCodecPreferences() error:", error)
-            }
-        }
+        this._configure_transceiverScreenAudio(this._transceiverScreenAudio)
         this._transceiverScreenAudio.sender.replaceTrack(this._localTrackScreenAudio)
     }
 
@@ -549,5 +519,108 @@ export class PeerConnection {
         this.onicegatheringstatechange(this._pc.iceGatheringState)
         this.oniceconnectionstatechange(this._pc.iceConnectionState)
         this.onconnectionstatechange(this._pc.connectionState)
+    }
+
+    /* ============================================================================================================== */
+
+    private readonly _transceiverMicAudioParameters: RTCRtpEncodingParameters = {
+        // maxBitrate?: number;
+        networkPriority: "high",
+        priority: "high",
+    }
+    private readonly _transceiverCamVideoParameters: RTCRtpEncodingParameters = {
+        maxFramerate: 30,
+        maxBitrate: 2_500_000, // 2_000_000 before, then 1_500_000
+        networkPriority: "medium",
+        priority: "medium",
+    }
+    private readonly _transceiverScreenVideoParameters: RTCRtpEncodingParameters = {
+        maxFramerate: 60,
+        maxBitrate: 10_000_000, // 10_000_000 before, then 12_000_000
+        networkPriority: "medium",
+        priority: "medium",
+    }
+    private readonly _transceiverScreenAudioParameters: RTCRtpEncodingParameters = {
+        // maxBitrate?: number;
+        networkPriority: "low",
+        priority: "low",
+    }
+
+    /* ============================================================================================================== */
+
+    private async _configure_transceiverMicAudio(transceiver: RTCRtpTransceiver) {
+        if (sortedCodecsAudio !== null) {
+            try {
+                transceiver.setCodecPreferences(sortedCodecsAudio)
+            } catch (error) {
+                this.ERROR("transceiverMicAudio.setCodecPreferences() error:", error)
+            }
+        }
+
+        try {
+            const parameters = transceiver.sender.getParameters()
+            // parameters.degradationPreference = "maintain-resolution"
+            Object.assign(parameters.encodings[0]!, this._transceiverMicAudioParameters)
+            await transceiver.sender.setParameters(parameters)
+        } catch (error) {
+            this.ERROR("transceiverMicAudio.setParameters() error:", error)
+        }
+    }
+    private async _configure_transceiverCamVideo(transceiver: RTCRtpTransceiver) {
+        if (sortedCodecsVideo !== null) {
+            try {
+                transceiver.setCodecPreferences(sortedCodecsVideo)
+            } catch (error) {
+                this.ERROR("transceiverCamVideo.setCodecPreferences() error:", error)
+            }
+        }
+
+        try {
+            const parameters = transceiver.sender.getParameters()
+            parameters.degradationPreference = "maintain-resolution"
+            Object.assign(parameters.encodings[0]!, this._transceiverCamVideoParameters)
+            await transceiver.sender.setParameters(parameters)
+        } catch (error) {
+            this.ERROR("transceiverCamVideo.setParameters() error:", error)
+        }
+    }
+    private async _configure_transceiverScreenVideo(transceiver: RTCRtpTransceiver) {
+        if (sortedCodecsVideo !== null) {
+            try {
+                transceiver.setCodecPreferences(sortedCodecsVideo)
+            } catch (error) {
+                this.ERROR("transceiverScreenVideo.setCodecPreferences() error:", error)
+            }
+        }
+
+        try {
+            const parameters = transceiver.sender.getParameters()
+            parameters.degradationPreference = "maintain-framerate"
+            Object.assign(parameters.encodings[0]!, this._transceiverScreenVideoParameters)
+            await transceiver.sender.setParameters(parameters)
+        } catch (error) {
+            this.ERROR("transceiverScreenVideo.setParameters() error:", error)
+        }
+    }
+    private async _configure_transceiverScreenAudio(transceiver: RTCRtpTransceiver) {
+        console.log("debug", transceiver.sender.getParameters())
+        console.log("debug", transceiver.receiver.getParameters())
+
+        if (sortedCodecsAudio !== null) {
+            try {
+                transceiver.setCodecPreferences(sortedCodecsAudio)
+            } catch (error) {
+                this.ERROR("transceiverScreenAudio.setCodecPreferences() error:", error)
+            }
+        }
+
+        try {
+            const parameters = transceiver.sender.getParameters()
+            // parameters.degradationPreference = "maintain-resolution"
+            Object.assign(parameters.encodings[0]!, this._transceiverScreenAudioParameters)
+            await transceiver.sender.setParameters(parameters)
+        } catch (error) {
+            this.ERROR("transceiverScreenAudio.setParameters() error:", error)
+        }
     }
 }

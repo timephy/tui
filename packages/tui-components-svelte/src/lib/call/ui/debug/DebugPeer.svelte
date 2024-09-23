@@ -6,10 +6,22 @@
     import type { Peer } from "../../peer/Peer.svelte"
     import Stats from "../Stats.svelte"
     import Video from "../Video.svelte"
+    import { volumeToPercent } from "$lib/media"
+    import { onMount } from "svelte"
 
     /* ========================================================================================== */
 
     let { peer }: { peer: Peer } = $props()
+
+    /* ============================================================================================================== */
+
+    let key = $state({})
+    onMount(() => {
+        const interval = setInterval(() => {
+            key = {}
+        }, 100)
+        return () => clearInterval(interval)
+    })
 </script>
 
 <div class="section">
@@ -100,5 +112,13 @@
 
     <VolumeMeter volume={peer.volume} class="w-full px-[0.625rem]" />
     <VolumeSlider bind:value={peer.gain} class="pl-section" />
-    <p>Change the volume of this peer ({peer.gain}x).</p>
+    <p>Change the volume of this peer. <span class="text-step-450">({volumeToPercent(peer.gain)}%)</span></p>
+
+    {#key key}
+        <p>{JSON.stringify(peer._pc.getTransceivers().map((t) => t.mid))}</p>
+        <p>{JSON.stringify(peer._pc.getTransceivers().map((t) => t.direction))}</p>
+        <p>{JSON.stringify(peer._pc.getTransceivers().map((t) => t.currentDirection))}</p>
+        <p>{JSON.stringify(peer._pc.getTransceivers().map((t) => t.sender.track?.kind))}</p>
+        <p>{JSON.stringify(peer._pc.getTransceivers().map((t) => t.receiver.track.kind))}</p>
+    {/key}
 </div>
