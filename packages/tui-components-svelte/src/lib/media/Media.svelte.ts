@@ -14,7 +14,7 @@ const LS_SCREEN_MAX_HEIGHT_ID = Storage.int("tui-rtc.screen_maxHeight", null)
 
 const LS_MIC_NOISE_SUPPRESSION = Storage.boolean("tui-rtc.mic_noiseSuppression", true)
 const LS_MIC_VOLUME_GATE = Storage.boolean("tui-rtc.mic_volumeGate", true)
-const LS_MIC_VOLUME_GATE_THRESHOLD = Storage.float<number>("tui-rtc.mic_volumeGateThreshold", -50)
+const LS_MIC_VOLUME_GATE_THRESHOLD = Storage.float<number>("tui-rtc.mic_volumeGateThreshold", -60)
 const LS_MIC_GAIN = Storage.float("tui-rtc.mic_gain", 1)
 
 /* ================================================================================================================== */
@@ -321,7 +321,7 @@ export class Media {
                 }
                 track.onended = () => {
                     LOCK_MIC(async () => {
-                        DEBUG("mic_audio.onended()")
+                        DEBUG("mic_audio.onended()", track)
                         await this._setMic(this.#mic_id, false)
                     })
                 }
@@ -339,8 +339,11 @@ export class Media {
         if (load === null) {
             // id changed, reload track if it was loaded before
             if (this.#mic_audio !== null && this.#mic_audio.getSettings().deviceId !== this.#mic_id) {
+                // NOTE: In Safari, when a new mic is accessed, the old one emits `onended`, this would deactivate
+                this.#mic_audio.onended = null
+
                 const _track = await track()
-                this.#mic_audio?.stop()
+                this.#mic_audio.stop()
                 this.#mic_audio = _track
                 this.#mic_audioSource$.next(this.#mic_audio)
                 this.#mic_audioOutput$.next(this.mic_audioOutput)
@@ -349,6 +352,9 @@ export class Media {
         } else if (load === true) {
             // should load track if it's not loaded or the id changed
             if (this.#mic_audio === null || this.#mic_audio.getSettings().deviceId !== this.#mic_id) {
+                // NOTE: In Safari, when a new mic is accessed, the old one emits `onended`, this would deactivate
+                if (this.#mic_audio) this.#mic_audio.onended = null
+
                 const _track = await track()
                 this.#mic_audio?.stop()
                 this.#mic_audio = _track
@@ -389,7 +395,7 @@ export class Media {
                 }
                 track.onended = () => {
                     LOCK_CAM(async () => {
-                        DEBUG("cam_video.onended()")
+                        DEBUG("cam_video.onended()", track)
                         await this._setCam(this.#cam_id, false)
                     })
                 }
@@ -409,6 +415,10 @@ export class Media {
         if (load === null) {
             // id changed, reload track if it was loaded before
             if (this.#cam_video !== null && this.#cam_video.getSettings().deviceId !== this.#cam_id) {
+                // NOTE: In Safari, when a new mic is accessed, the old one emits `onended`, this would deactivate
+                // NOTE: I've never seen this happen with the cam, but still put it here to be safe
+                this.#cam_video.onended = null
+
                 const _track = await track()
                 this.#cam_video?.stop()
                 this.#cam_video = _track
@@ -417,6 +427,10 @@ export class Media {
         } else if (load === true) {
             // should load track if it's not loaded or the id changed
             if (this.#cam_video === null || this.#cam_video.getSettings().deviceId !== this.#cam_id) {
+                // NOTE: In Safari, when a new mic is accessed, the old one emits `onended`, this would deactivate
+                // NOTE: I've never seen this happen with the cam, but still put it here to be safe
+                if (this.#cam_video) this.#cam_video.onended = null
+
                 const _track = await track()
                 this.#cam_video?.stop()
                 this.#cam_video = _track
@@ -472,14 +486,14 @@ export class Media {
             }
             videoTrack.onended = () => {
                 LOCK_SCREEN(async () => {
-                    DEBUG("screen_video.onended()")
+                    DEBUG("screen_video.onended()", videoTrack)
                     await this._setScreen(null)
                 })
             }
             if (audioTrack) {
                 audioTrack.onended = () => {
                     LOCK_SCREEN(async () => {
-                        DEBUG("screen_audio.onended()")
+                        DEBUG("screen_audio.onended()", audioTrack)
                         await this._setScreen(null)
                     })
                 }
