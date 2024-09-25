@@ -8,6 +8,7 @@
 <script lang="ts">
     import Icon, { type IconType } from "$lib/ui/Icon.svelte"
     import camera_video_fill from "@timephy/tui-icons-svelte/camera_video_fill"
+    import camera_video_off_fill from "@timephy/tui-icons-svelte/camera_video_off_fill"
     import display from "@timephy/tui-icons-svelte/display"
     import display_fill from "@timephy/tui-icons-svelte/display_fill"
     import mic_fill from "@timephy/tui-icons-svelte/mic_fill"
@@ -86,7 +87,7 @@
     onclick: () => (media.cam_active = !media.cam_active),
     disabled: !navigator.mediaDevices?.getUserMedia,
     class: media.cam_error ? "!outline-red" : media.cam_active ? "!outline-blue" : "!outline-0",
-    icon: media.cam_active ? camera_video_fill : camera_video_fill,
+    icon: media.cam_active ? camera_video_fill : camera_video_off_fill,
 })}
 
 {#if media.screen_available}
