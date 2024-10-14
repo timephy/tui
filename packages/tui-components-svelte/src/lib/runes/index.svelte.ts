@@ -1,5 +1,5 @@
 import { browser } from "$app/environment"
-import { onDestroy, untrack } from "svelte"
+import { untrack } from "svelte"
 
 export type Opts<T> = {
     construct: (curr?: T) => T
@@ -25,7 +25,7 @@ export type DerivedStateType<T> = (() => T) & {
 }
 
 /**
- * This is a helper function to create derived state, state always exists.
+ * This is a helper function to create derived state, state always exists, not just lazily like a normal `$derived(...)` or `$derived.by(...)`.
  *
  * Use this inside `⁠$derived.by(...)`.
  */
