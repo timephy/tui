@@ -11,8 +11,8 @@
         onChange,
         disabled,
         class: CLASS,
-    }: ComponentProps<IconWithLabel> &
-        ComponentProps<Switch> & {
+    }: ComponentProps<typeof IconWithLabel> &
+        ComponentProps<typeof Switch> & {
             class?: string
         } = $props()
 </script>

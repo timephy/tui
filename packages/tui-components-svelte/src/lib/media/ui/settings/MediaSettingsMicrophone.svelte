@@ -44,7 +44,7 @@
         step: 1,
         leftColor: "gray",
         rightColor: "green",
-    } satisfies Partial<ComponentProps<Slider>>
+    } satisfies Partial<ComponentProps<typeof Slider>>
 
     /** Special padding to align the VolumeMeter perfectly with the Slider thumb. */
     const volumeMeterClass = "w-full px-[0.625rem]"
