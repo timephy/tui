@@ -76,6 +76,7 @@
     <div class="h-1"></div>
 
     <!-- MARK: Volume Gate -->
+    <!-- TODO: Is this grow required? -->
     <SwitchLabel icon={filter_left} label="Volume Gate" bind:value={media.mic_volumeGate} class="grow" />
     <p>
         Only pass audio above this volume. <span>
