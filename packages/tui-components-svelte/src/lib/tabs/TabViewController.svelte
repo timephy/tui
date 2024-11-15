@@ -62,7 +62,7 @@
 
 <div id="TabViewController" class="flex h-full w-full flex-col">
     <!-- NOTE: Without `h-0` the correct height is not set (required for scrolling container) -->
-    <div class="h-0 w-full grow">
+    <div id="TabContent" class="h-0 w-full grow">
         {#each Object.entries(tabs) as [tabId, tab]}
             <TabView selected={tabId === selected}>
                 {@render tab.view()}
