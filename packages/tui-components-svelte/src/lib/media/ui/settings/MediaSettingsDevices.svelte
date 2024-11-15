@@ -3,7 +3,7 @@
     Settings for media input (microphone, camera, and screen resolution).
 -->
 
-<script lang="ts" context="module">
+<script lang="ts" module>
     export type MicCam<T> = {
         mic: T
         cam: T
