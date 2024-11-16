@@ -23,11 +23,11 @@
     }
 
     /**
-     * Call this function from a child of `TabView` to get the tab context.
+     * Call this function from a child of `TabView` to get the TabContext.
      */
     export function getTabContext() {
         const context = getContext(TAB_CONTEXT)
-        if (context === undefined) throw new Error("No tab context found.")
+        if (context === undefined) throw new Error("No TabContext found")
         return context as TabContext
     }
 </script>
