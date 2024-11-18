@@ -1,9 +1,9 @@
 <script lang="ts">
-    import { getModalViewControllerContext } from "$lib/modal/ModalViewController.svelte"
+    import { getModalController } from "$lib/modals"
     import ModalFullscreen from "./ModalFullscreen.svelte"
     import ModalSmall from "./ModalSmall.svelte"
 
-    const MODALVC = getModalViewControllerContext()
+    const MODALVC = getModalController()
 </script>
 
 {#snippet A()}

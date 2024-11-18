@@ -2,28 +2,60 @@
     @component
     A TabViewController is a component that manages multiple tabs and their views.
 
-    - It displays the views of the tabs based on the selected tab.
-    - It makes the view scrollable, so that the tab bar is always visible.
-    - It provides a tab bar to switch between tabs.
 
-    ## Layout
+    @example
+    ```svelte
+    <script lang="ts">
+        import { TabViewController } from "@timui/tabs"
+        import type { TabDef } from "@timui/tabs"
+        import Tab1 from "./Tab1.svelte"
+        import Tab2 from "./Tab2.svelte"
+        import Tab3 from "./Tab3.svelte"
 
-    - The TabViewController is `h-full w-full` and `flex-col`.
-    - The TabContent is `grow overflow-auto overscroll-contain`.
-    - The TabBar is `flex items-center justify-center` and has `bg` and `border-t`.
-        - You should apply `barClass="px- py- gap-"` yourself.
+        const tabs: Record<string, TabDef> = { // this could be `$derived({ ... })`
+            tab1: {
+                item: tab1Item,
+                view: tab1View,
+            },
+            tab2: {
+                item: tab2Item,
+                view: tab2View,
+            },
+        }
+        let selected: keyof typeof tabs = $state("tab1")
+
+        function onSelected(tabId: string) {
+            console.log(`Selected tab: ${tabId}`)
+        }
+    </script>
+
+    <TabViewController {tabs} {selected} {onSelected} />
+    ```
+
+    And then inside a tab view:
+
+    ```svelte
+    <script lang="ts">
+        import { getTab } from "@timui/tabs"
+
+        const TAB = getTab()
+
+        let i = $state(0)
+
+        tab.onSelected(() => {
+            console.log("onSelect")
+            i++
+        })
+    </script>
+    ```
 -->
 
 <script lang="ts" module>
-    import { untrack, type Snippet } from "svelte"
+    import { untrack } from "svelte"
+    import type { TabDef } from "."
     import TabView from "./TabView.svelte"
 
     export type SelectTab = () => void
-
-    export type TabDef = {
-        item: Snippet<[boolean, SelectTab]>
-        view: Snippet
-    }
 </script>
 
 <script lang="ts" generics="Tabs extends Record<string, TabDef>">

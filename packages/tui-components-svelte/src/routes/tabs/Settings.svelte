@@ -1,7 +1,7 @@
 <script lang="ts">
-    import { getTabContext } from "$lib/tabs/TabView.svelte"
+    import { getTab } from "$lib/tabs"
 
-    const tab = getTabContext()
+    const tab = getTab()
 
     let i = $state(0)
 

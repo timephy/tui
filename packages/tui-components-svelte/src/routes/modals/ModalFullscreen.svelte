@@ -2,7 +2,7 @@
     import type { Snippet } from "svelte"
     import Header from "./Header.svelte"
     import Actions from "./Actions.svelte"
-    import { getModalContext } from "$lib/modal/ModalView.svelte"
+    import { getModal } from "$lib/modals"
 
     const {
         children,
@@ -10,11 +10,9 @@
         children: Snippet
     } = $props()
 
-    const MODAL = getModalContext()
-    MODAL.viewOptions.fullscreen = true
-    MODAL.viewOptions.escClose = false
-
-    MODAL.dict.title = "Fullscreen"
+    const MODAL = getModal()
+    MODAL.fullscreen = true
+    MODAL.escClose = false
 </script>
 
 <div class="h-full w-full bg-red/50">

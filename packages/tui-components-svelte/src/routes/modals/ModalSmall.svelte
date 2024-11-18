@@ -2,7 +2,7 @@
     import type { Snippet } from "svelte"
     import Header from "./Header.svelte"
     import Actions from "./Actions.svelte"
-    import { getModalContext } from "$lib/modal/ModalView.svelte"
+    import { getModal } from "$lib/modals"
 
     const {
         children,
@@ -12,7 +12,7 @@
         a: number
     } = $props()
 
-    const MODAL = getModalContext<{ title: string }>()
+    const MODAL = getModal()
 </script>
 
 <div class="card card-p">
@@ -21,9 +21,8 @@
     <Actions />
     <button
         onclick={() => {
-            MODAL.dict.title = "ASD"
-            MODAL.viewOptions.fullscreen = true
-            MODAL.viewOptions.escClose = false
+            MODAL.fullscreen = true
+            MODAL.escClose = false
         }}
     >
         ASD</button

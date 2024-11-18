@@ -1,6 +1,6 @@
 {
     "name": "@timephy/tui-components-svelte",
-    "version": "0.0.26",
+    "version": "0.0.27",
     "description": "",
     "homepage": "https://github.com/timephy/tui/tree/main/tui-components-svelte#readme",
     "scripts": {
@@ -109,6 +109,7 @@
             "types": "./dist/ui/Icon.svelte.d.ts",
             "svelte": "./dist/ui/Icon.svelte"
         },
+        "./tabs": "./dist/tabs/index.js",
         "./tabs/TabViewController.svelte": {
             "types": "./dist/tabs/TabViewController.svelte.d.ts",
             "svelte": "./dist/tabs/TabViewController.svelte"
@@ -116,6 +117,15 @@
         "./tabs/TabView.svelte": {
             "types": "./dist/tabs/TabView.svelte.d.ts",
             "svelte": "./dist/tabs/TabView.svelte"
+        },
+        "./modals": "./dist/modals/index.js",
+        "./modals/ModalViewController.svelte": {
+            "types": "./dist/modals/ModalViewController.svelte.d.ts",
+            "svelte": "./dist/modals/ModalViewController.svelte"
+        },
+        "./modals/ModalView.svelte": {
+            "types": "./dist/modals/ModalView.svelte.d.ts",
+            "svelte": "./dist/modals/ModalView.svelte"
         }
     },
     "author": "",

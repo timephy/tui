@@ -1,5 +1,5 @@
 <script lang="ts">
-    import ModalViewController from "$lib/modal/ModalViewController.svelte"
+    import ModalViewController from "$lib/modals/ModalViewController.svelte"
     import type { Snippet } from "svelte"
 
     const {
