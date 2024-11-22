@@ -78,6 +78,7 @@ function parse_audio(stats: RawStats): Audio {
 }
 
 export type Video = {
+    // TODO: width and height are not correct of vertical front-facing mobile video
     frameWidth: number | null
     frameHeight: number | null
     framesPerSecond: number | null

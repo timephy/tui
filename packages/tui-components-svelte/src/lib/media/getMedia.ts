@@ -31,18 +31,28 @@ const MICROPHONE_CONSTRAINTS = {
     mozAutoGainControl: true,
 }
 
-const CAMERA_CONSTRAINTS = {
+const CAMERA_CONSTRAINTS: MediaTrackConstraints = {
     // NOTE: if we specify `ideal: 30`, then macOS prefers iPhone Continuity Camera over local camera (we don't want that)
     frameRate: { max: 30 },
+    aspectRatio: {
+        min: 3 / 4,
+        ideal: 4 / 3,
+        max: 16 / 9,
+    },
+    height: {
+        min: 480,
+        ideal: 720,
+        max: 720,
+    },
 }
 
-const SCREEN_VIDEO_CONSTRAINTS = {
+const SCREEN_VIDEO_CONSTRAINTS: MediaTrackConstraints = {
     frameRate: { ideal: 60, max: 60 },
 }
 
-const SCREEN_AUDIO_CONSTRAINTS = {
+const SCREEN_AUDIO_CONSTRAINTS: MediaTrackConstraints = {
     channelCount: 2,
-    latency: 0,
+    // latency: 0,
     sampleRate: 48000,
     sampleSize: 16,
 }

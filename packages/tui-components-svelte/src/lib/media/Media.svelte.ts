@@ -401,8 +401,9 @@ export class Media {
                 }
                 this.#cam_error = null
                 this.#cam_error$.next(this.#cam_error)
+                // NOTE: Not constaining camera here anymore, as it's done in `getCam()`, because it requires a different aspect ratio
                 // NOTE: Constrain cam to 720p
-                await this.#setVideoTrackMaxHeight(track, 720)
+                // await this.#setVideoTrackMaxHeight(track, 720)
                 return track
             } catch (error) {
                 WARN(`Cam Error: ${error}`)
