@@ -4,8 +4,6 @@
 -->
 
 <script lang="ts">
-    let elem: HTMLVideoElement
-
     let {
         stream,
         muted,
@@ -15,6 +13,8 @@
         muted: boolean
         class?: string
     } = $props()
+
+    let elem: HTMLVideoElement
 
     $effect(() => {
         elem.srcObject = stream
