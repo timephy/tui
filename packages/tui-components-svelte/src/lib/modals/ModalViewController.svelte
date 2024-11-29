@@ -74,13 +74,15 @@
     import { setContext, type Snippet } from "svelte"
     import { MODAL_CONTROLLER_KEY, type ComponentWithProps } from "./internal"
     import ModalView from "./ModalView.svelte"
-    import type { ModalController } from "."
+    import type { ModalConfig, ModalController } from "."
 
     /* ==================================================== Props =================================================== */
 
     const {
+        defaultConfig,
         children,
     }: {
+        defaultConfig: ModalConfig
         children: Snippet
     } = $props()
 
@@ -90,6 +92,8 @@
         id: string
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         view: Snippet | ComponentWithProps<any>
+
+        onClosed?: () => void
     }
     let modals: Modal[] = $state([])
 
@@ -98,7 +102,7 @@
     const MODAL_C: ModalController = {
         push(view, options) {
             const id = options?.id ?? Math.random().toString(36).substring(7)
-            modals.push({ view, id })
+            modals.push({ id, view, onClosed: options?.onClosed })
         },
         pop() {
             modals.pop()
@@ -106,8 +110,10 @@
         popAll() {
             modals = []
         },
-        remove(id) {
-            modals = modals.filter((modal) => modal.id !== id)
+        closeById(id) {
+            const removedModals = modals.filter((modal) => modal.id === id)
+            modals = modals.filter((modal) => !removedModals.includes(modal))
+            removedModals.forEach((modal) => modal.onClosed?.())
         },
         get count() {
             return modals.length
@@ -131,10 +137,11 @@
     <!-- NOTE: Key `modal.id` to reuse components -->
     {#each modals as modal, i (modal.id)}
         <ModalView
+            {defaultConfig}
             id={modal.id}
             topMost={i === modals.length - 1}
             bottomMost={i === 0}
-            close={() => MODAL_C.remove(modal.id)}
+            close={() => MODAL_C.closeById(modal.id)}
         >
             {#if modal.view instanceof Function}
                 {@render modal.view()}
