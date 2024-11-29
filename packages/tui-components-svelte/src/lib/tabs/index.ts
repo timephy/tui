@@ -23,6 +23,6 @@ export type Tab = {
  */
 export function getTab() {
     const context = getContext(TAB_KEY)
-    if (context === undefined) throw new Error("No TabContext found")
+    if (context === undefined) throw new Error("No Tab context found")
     return context as Tab
 }
