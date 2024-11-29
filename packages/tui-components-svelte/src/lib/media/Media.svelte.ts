@@ -28,13 +28,13 @@ export type Error = "error"
 /*                                                        Locks                                                       */
 /* ================================================================================================================== */
 
-const LOCK_MIC = (cb: () => Promise<void>) => {
+const LOCK_MIC = (cb: () => void | Promise<void>) => {
     return navigator.locks.request("tui-rtc.mic", cb)
 }
-const LOCK_CAM = (cb: () => Promise<void>) => {
+const LOCK_CAM = (cb: () => void | Promise<void>) => {
     return navigator.locks.request("tui-rtc.cam", cb)
 }
-const LOCK_SCREEN = (cb: () => Promise<void>) => {
+const LOCK_SCREEN = (cb: () => void | Promise<void>) => {
     return navigator.locks.request("tui-rtc.screen", cb)
 }
 
@@ -255,12 +255,16 @@ export class Media {
 
     /** Deactivate all media devices. */
     async deactivateAllAndReset() {
+        await Promise.all([
+            LOCK_MIC(() => this._setMic(this.#mic_id, false)),
+            LOCK_CAM(() => this._setCam(this.#cam_id, false)),
+            LOCK_SCREEN(() => this._setScreen(null)),
+        ])
+
         this.mute = false
         this.deaf = false
 
         this._mic_pipeline.playback = false
-
-        await Promise.all([this._setMic(this.#mic_id, false), this._setCam(this.#cam_id, false), this._setScreen(null)])
     }
 
     /* ============================================================================================================== */
@@ -290,12 +294,8 @@ export class Media {
 
         // NOTE: re-activate devices to activate the user-selected ones if possible
         // NOTE: (may not have been available before, e.g. if the preffered mic was disconnected and is not reconnected)
-        LOCK_MIC(async () => {
-            await this._setMic(LS_MIC_ID.value)
-        })
-        LOCK_CAM(async () => {
-            await this._setCam(LS_CAM_ID.value)
-        })
+        LOCK_MIC(() => this._setMic(LS_MIC_ID.value))
+        LOCK_CAM(() => this._setCam(LS_CAM_ID.value))
     }
 
     /* ============================================================================================================== */
@@ -320,10 +320,8 @@ export class Media {
                     throw "No audio track"
                 }
                 track.onended = () => {
-                    LOCK_MIC(async () => {
-                        DEBUG("mic_audio.onended()", track)
-                        await this._setMic(this.#mic_id, false)
-                    })
+                    DEBUG("mic_audio.onended()", track)
+                    LOCK_MIC(() => this._setMic(this.#mic_id, false))
                 }
                 this.#mic_error = null
                 this.#mic_error$.next(this.#mic_error)
@@ -362,6 +360,9 @@ export class Media {
                 this.#mic_audioOutput$.next(this.mic_audioOutput)
                 await this._mic_pipeline.setInput(this.#mic_audio)
             }
+
+            // NOTE: When loading the mic it should be fully active, therefore mute should be false
+            this._setMute(false)
         } else if (load === false) {
             // should unload track
             this.#mic_error = null
@@ -394,10 +395,8 @@ export class Media {
                     throw "No video track"
                 }
                 track.onended = () => {
-                    LOCK_CAM(async () => {
-                        DEBUG("cam_video.onended()", track)
-                        await this._setCam(this.#cam_id, false)
-                    })
+                    DEBUG("cam_video.onended()", track)
+                    LOCK_CAM(() => this._setCam(this.#cam_id, false))
                 }
                 this.#cam_error = null
                 this.#cam_error$.next(this.#cam_error)
@@ -486,17 +485,13 @@ export class Media {
                 throw "No video track"
             }
             videoTrack.onended = () => {
-                LOCK_SCREEN(async () => {
-                    DEBUG("screen_video.onended()", videoTrack)
-                    await this._setScreen(null)
-                })
+                DEBUG("screen_video.onended()", videoTrack)
+                LOCK_SCREEN(() => this._setScreen(null))
             }
             if (audioTrack) {
                 audioTrack.onended = () => {
-                    LOCK_SCREEN(async () => {
-                        DEBUG("screen_audio.onended()", audioTrack)
-                        await this._setScreen(null)
-                    })
+                    DEBUG("screen_audio.onended()", audioTrack)
+                    LOCK_SCREEN(() => this._setScreen(null))
                 }
             }
             // NOTE: Constrain screen video to `screen_maxHeight`
@@ -789,6 +784,24 @@ export class Media {
     // MARK: > mute + deaf
     /* ============================================================================================================== */
 
+    private _setMute(_mute: boolean) {
+        DEBUG(`_setMute(${_mute})`)
+        this.#mute = _mute
+        this.#mute$.next(this.#mute)
+
+        this.#setAudioTrackEnabled(this._mic_pipeline.output, this.#mute, this.#deaf)
+        DEBUG(`_setMute(${_mute}) end`)
+    }
+
+    private _setDeaf(_deaf: boolean) {
+        DEBUG(`_setDeaf(${_deaf})`)
+        this.#deaf = _deaf
+        this.#deaf$.next(this.#deaf)
+
+        this.#setAudioTrackEnabled(this._mic_pipeline.output, this.#mute, this.#deaf)
+        DEBUG(`_setDeaf(${_deaf}) end`)
+    }
+
     /**
      * If the mic is muted.
      *
@@ -798,14 +811,7 @@ export class Media {
         return this.#mute
     }
     set mute(_mute: boolean) {
-        LOCK_MIC(async () => {
-            DEBUG(`mute = ${_mute}`)
-            this.#mute = _mute
-            this.#mute$.next(this.#mute)
-
-            this.#setAudioTrackEnabled(this._mic_pipeline.output, this.#mute, this.#deaf)
-            DEBUG(`mute = ${_mute} end`)
-        })
+        LOCK_MIC(() => this._setMute(_mute))
     }
     /** An Observable of {@link mute}. */
     get mute$() {
@@ -822,14 +828,7 @@ export class Media {
         return this.#deaf
     }
     set deaf(_deaf: boolean) {
-        LOCK_MIC(async () => {
-            DEBUG(`deaf = ${_deaf}`)
-            this.#deaf = _deaf
-            this.#deaf$.next(this.#deaf)
-
-            this.#setAudioTrackEnabled(this._mic_pipeline.output, this.#mute, this.#deaf)
-            DEBUG(`deaf = ${_deaf} end`)
-        })
+        LOCK_MIC(() => this._setDeaf(_deaf))
     }
     /** An Observable of {@link deaf}. */
     get deaf$() {
