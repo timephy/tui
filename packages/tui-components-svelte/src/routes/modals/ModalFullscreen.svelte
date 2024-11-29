@@ -11,11 +11,11 @@
     } = $props()
 
     const MODAL = getModal()
-    MODAL.fullscreen = true
-    MODAL.escClose = false
+    MODAL.renderInBackground = true
+    MODAL.closeOnEsc = false
 </script>
 
-<div class="h-full w-full bg-red/50">
+<div class="h-full w-full bg-red/25">
     <Header />
     {@render children()}
     <Actions />

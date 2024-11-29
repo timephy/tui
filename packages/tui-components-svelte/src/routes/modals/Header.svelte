@@ -8,8 +8,18 @@
 
 <div class="item item-p flex flex-col gap-2">
     <p>Header</p>
-    <p>id: {MODAL.id}</p>
-    <p>showing: {MODAL.topMost}</p>
-    <p>fullscreen: {MODAL.fullscreen}</p>
-    <p>escClose: {MODAL.escClose}</p>
+    <p class="font-mono">
+        id = {MODAL.id}
+        <br />
+        topMost = {MODAL.topMost}
+        <br />
+        bottomMost = {MODAL.bottomMost}
+        <br />
+        renderInBackground = {MODAL.renderInBackground}
+        <br />
+        closeOnEsc = {MODAL.closeOnEsc}
+        <br />
+        closeOnOutsideClick = {MODAL.closeOnOutsideClick}
+        <br />
+    </p>
 </div>
