@@ -19,9 +19,11 @@ const btnColor = (color) => {
         color: "#ffffff",
         backgroundColor: `rgb(var(--${color}-000-value), var(--tw-bg-opacity))`,
         borderColor: `rgb(var(--${color}-050-value), var(--tw-border-opacity))`,
-        "&:hover": {
-            backgroundColor: `rgb(var(--${color}-100-value), var(--tw-bg-opacity))`,
-            borderColor: `rgb(var(--${color}-150-value), var(--tw-border-opacity))`,
+        "@media (hover: hover) and (pointer: fine)": {
+            "&:hover": {
+                backgroundColor: `rgb(var(--${color}-100-value), var(--tw-bg-opacity))`,
+                borderColor: `rgb(var(--${color}-150-value), var(--tw-border-opacity))`,
+            },
         },
         "&:active": {
             backgroundColor: `rgb(var(--${color}-200-value), var(--tw-bg-opacity))`,
@@ -35,7 +37,6 @@ export default plugin.withOptions(
         options = { ...defaults, ...options }
         const componentName = (name) => `.${options.prefix}${name}`
 
-        // eslint-disable-next-line no-unused-vars
         return function ({ theme, addBase, addComponents, addUtilities }) {
             addBase({
                 html: {
@@ -71,9 +72,11 @@ export default plugin.withOptions(
                     borderRadius: options.itemRadius,
                     borderWidth: "var(--border-width)",
                     borderColor: "rgb(var(--step-150-value), var(--tw-border-opacity))",
-                    "&:hover": {
-                        backgroundColor: "rgb(var(--step-200-value), var(--tw-bg-opacity))",
-                        borderColor: "rgb(var(--step-250-value), var(--tw-border-opacity))",
+                    "@media (hover: hover) and (pointer: fine)": {
+                        "&:hover": {
+                            backgroundColor: "rgb(var(--step-200-value), var(--tw-bg-opacity))",
+                            borderColor: "rgb(var(--step-250-value), var(--tw-border-opacity))",
+                        },
                     },
                     "&:active": {
                         backgroundColor: "rgb(var(--step-300-value), var(--tw-bg-opacity))",
@@ -107,9 +110,11 @@ export default plugin.withOptions(
                 [componentName("btn-transparent")]: {
                     backgroundColor: `transparent`,
                     borderColor: `transparent`,
-                    "&:hover": {
-                        backgroundColor: `rgb(var(--step-100-value), var(--tw-bg-opacity))`,
-                        borderColor: `rgb(var(--step-150-value), var(--tw-border-opacity))`,
+                    "@media (hover: hover) and (pointer: fine)": {
+                        "&:hover": {
+                            backgroundColor: `rgb(var(--step-100-value), var(--tw-bg-opacity))`,
+                            borderColor: `rgb(var(--step-150-value), var(--tw-border-opacity))`,
+                        },
                     },
                     "&:active": {
                         backgroundColor: `rgb(var(--step-300-value), var(--tw-bg-opacity))`,
@@ -120,9 +125,11 @@ export default plugin.withOptions(
                     color: "unset",
                     backgroundColor: "rgb(var(--step-100-value), var(--tw-bg-opacity))",
                     borderColor: "rgb(var(--step-150-value), var(--tw-border-opacity))",
-                    "&:hover": {
-                        backgroundColor: "rgb(var(--step-200-value), var(--tw-bg-opacity))",
-                        borderColor: "rgb(var(--step-250-value), var(--tw-border-opacity))",
+                    "@media (hover: hover) and (pointer: fine)": {
+                        "&:hover": {
+                            backgroundColor: "rgb(var(--step-200-value), var(--tw-bg-opacity))",
+                            borderColor: "rgb(var(--step-250-value), var(--tw-border-opacity))",
+                        },
                     },
                     "&:active": {
                         backgroundColor: "rgb(var(--step-300-value), var(--tw-bg-opacity))",
@@ -136,8 +143,10 @@ export default plugin.withOptions(
                 [componentName("link")]: {
                     color: "var(--blue-000)",
                     textUnderlineOffset: "2px", // for when `underline` is used
-                    "&:hover": {
-                        color: "var(--blue-100)",
+                    "@media (hover: hover) and (pointer: fine)": {
+                        "&:hover": {
+                            color: "var(--blue-100)",
+                        },
                     },
                     "&:active": {
                         color: "var(--blue-200)",
@@ -197,7 +206,7 @@ export default plugin.withOptions(
             })
         }
     },
-    // eslint-disable-next-line no-unused-vars
+
     function (options = {}) {
         return {}
     },
