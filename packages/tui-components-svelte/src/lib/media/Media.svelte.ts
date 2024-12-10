@@ -191,7 +191,7 @@ export class Media {
         // reload device list on "permission.change"
         // NOTE: `permission.change` not detected in Safari
         navigator.permissions
-            .query({
+            ?.query({
                 name: "microphone" as PermissionName,
             })
             .then((status) => {
@@ -206,7 +206,7 @@ export class Media {
                 }
             })
         navigator.permissions
-            .query({
+            ?.query({
                 name: "camera" as PermissionName,
             })
             .then((status) => {
