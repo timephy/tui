@@ -24,6 +24,7 @@
         onfocus = () => {},
         onchange = () => {},
         class: CLASS,
+        ariaLabelledBy,
     }: {
         value: Value
         options: Readonly<Array<Option<Value>>>
@@ -37,6 +38,7 @@
         disabled?: boolean
         invalid?: boolean
         class?: string
+        ariaLabelledBy?: string
     } = $props()
 </script>
 
@@ -68,6 +70,7 @@
         onchange={(e) => onchange(e.currentTarget.value as Value)}
         {disabled}
         aria-invalid={invalid}
+        aria-labelledby={ariaLabelledBy}
     >
         {#each options as option}
             <option
