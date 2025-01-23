@@ -35,6 +35,7 @@
         selectSnippet = {
             mic: mic_select_default,
             cam: cam_select_default,
+            screen: screen_select_default,
         },
         errorSnippet = {
             mic: mic_error_default,
@@ -44,7 +45,7 @@
         media: Media
         debug?: boolean
         titles?: All<string | null>
-        selectSnippet?: MicCam<Snippet>
+        selectSnippet?: All<Snippet>
         errorSnippet?: MicCam<Snippet>
     } = $props()
 </script>
@@ -63,6 +64,10 @@
     <p class="!text-red">Allow access in browser settings.</p>
 {/snippet}
 
+{#snippet screen_select_default()}
+    <p>Limit your screen resolution for more fps.</p>
+{/snippet}
+
 <div class="section gap-3">
     <!-- ! Mic -->
     <div class="section">
@@ -73,7 +78,7 @@
         <SelectMic {media} />
 
         <!-- NOTE: Check for device list too, because in Safari permissions are not updated -->
-        {#if media.mic_permission === "denied" && media.mic_devices.length === 0}
+        {#if media.mic_error !== null || (media.mic_permission === "denied" && media.mic_devices.length === 0)}
             {@render errorSnippet.mic()}
         {:else if media.mic_id === null}
             {@render selectSnippet.mic()}
@@ -97,7 +102,7 @@
         <SelectCam {media} />
 
         <!-- NOTE: Check for device list too, because in Safari permissions are not updated -->
-        {#if media.cam_permission === "denied" && media.cam_devices.length === 0}
+        {#if media.cam_error !== null || (media.cam_permission === "denied" && media.cam_devices.length === 0)}
             {@render errorSnippet.cam()}
         {:else if media.cam_id === null}
             {@render selectSnippet.cam()}
@@ -117,8 +122,11 @@
         {#if titles.screen}
             <h3>{titles.screen}</h3>
         {/if}
+
         <Select bind:value={media.screen_maxHeight} options={RESOLUTIONS} icon={display} />
-        <p>Limit your screen resolution for more fps.</p>
+
+        {@render selectSnippet.screen()}
+
         {#if debug}
             <p class="truncate font-mono">
                 value = {JSON.stringify(media.screen_maxHeight)}
