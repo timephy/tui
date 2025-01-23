@@ -25,7 +25,10 @@
     /* ============================================================================================================== */
 
     const { media } = $derived(call)
-    const errorMicOrCam = $derived(media.mic_error || media.cam_error)
+    const errorMicOrCam = $derived(
+        (media.mic_permission !== "granted" && media.mic_error !== null && media.mic_devices.length === 0) ||
+            (media.cam_permission !== "granted" && media.cam_error !== null && media.cam_devices.length === 0),
+    )
 
     const containerClass = $derived(
         layout === "normal"

@@ -78,7 +78,7 @@
         <SelectMic {media} />
 
         <!-- NOTE: Check for device list too, because in Safari permissions are not updated -->
-        {#if (media.mic_permission !== "granted" && media.mic_error !== null) || (media.mic_permission === "denied" && media.mic_devices.length === 0)}
+        {#if media.mic_permission !== "granted" && media.mic_error !== null && media.mic_devices.length === 0}
             {@render errorSnippet.mic()}
         {:else if media.mic_id === null}
             {@render selectSnippet.mic()}
@@ -102,7 +102,7 @@
         <SelectCam {media} />
 
         <!-- NOTE: Check for device list too, because in Safari permissions are not updated -->
-        {#if (media.cam_permission !== "granted" && media.cam_error !== null) || (media.cam_permission === "denied" && media.cam_devices.length === 0)}
+        {#if media.cam_permission !== "granted" && media.cam_error !== null && media.cam_devices.length === 0}
             {@render errorSnippet.cam()}
         {:else if media.cam_id === null}
             {@render selectSnippet.cam()}
