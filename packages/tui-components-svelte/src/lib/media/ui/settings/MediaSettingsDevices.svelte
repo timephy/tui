@@ -23,6 +23,7 @@
     import { RESOLUTIONS } from "../../shared"
     import SelectCam from "./select/SelectCam.svelte"
     import SelectMic from "./select/SelectMic.svelte"
+    import { getMediaErrors } from "$lib/media/getMedia.svelte"
 
     let {
         media,
@@ -78,7 +79,7 @@
         <SelectMic {media} />
 
         <!-- NOTE: Check for device list too, because in Safari permissions are not updated -->
-        {#if media.mic_permission !== "granted" && media.mic_error !== null && media.mic_devices.length === 0}
+        {#if getMediaErrors.mic_error}
             {@render errorSnippet.mic()}
         {:else if media.mic_id === null}
             {@render selectSnippet.mic()}
@@ -102,7 +103,7 @@
         <SelectCam {media} />
 
         <!-- NOTE: Check for device list too, because in Safari permissions are not updated -->
-        {#if media.cam_permission !== "granted" && media.cam_error !== null && media.cam_devices.length === 0}
+        {#if getMediaErrors.cam_error}
             {@render errorSnippet.cam()}
         {:else if media.cam_id === null}
             {@render selectSnippet.cam()}

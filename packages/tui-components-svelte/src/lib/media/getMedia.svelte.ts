@@ -1,3 +1,6 @@
+import type { Error } from "./Media.svelte"
+import type { All } from "./ui/settings/MediaSettingsDevices.svelte"
+
 // ! Default constraints for media devices
 const MICROPHONE_CONSTRAINTS = {
     // NOTE: sensible options, also working with `rnnoise`
@@ -65,40 +68,70 @@ const DEBUG = (...msgs: unknown[]) => {
 
 /* ============================================================================================== */
 
+export const getMediaErrors = $state({
+    mic_error: null as Error | null,
+    cam_error: null as Error | null,
+    screen_error: null as Error | null,
+})
+
 export async function getMic(deviceId: string | null): Promise<MediaStream> {
-    DEBUG(`getMic ${deviceId}`)
-    const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-            ...(deviceId ? { deviceId: { exact: deviceId } } : {}),
-            ...MICROPHONE_CONSTRAINTS,
-        },
-    })
-    DEBUG(`getMic ${deviceId} -> ${stream.getTracks()[0]?.getCapabilities().deviceId}`)
-    return stream
+    try {
+        DEBUG(`getMic ${deviceId}`)
+        const stream = await navigator.mediaDevices.getUserMedia({
+            audio: {
+                ...(deviceId ? { deviceId: { exact: deviceId } } : {}),
+                ...MICROPHONE_CONSTRAINTS,
+            },
+        })
+
+        DEBUG(`getMic ${deviceId} -> ${stream.getTracks()[0]?.getCapabilities().deviceId}`)
+        getMediaErrors.mic_error = null
+        return stream
+    } catch (error) {
+        DEBUG(`getMic ${deviceId} ERROR ${error}`)
+        getMediaErrors.mic_error = "error"
+        throw error
+    }
 }
 
 export async function getCam(deviceId: string | null): Promise<MediaStream> {
-    DEBUG(`getCam ${deviceId}`)
-    const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-            ...(deviceId ? { deviceId: { exact: deviceId } } : {}),
-            ...CAMERA_CONSTRAINTS,
-        },
-    })
-    DEBUG(`getCam ${deviceId} -> ${stream.getTracks()[0]?.getCapabilities().deviceId}`)
-    return stream
+    try {
+        DEBUG(`getCam ${deviceId}`)
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+                ...(deviceId ? { deviceId: { exact: deviceId } } : {}),
+                ...CAMERA_CONSTRAINTS,
+            },
+        })
+
+        DEBUG(`getCam ${deviceId} -> ${stream.getTracks()[0]?.getCapabilities().deviceId}`)
+        getMediaErrors.cam_error = null
+        return stream
+    } catch (error) {
+        DEBUG(`getCam ${deviceId} ERROR ${error}`)
+        getMediaErrors.cam_error = "error"
+        throw error
+    }
 }
 
 export async function getScreen(): Promise<MediaStream> {
-    DEBUG(`getScreen`)
-    const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: {
-            ...SCREEN_VIDEO_CONSTRAINTS,
-        },
-        audio: {
-            ...SCREEN_AUDIO_CONSTRAINTS,
-        },
-    })
-    DEBUG(`getScreen -> ${stream.getTracks()[0]?.getCapabilities().deviceId}`)
-    return stream
+    try {
+        DEBUG(`getScreen`)
+        const stream = await navigator.mediaDevices.getDisplayMedia({
+            video: {
+                ...SCREEN_VIDEO_CONSTRAINTS,
+            },
+            audio: {
+                ...SCREEN_AUDIO_CONSTRAINTS,
+            },
+        })
+
+        DEBUG(`getScreen -> ${stream.getTracks()[0]?.getCapabilities().deviceId}`)
+        getMediaErrors.screen_error = null
+        return stream
+    } catch (error) {
+        DEBUG(`getScreen ERROR ${error}`)
+        getMediaErrors.screen_error = "error"
+        throw error
+    }
 }

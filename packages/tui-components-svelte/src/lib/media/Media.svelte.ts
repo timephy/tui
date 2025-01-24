@@ -1,7 +1,7 @@
 import Storage from "$lib/storage/index.svelte"
 import { BehaviorSubject } from "rxjs"
 import { AudioPipeline } from "./AudioPipeline.svelte"
-import { getCam, getMic, getScreen } from "./getMedia"
+import { getCam, getMic, getScreen } from "./getMedia.svelte"
 import { type DeviceInfo } from "./shared"
 
 /* ================================================================================================================== */

@@ -4,6 +4,7 @@
     import gear_wide_connected from "@timephy/tui-icons-svelte/gear_wide_connected"
     import telephone_fill from "@timephy/tui-icons-svelte/telephone_fill"
     import type { Call } from "../Call.svelte"
+    import { getMediaErrors } from "$lib/media/getMedia.svelte"
 
     let {
         layout,
@@ -25,10 +26,7 @@
     /* ============================================================================================================== */
 
     const { media } = $derived(call)
-    const errorMicOrCam = $derived(
-        (media.mic_permission !== "granted" && media.mic_error !== null && media.mic_devices.length === 0) ||
-            (media.cam_permission !== "granted" && media.cam_error !== null && media.cam_devices.length === 0),
-    )
+    const errorMicOrCam = $derived(getMediaErrors.mic_error || getMediaErrors.cam_error)
 
     const containerClass = $derived(
         layout === "normal"

@@ -6,7 +6,7 @@
 <script lang="ts">
     import Select from "$lib/ui/Select.svelte"
     import type { Media } from "$lib/media"
-    import { getCam } from "$lib/media/getMedia"
+    import { getCam } from "$lib/media/getMedia.svelte"
     import camera_video_fill from "@timephy/tui-icons-svelte/camera_video_fill"
 
     let { media }: { media: Media } = $props()

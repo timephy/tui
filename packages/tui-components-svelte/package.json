@@ -1,6 +1,6 @@
 {
     "name": "@timephy/tui-components-svelte",
-    "version": "0.0.35",
+    "version": "0.0.36",
     "description": "",
     "homepage": "https://github.com/timephy/tui/tree/main/tui-components-svelte#readme",
     "scripts": {
