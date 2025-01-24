@@ -1,6 +1,3 @@
-import type { Error } from "./Media.svelte"
-import type { All } from "./ui/settings/MediaSettingsDevices.svelte"
-
 // ! Default constraints for media devices
 const MICROPHONE_CONSTRAINTS = {
     // NOTE: sensible options, also working with `rnnoise`
@@ -68,10 +65,10 @@ const DEBUG = (...msgs: unknown[]) => {
 
 /* ============================================================================================== */
 
-export const getMediaErrors = $state({
-    mic_error: null as Error | null,
-    cam_error: null as Error | null,
-    screen_error: null as Error | null,
+export const getMediaSuccess = $state({
+    mic: null as null | boolean,
+    cam: null as null | boolean,
+    screen: null as null | boolean,
 })
 
 export async function getMic(deviceId: string | null): Promise<MediaStream> {
@@ -85,11 +82,11 @@ export async function getMic(deviceId: string | null): Promise<MediaStream> {
         })
 
         DEBUG(`getMic ${deviceId} -> ${stream.getTracks()[0]?.getCapabilities().deviceId}`)
-        getMediaErrors.mic_error = null
+        getMediaSuccess.mic = true
         return stream
     } catch (error) {
         DEBUG(`getMic ${deviceId} ERROR ${error}`)
-        getMediaErrors.mic_error = "error"
+        getMediaSuccess.mic = false
         throw error
     }
 }
@@ -105,11 +102,11 @@ export async function getCam(deviceId: string | null): Promise<MediaStream> {
         })
 
         DEBUG(`getCam ${deviceId} -> ${stream.getTracks()[0]?.getCapabilities().deviceId}`)
-        getMediaErrors.cam_error = null
+        getMediaSuccess.cam = true
         return stream
     } catch (error) {
         DEBUG(`getCam ${deviceId} ERROR ${error}`)
-        getMediaErrors.cam_error = "error"
+        getMediaSuccess.cam = false
         throw error
     }
 }
@@ -127,11 +124,11 @@ export async function getScreen(): Promise<MediaStream> {
         })
 
         DEBUG(`getScreen -> ${stream.getTracks()[0]?.getCapabilities().deviceId}`)
-        getMediaErrors.screen_error = null
+        getMediaSuccess.screen = true
         return stream
     } catch (error) {
         DEBUG(`getScreen ERROR ${error}`)
-        getMediaErrors.screen_error = "error"
+        getMediaSuccess.screen = false
         throw error
     }
 }
