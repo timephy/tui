@@ -3,6 +3,11 @@ import type { SvelteMap } from "svelte/reactivity"
 import type { Media } from "../media"
 import { DEFAULT_MEDIA_STATE, mediaState$, type MediaState } from "../media/MediaState"
 import type { Stats } from "./Stats.svelte"
+import Storage from "$lib/storage/index.svelte"
+
+/* ================================================================================================================== */
+
+export const LS_GAIN_GENERAL = Storage.float("tui-rtc.general_gain", 1)
 
 /* ================================================================================================================== */
 // MARK: Peer
@@ -50,6 +55,8 @@ export type PeerDisplay = Display & {
     /** The volume of the microphone. */
     volume: number
     gain: number
+    /** Do not set this manually, this should be set by the containing Call only. Set the value on tha Call instead. */
+    gainGeneral: number
     stats: Stats
 }
 
@@ -187,6 +194,13 @@ export abstract class Call {
 
     public get mediaState() {
         return this._mediaState
+    }
+    public get gainGeneral() {
+        return LS_GAIN_GENERAL.value
+    }
+    public set gainGeneral(gain: number) {
+        LS_GAIN_GENERAL.value = gain
+        this.peers.forEach((peer) => (peer.gainGeneral = gain))
     }
 
     public readonly local: LocalDisplay = ((self: Call) => {

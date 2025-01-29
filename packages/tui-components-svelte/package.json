@@ -1,6 +1,6 @@
 {
     "name": "@timephy/tui-components-svelte",
-    "version": "0.0.37",
+    "version": "0.0.38",
     "description": "",
     "homepage": "https://github.com/timephy/tui/tree/main/tui-components-svelte#readme",
     "scripts": {
@@ -145,7 +145,7 @@
         "postcss": "^8.4.49",
         "prettier-plugin-svelte": "^3.2.8",
         "prettier-plugin-tailwindcss": "^0.6.8",
-        "svelte": "5.18.0",
+        "svelte": "5.19.4",
         "svelte-check": "^4.1.4",
         "tailwindcss": "^3.4.14",
         "vite": "^6.0.7"

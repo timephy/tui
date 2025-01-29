@@ -37,6 +37,11 @@ export class Peer extends PeerConnection implements PeerDisplay {
 
     /* ============================================================================================================== */
 
+    private _gain: number = $state(1)
+    private _gainGeneral: number = $state(1)
+
+    /* ============================================================================================================== */
+
     constructor(
         config: RTCConfiguration,
         readonly options: PeerConnectionOptions & { storageId: string | null },
@@ -44,11 +49,13 @@ export class Peer extends PeerConnection implements PeerDisplay {
     ) {
         super(config, options, _debug_id)
 
+        this._gain = this.options.storageId ? (LS_PEER_GAINS.value.get(this.options.storageId) ?? 1) : 1
+
         this.#audioPipeline = new AudioPipeline({
             debug: false,
             noiseSuppression: false,
             volumeGate: null,
-            gain: this.options.storageId ? (LS_PEER_GAINS.value.get(this.options.storageId) ?? 1) : 1,
+            gain: this._gainGeneral * this._gain,
             playback: true,
         })
 
@@ -111,16 +118,29 @@ export class Peer extends PeerConnection implements PeerDisplay {
     public set playback(value: boolean) {
         this.#audioPipeline.playback = value
     }
+
+    public get gainGeneral() {
+        return this._gainGeneral
+    }
+    public set gainGeneral(value: number) {
+        this._gainGeneral = value
+
+        this.#audioPipeline.gain = this._gainGeneral * this._gain
+    }
+
     public get gain() {
-        return this.#audioPipeline.gain
+        return this._gain
     }
     public set gain(value: number) {
-        this.#audioPipeline.gain = value
+        this._gain = value
+
+        this.#audioPipeline.gain = this._gainGeneral * this._gain
 
         if (this.options.storageId !== null) {
             LS_PEER_GAINS.value = LS_PEER_GAINS.value.set(this.options.storageId, value)
         }
     }
+
     public get volume() {
         return this.#audioPipeline.volume
     }
