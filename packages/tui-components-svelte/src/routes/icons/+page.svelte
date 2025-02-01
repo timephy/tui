@@ -27,7 +27,7 @@
         </button>
     </div>
     <div class="card card-p inline-grid grid-cols-10 items-center justify-center gap-2">
-        {#each Object.entries(icons) as [key, icon]}
+        {#each Object.entries(icons) as [key, icon] (key)}
             {#if query === "" || key.includes(query)}
                 <div class="flex flex-col items-center gap-1">
                     <button class="item p-4 hover:btn hover:h-auto" onclick={() => alert(key)}>

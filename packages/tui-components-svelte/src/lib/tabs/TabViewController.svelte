@@ -95,7 +95,7 @@
 <div id="TabViewController" class="flex h-full w-full flex-col">
     <!-- NOTE: Without `h-0` the correct height is not set (required for scrolling container) -->
     <div id="TabContent" class="h-0 w-full grow">
-        {#each Object.entries(tabs) as [tabId, tab]}
+        {#each Object.entries(tabs) as [tabId, tab] (tabId)}
             <TabView selected={tabId === selected}>
                 {@render tab.view()}
             </TabView>
@@ -104,7 +104,7 @@
 
     <div id="TabBar" class="w-full border-t border-step-050 bg-step-000" style:display={barHidden ? "none" : ""}>
         <div id="TabBarContent" class="flex items-center justify-center {barClass}">
-            {#each Object.entries(tabs) as [tabId, tab]}
+            {#each Object.entries(tabs) as [tabId, tab] (tabId)}
                 {@render tab.item(tabId === selected, () => (selected = tabId))}
             {/each}
         </div>
