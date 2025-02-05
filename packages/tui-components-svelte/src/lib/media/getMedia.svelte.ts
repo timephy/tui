@@ -10,9 +10,9 @@ const MICROPHONE_CONSTRAINTS = {
     autoGainControl: true,
     noiseSuppression: true,
     voiceIsolation: true,
-    // NOTE: `echoCancellation: true` makes the audio sound weird, the volume goes up and down, therefore disable it
-    // TODO: Someday check how `echoCancellation` behaves on mobile
-    echoCancellation: false,
+    // NOTE: OLD: `echoCancellation: true` makes the audio sound weird, the volume goes up and down, therefore disable it
+    // NOTE: REQUIRED for speaker+mic setups to be viable and not to create a feedback loop
+    echoCancellation: true,
     echoCancellationType: { ideal: "system" },
 
     // NOTE: following options were copied from an article... not sure if they are useful
