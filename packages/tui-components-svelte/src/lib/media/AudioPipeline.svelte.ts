@@ -178,9 +178,9 @@ export class AudioPipeline {
      * After calling this method, the instance should not be used anymore.
      */
     async destroy() {
+        DEBUG("destroy")
         this.#reset()
-        // NOTE: Using `.close()` here did suspend other `AudioContext`s in the same tab, this should be avoided
-        await this.#ctx.suspend()
+        await this.#ctx.close()
     }
 
     /** Called when no input track is set and state should reset to default. */
