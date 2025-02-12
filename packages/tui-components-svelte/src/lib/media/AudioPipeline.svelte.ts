@@ -170,6 +170,20 @@ export class AudioPipeline {
             await this.#set_volumeGate(volumeGate)
             await this.#set_noiseSuppression(noiseSuppression)
         })
+
+        // This resumes the audio context after being interrupted, mainly for iOS
+        let lastState = this.#ctx.state
+        this.#ctx.onstatechange = () => {
+            DEBUG("AudioContext.state =", this.#ctx.state)
+
+            // @ts-expect-error interrupted
+            if (this.#ctx.state === "suspended" && lastState === "interrupted") {
+                DEBUG("resume AudioContext after interrupted")
+                this.#ctx.resume()
+            }
+
+            lastState = this.#ctx.state
+        }
     }
 
     /**

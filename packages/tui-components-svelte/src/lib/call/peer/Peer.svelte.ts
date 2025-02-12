@@ -66,6 +66,8 @@ export class Peer extends PeerConnection implements PeerDisplay {
     override closeConnection() {
         super.closeConnection()
 
+        this.#audioPipeline.destroy()
+
         this.stats.stop()
     }
 
