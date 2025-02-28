@@ -1,9 +1,55 @@
+<script lang="ts" module>
+    function svg2png(svg: string, resolution: number, color: string = "#ffffff"): Promise<Blob> {
+        return new Promise((resolve) => {
+            const canvas = document.createElement("canvas")
+            canvas.width = resolution
+            canvas.height = resolution
+            const ctx = canvas.getContext("2d")!
+
+            // Apply color to SVG by adding fill attribute
+            const coloredSvg = svg.replace("<svg", `<svg fill="${color}"`)
+
+            const img = new Image()
+            img.onload = () => {
+                ctx.drawImage(img, 0, 0, resolution, resolution)
+                canvas.toBlob((blob) => {
+                    resolve(blob!)
+                })
+            }
+            img.src = "data:image/svg+xml;base64," + btoa(coloredSvg)
+        })
+    }
+</script>
+
 <script lang="ts">
     import Icon from "$lib/ui/Icon.svelte"
     import * as icons from "@timephy/tui-icons-svelte/ICONS"
+    import iconsMeta from "@timephy/tui-icons-svelte/META"
+    import Fuse from "fuse.js"
+
+    import { getModalController } from "$lib/modals"
+
+    const MODAL_C = getModalController()
+
+    const items = Object.entries(iconsMeta).map(([key, val]) => {
+        return {
+            key,
+            ...val,
+        }
+    })
+
+    const fuse = new Fuse(items, {
+        ignoreLocation: true,
+        useExtendedSearch: true,
+        shouldSort: false,
+        keys: ["key", "name", "categories", "tags"],
+        threshold: 0,
+    })
 
     let query = $state("")
     let showKeys = $state(true)
+
+    const resultIconKeys = $derived(fuse.search(query).map((res) => res.item.key))
 </script>
 
 <div class="flex flex-col items-center gap-6 p-6">
@@ -28,10 +74,79 @@
     </div>
     <div class="card card-p inline-grid grid-cols-10 items-center justify-center gap-2">
         {#each Object.entries(icons) as [key, icon] (key)}
-            {#if query === "" || key.includes(query)}
+            {#if query === "" || key.includes(query) || resultIconKeys.includes(key)}
                 <div class="flex flex-col items-center gap-1">
-                    <button class="item p-4 hover:btn hover:h-auto" onclick={() => alert(key)}>
-                        <Icon data={icon} class="size-10" />
+                    {#snippet _modal()}
+                        <div class="card card-p flex min-w-64 flex-col gap-2">
+                            <button
+                                class="btn btn-p btn-tall"
+                                onclick={() => {
+                                    navigator.clipboard.writeText(key)
+                                    MODAL_C.popAll()
+                                }}
+                            >
+                                Copy Key
+                            </button>
+                            <button
+                                class="btn btn-p btn-tall"
+                                onclick={() => {
+                                    const svg = new XMLSerializer().serializeToString(
+                                        document.getElementById(`icon-${key}`)!,
+                                    )
+                                    navigator.clipboard.writeText(svg)
+                                    MODAL_C.popAll()
+                                }}
+                            >
+                                Copy Svg
+                            </button>
+                            <button
+                                class="btn btn-p btn-tall"
+                                onclick={() => {
+                                    MODAL_C.push(_modal_png)
+                                }}
+                            >
+                                Copy Png
+                            </button>
+                        </div>
+                    {/snippet}
+                    {#snippet _modal_png()}
+                        {@const svg = new XMLSerializer().serializeToString(document.getElementById(`icon-${key}`)!)}
+                        <div class="card card-p flex min-w-64 flex-col gap-2">
+                            <button
+                                class="btn btn-p btn-tall"
+                                onclick={async () => {
+                                    const png = await svg2png(svg, 512)
+
+                                    const data = new ClipboardItem({ "image/png": png })
+                                    navigator.clipboard.write([data])
+
+                                    MODAL_C.popAll()
+                                }}
+                            >
+                                512px White
+                            </button>
+                            <button
+                                class="btn btn-p btn-tall"
+                                onclick={async () => {
+                                    const png = await svg2png(svg, 512, "#000000")
+
+                                    const data = new ClipboardItem({ "image/png": png })
+                                    navigator.clipboard.write([data])
+
+                                    MODAL_C.popAll()
+                                }}
+                            >
+                                512px Black
+                            </button>
+                        </div>
+                    {/snippet}
+                    <button
+                        class="item p-4 hover:btn hover:h-auto"
+                        onclick={() => {
+                            MODAL_C.push(_modal)
+                        }}
+                    >
+                        <Icon data={icon} class="size-10" id="icon-{key}" />
                     </button>
                     {#if showKeys}
                         <p class="max-w-[4.5rem] truncate text-[10px] text-step-600">{key}</p>

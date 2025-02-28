@@ -44,7 +44,8 @@
         "dist/"
     ],
     "exports": {
-        "./ICONS": "./dist/icons/index.js",
+        "./META": "./dist/icons/_META.js",
+        "./ICONS": "./dist/icons/_ICONS.js",
         "./activity": "./dist/icons/activity.js",
         "./airplane": "./dist/icons/airplane.js",
         "./airplane_engines": "./dist/icons/airplane_engines.js",
@@ -2101,6 +2102,7 @@
         "@types/svg-parser": "^2.0.6",
         "bootstrap-icons": "1.11.3",
         "bun": "^1.1.34",
+        "front-matter": "^4.0.2",
         "svg-parser": "^2.0.4"
     },
     "dependencies": {

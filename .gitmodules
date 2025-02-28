@@ -1,0 +1,3 @@
+[submodule "packages/tui-icons-svelte/src/codegen/icons"]
+	path = packages/tui-icons-svelte/src/codegen/icons
+	url = https://github.com/twbs/icons

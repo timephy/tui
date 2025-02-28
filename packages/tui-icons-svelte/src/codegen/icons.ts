@@ -1,9 +1,11 @@
 import assert from "node:assert"
 import fs from "node:fs"
 import { parse } from "svg-parser"
+import fm from "front-matter"
 
 // path depends on package manager, but pnpm installs local in package
 const SOURCE_DIR = "./node_modules/bootstrap-icons/icons"
+const SOURCE_DIR_TAGS = "./src/codegen/icons/docs/content/icons"
 const TARGET_DIR = "src/icons"
 
 // skip these files because they contain unsupported elements (`rect`)
@@ -16,12 +18,26 @@ const SKIP_FILES = ["align-top.svg", "align-bottom.svg"]
 //     fs.rmSync(`${TARGET_DIR}/${file}`)
 // }
 
+type Meta = {
+    title: string
+    categories: string
+    tags: string[]
+}
+const meta: Record<string, Meta> = {}
+
 // read source dir
 for (const file of fs.readdirSync(SOURCE_DIR)) {
     if (SKIP_FILES.includes(file)) continue
 
+    const varname = slug_from_filename(file)
+    const fileTags = file.replace(".svg", ".md")
+
     const content = fs.readFileSync(`${SOURCE_DIR}/${file}`, "utf-8")
+    const contentTags = fs.readFileSync(`${SOURCE_DIR_TAGS}/${fileTags}`, "utf-8")
     const svg = parse(content)
+    const frontmatter = fm(contentTags)
+
+    meta[varname] = frontmatter.attributes as Meta
 
     assert(svg.children.length === 1)
     const root = svg.children[0]
@@ -62,7 +78,6 @@ for (const file of fs.readdirSync(SOURCE_DIR)) {
         }
     })
 
-    const varname = slug_from_filename(file)
     const output = `
 const ${varname} = {
     _: {
@@ -94,14 +109,19 @@ const ICONS = fs
     .map((file) => file.replace(".ts", ""))
     .sort() // sort alphabetically
 
-// ! ICONS -> icons/index.ts
-const output = ICONS.map((name) => `export { default as ${name} } from "./${name}.js"`).join("\n")
-fs.writeFileSync(`src/icons/index.ts`, output)
+// ! ICONS -> icons/META.ts
+const outputMeta = JSON.stringify(meta, null, 4)
+fs.writeFileSync(`src/icons/_META.ts`, `export default ${outputMeta}`)
+
+// ! ICONS -> icons/ICONS.ts
+const outputItems = ICONS.map((name) => `export { default as ${name} } from "./${name}.js"`)
+fs.writeFileSync(`src/icons/_ICONS.ts`, outputItems.join("\n"))
 
 // ! Update `package.json > exports`
 /** The `exports` mapping */
 const exports = {
-    "./ICONS": "./dist/icons/index.js",
+    "./META": "./dist/icons/_META.js",
+    "./ICONS": "./dist/icons/_ICONS.js",
     ...Object.fromEntries(ICONS.map((name) => [`./${name}`, `./dist/icons/${name}.js`])),
 }
 
