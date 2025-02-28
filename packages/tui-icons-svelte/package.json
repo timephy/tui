@@ -6,7 +6,7 @@
     "scripts": {
         "clean": "rm -rf dist/ src/icons/*.ts",
         "codegen": "rm -rf src/icons/*.ts && bun src/codegen/icons.ts",
-        "lint": "prettier . --check && eslint .",
+        "lint": "prettier . --check && eslint . --ignore-pattern 'src/codegen/icons'",
         "build": "rm -rf dist && tsc && rm -rf dist/codegen",
         "package": "publint"
     },
