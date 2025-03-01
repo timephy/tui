@@ -17,5 +17,7 @@
 </script>
 
 <ModalViewController {defaultConfig}>
-    {@render children()}
+    <div class="h-full w-full overflow-y-auto">
+        {@render children()}
+    </div>
 </ModalViewController>

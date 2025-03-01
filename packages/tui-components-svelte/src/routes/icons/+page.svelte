@@ -1,5 +1,5 @@
 <script lang="ts" module>
-    function svg2png(svg: string, resolution: number, color: string = "#ffffff"): Promise<Blob> {
+    function svg2png(svg: string, resolution: number, color: "white" | "black"): Promise<Blob> {
         return new Promise((resolve) => {
             const canvas = document.createElement("canvas")
             canvas.width = resolution
@@ -97,7 +97,7 @@
                                     MODAL_C.popAll()
                                 }}
                             >
-                                Copy Svg
+                                Copy SVG
                             </button>
                             <button
                                 class="btn btn-p btn-tall"
@@ -105,7 +105,15 @@
                                     MODAL_C.push(_modal_png)
                                 }}
                             >
-                                Copy Png
+                                Copy PNG
+                            </button>
+                            <button
+                                class="btn btn-p btn-tall"
+                                onclick={() => {
+                                    MODAL_C.push(_modal_png_file)
+                                }}
+                            >
+                                Download PNG
                             </button>
                         </div>
                     {/snippet}
@@ -115,7 +123,7 @@
                             <button
                                 class="btn btn-p btn-tall"
                                 onclick={async () => {
-                                    const png = await svg2png(svg, 512)
+                                    const png = await svg2png(svg, 512, "white")
 
                                     const data = new ClipboardItem({ "image/png": png })
                                     navigator.clipboard.write([data])
@@ -128,10 +136,53 @@
                             <button
                                 class="btn btn-p btn-tall"
                                 onclick={async () => {
-                                    const png = await svg2png(svg, 512, "#000000")
+                                    const png = await svg2png(svg, 512, "black")
 
                                     const data = new ClipboardItem({ "image/png": png })
                                     navigator.clipboard.write([data])
+
+                                    MODAL_C.popAll()
+                                }}
+                            >
+                                512px Black
+                            </button>
+                        </div>
+                    {/snippet}
+                    {#snippet _modal_png_file()}
+                        {@const svg = new XMLSerializer().serializeToString(document.getElementById(`icon-${key}`)!)}
+                        <div class="card card-p flex min-w-64 flex-col gap-2">
+                            <button
+                                class="btn btn-p btn-tall"
+                                onclick={async () => {
+                                    const png = await svg2png(svg, 512, "white")
+
+                                    const url = URL.createObjectURL(png)
+                                    const a = document.createElement("a")
+                                    a.href = url
+                                    a.download = `${key}-white.png`
+                                    document.body.appendChild(a)
+                                    a.click()
+                                    document.body.removeChild(a)
+                                    URL.revokeObjectURL(url)
+
+                                    MODAL_C.popAll()
+                                }}
+                            >
+                                512px White
+                            </button>
+                            <button
+                                class="btn btn-p btn-tall"
+                                onclick={async () => {
+                                    const png = await svg2png(svg, 512, "black")
+
+                                    const url = URL.createObjectURL(png)
+                                    const a = document.createElement("a")
+                                    a.href = url
+                                    a.download = `${key}-black.png`
+                                    document.body.appendChild(a)
+                                    a.click()
+                                    document.body.removeChild(a)
+                                    URL.revokeObjectURL(url)
 
                                     MODAL_C.popAll()
                                 }}
