@@ -33,14 +33,9 @@ export function DerivedState<T>(opts: Opts<T>): DerivedStateType<T> {
     let curr: T = $state()!
 
     if (browser) {
-        console.log("browser")
         // NOTE: This constructs and recreates the value on the client-side
         const _effect_pre = () => {
             $effect.pre(() => {
-                console.log(
-                    "$effect.pre",
-                    untrack(() => curr),
-                )
                 curr = opts.construct(untrack(() => curr))
                 return () => opts.destruct?.(curr)
             })
@@ -48,10 +43,8 @@ export function DerivedState<T>(opts: Opts<T>): DerivedStateType<T> {
 
         let cleanup: (() => void) | undefined
         if (opts.mode === "module") {
-            console.log("module")
             cleanup = $effect.root(_effect_pre)
         } else {
-            console.log("component")
             _effect_pre()
         }
 
@@ -63,7 +56,6 @@ export function DerivedState<T>(opts: Opts<T>): DerivedStateType<T> {
             cleanup,
         })
     } else {
-        console.log("server")
         // NOTE: This constructs the value LAZILY, because we can not update it directly, since `$effect`s don't run on the server
         const inner = () => {
             opts.destruct?.(curr)
