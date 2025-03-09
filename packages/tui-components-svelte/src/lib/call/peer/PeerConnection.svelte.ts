@@ -548,6 +548,34 @@ export class PeerConnection {
 
     /* ============================================================================================================== */
 
+    /**
+     * Helper function to get sender parameters with retry logic
+     * @param transceiver The RTCRtpTransceiver to get parameters from
+     * @param debugName Name for debugging purposes
+     * @returns Promise with the sender parameters
+     */
+    private async _getSenderParametersWithRetry(
+        transceiver: RTCRtpTransceiver,
+        debugName: string,
+    ): Promise<RTCRtpSendParameters> {
+        return new Promise<RTCRtpSendParameters>((resolve, reject) => {
+            let i = 0
+            const interval = setInterval(() => {
+                const parameters = transceiver.sender.getParameters()
+                console.debug(`polling _configure_${debugName}`, parameters)
+                if (parameters.encodings.length > 0) {
+                    clearInterval(interval)
+                    resolve(parameters)
+                }
+                i++
+                if (i >= 50) {
+                    clearInterval(interval)
+                    reject(`Could not get parameters for ${debugName} after 50 tries`)
+                }
+            }, 100)
+        })
+    }
+
     private async _configure_transceiverMicAudio(transceiver: RTCRtpTransceiver) {
         if (sortedCodecsAudio !== null) {
             try {
@@ -558,14 +586,14 @@ export class PeerConnection {
         }
 
         try {
-            const parameters = transceiver.sender.getParameters()
-            // parameters.degradationPreference = "maintain-resolution"
+            const parameters = await this._getSenderParametersWithRetry(transceiver, "transceiverMicAudio")
             Object.assign(parameters.encodings[0]!, this._transceiverMicAudioParameters)
             await transceiver.sender.setParameters(parameters)
         } catch (error) {
             this.ERROR("transceiverMicAudio.setParameters() error:", error)
         }
     }
+
     private async _configure_transceiverCamVideo(transceiver: RTCRtpTransceiver) {
         if (sortedCodecsVideo !== null) {
             try {
@@ -576,7 +604,7 @@ export class PeerConnection {
         }
 
         try {
-            const parameters = transceiver.sender.getParameters()
+            const parameters = await this._getSenderParametersWithRetry(transceiver, "transceiverCamVideo")
             parameters.degradationPreference = "maintain-resolution"
             Object.assign(parameters.encodings[0]!, this._transceiverCamVideoParameters)
             await transceiver.sender.setParameters(parameters)
@@ -584,6 +612,7 @@ export class PeerConnection {
             this.ERROR("transceiverCamVideo.setParameters() error:", error)
         }
     }
+
     private async _configure_transceiverScreenVideo(transceiver: RTCRtpTransceiver) {
         if (sortedCodecsVideo !== null) {
             try {
@@ -594,7 +623,7 @@ export class PeerConnection {
         }
 
         try {
-            const parameters = transceiver.sender.getParameters()
+            const parameters = await this._getSenderParametersWithRetry(transceiver, "transceiverScreenVideo")
             parameters.degradationPreference = "maintain-framerate"
             Object.assign(parameters.encodings[0]!, this._transceiverScreenVideoParameters)
             await transceiver.sender.setParameters(parameters)
@@ -602,10 +631,8 @@ export class PeerConnection {
             this.ERROR("transceiverScreenVideo.setParameters() error:", error)
         }
     }
-    private async _configure_transceiverScreenAudio(transceiver: RTCRtpTransceiver) {
-        console.log("debug", transceiver.sender.getParameters())
-        console.log("debug", transceiver.receiver.getParameters())
 
+    private async _configure_transceiverScreenAudio(transceiver: RTCRtpTransceiver) {
         if (sortedCodecsAudio !== null) {
             try {
                 transceiver.setCodecPreferences(sortedCodecsAudio)
@@ -615,8 +642,7 @@ export class PeerConnection {
         }
 
         try {
-            const parameters = transceiver.sender.getParameters()
-            // parameters.degradationPreference = "maintain-resolution"
+            const parameters = await this._getSenderParametersWithRetry(transceiver, "transceiverScreenAudio")
             Object.assign(parameters.encodings[0]!, this._transceiverScreenAudioParameters)
             await transceiver.sender.setParameters(parameters)
         } catch (error) {
