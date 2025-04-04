@@ -35,17 +35,27 @@ const sortedCodecsAudio = (() => {
     // NOTE: Cannot access RTCRtpReceiver on the server
     if (!browser) return []
 
-    const supportedCodecsAudio = RTCRtpReceiver.getCapabilities("audio")?.codecs ?? null
-    const preferredCodecsAudio = ["audio/opus"]
-    return supportedCodecsAudio !== null ? sortByMimeTypes(supportedCodecsAudio, preferredCodecsAudio) : null
+    try {
+        const supportedCodecsAudio = RTCRtpReceiver.getCapabilities("audio")?.codecs ?? null
+        const preferredCodecsAudio = ["audio/opus"]
+        return supportedCodecsAudio !== null ? sortByMimeTypes(supportedCodecsAudio, preferredCodecsAudio) : null
+    } catch (e) {
+        console.error("[PeerConnection] sortedCodecsAudio", e)
+        return null
+    }
 })()
 const sortedCodecsVideo = (() => {
     // NOTE: Cannot access RTCRtpReceiver on the server
     if (!browser) return []
 
-    const supportedCodecsVideo = RTCRtpReceiver.getCapabilities("video")?.codecs ?? null
-    const preferredCodecsVideo = ["video/AV1", "video/H264", "video/VP8", "video/VP9"]
-    return supportedCodecsVideo !== null ? sortByMimeTypes(supportedCodecsVideo, preferredCodecsVideo) : null
+    try {
+        const supportedCodecsVideo = RTCRtpReceiver.getCapabilities("video")?.codecs ?? null
+        const preferredCodecsVideo = ["video/AV1", "video/H264", "video/VP8", "video/VP9"]
+        return supportedCodecsVideo !== null ? sortByMimeTypes(supportedCodecsVideo, preferredCodecsVideo) : null
+    } catch (e) {
+        console.error("[PeerConnection] sortedCodecsAudio", e)
+        return null
+    }
 })()
 
 console.log("[PeerConnection] sortedCodecsAudio", sortedCodecsAudio)
