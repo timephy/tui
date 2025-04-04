@@ -25,8 +25,12 @@
         if (media.mic_devices.length === 0 || getMediaSuccess.mic === false) {
             // NOTE: Using onfocus instead of onclick, as onclick is not always triggered in Safari
             console.debug("[SelectMic] onfocus: No devices found, requesting permission")
-            let stream = await getMic(null)
-            stream.getTracks().forEach((track) => track.stop())
+            try {
+                let stream = await getMic(null)
+                stream.getTracks().forEach((track) => track.stop())
+            } catch (e) {
+                console.error("[SelectMic] onfocus: Error requesting permission", e)
+            }
         }
     }}
 />

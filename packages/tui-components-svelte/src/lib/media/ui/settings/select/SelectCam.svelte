@@ -25,8 +25,12 @@
         // NOTE: Using onfocus instead of onclick, as onclick is not always triggered in Safari
         if (media.cam_devices.length === 0 || getMediaSuccess.cam === false) {
             console.debug("[SelectCam] onfocus: No devices found, requesting permission")
-            let stream = await getCam(null)
-            stream.getTracks().forEach((track) => track.stop())
+            try {
+                let stream = await getCam(null)
+                stream.getTracks().forEach((track) => track.stop())
+            } catch (e) {
+                console.error("[SelectCam] onfocus: Error requesting permission", e)
+            }
         }
     }}
 />
