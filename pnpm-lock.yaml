@@ -59,24 +59,12 @@ importers:
       '@timephy/tui-icons-svelte':
         specifier: workspace:*
         version: link:../tui-icons-svelte
-      adapter-node@latest:
-        specifier: link:sveltejs/adapter-node@latest
-        version: link:sveltejs/adapter-node@latest
-      adapter-static@latest:
-        specifier: link:sveltejs/adapter-static@latest
-        version: link:sveltejs/adapter-static@latest
       express:
         specifier: ^4.21.1
         version: 4.21.1
       fuse.js:
         specifier: ^7.1.0
         version: 7.1.0
-      kit@latest:
-        specifier: link:sveltejs/kit@latest
-        version: link:sveltejs/kit@latest
-      package@latest:
-        specifier: link:sveltejs/package@latest
-        version: link:sveltejs/package@latest
       rxjs:
         specifier: ^7.8.1
         version: 7.8.1
@@ -1019,10 +1007,6 @@ packages:
   chokidar@3.6.0:
     resolution: {integrity: sha512-7VT13fmjotKpGipCW9JEQAusEPE+Ei8nl6/g4FBAmIm0GOOLMua9NDDo/DWp0ZAxCr3cPq5ZpBqmPAQgDda2Pw==}
     engines: {node: '>= 8.10.0'}
-
-  chokidar@4.0.1:
-    resolution: {integrity: sha512-n8enUVCED/KVRQlab1hr3MVpcVMvxtZjmEa956u+4YijlmQED223XMSYj2tLuKvr4jcCTzNNMpQDUer72MMmzA==}
-    engines: {node: '>= 14.16.0'}
 
   chokidar@4.0.3:
     resolution: {integrity: sha512-Qgzu8kfBvo+cA4962jnP1KkS6Dop5NS6g7R5LFYJr4b8Ub94PPQXUksCw9PvXoeXPRRddRNC5C1JQUR2SMGtnA==}
@@ -3286,10 +3270,6 @@ snapshots:
     optionalDependencies:
       fsevents: 2.3.3
 
-  chokidar@4.0.1:
-    dependencies:
-      readdirp: 4.0.2
-
   chokidar@4.0.3:
     dependencies:
       readdirp: 4.0.2
@@ -4545,7 +4525,7 @@ snapshots:
   svelte-check@4.1.6(picomatch@4.0.2)(svelte@5.28.2)(typescript@5.6.3):
     dependencies:
       '@jridgewell/trace-mapping': 0.3.25
-      chokidar: 4.0.1
+      chokidar: 4.0.3
       fdir: 6.4.2(picomatch@4.0.2)
       picocolors: 1.1.1
       sade: 1.8.1
